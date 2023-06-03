@@ -36,6 +36,10 @@ float calculateDistance(sf::Vector2f pos1, sf::Vector2f pos2)
 }
 
 
+float calculateVelocity()
+{
+
+}
 
 struct CircleObj
 {
@@ -67,21 +71,31 @@ struct CircleObj
 
     }
 
-    void physics(sf::Vector2f velocity)
+    void velocity2D(sf::Vector2f velocity)
     {
         circle.move(velocity);
     }
 
-    bool checkCollision2D(CircleObj other)
+    bool onCollision2D(CircleObj other)
     {
-
-        if (calculateDistance(this->pos, other.pos) < radius*2)
+        float dist = calculateDistance(this->pos, other.pos);
+        float pushDist;
+        if (dist <= (this->radius+other.radius))
         {
+            pushDist = 0.5f * (dist - this->radius - other.radius);
+            this->pos.x -= pushDist * (this->pos.x - other.pos.x) /dist;
+            this->pos.y -= pushDist * (this->pos.y - other.pos.y) /dist;
+
+            other.pos.x += pushDist * (this->pos.x - other.pos.x) /dist;
+            other.pos.y += pushDist * (this->pos.y - other.pos.y) /dist;
+
             return true;
         }
 
         return false;
     }
+
+
 
 
 };
@@ -100,21 +114,16 @@ int main()
     // simple circle
     float circleRadius = 30.0f;
 
-    float creationInterval = 0.5f; // Time interval between circle creations (in seconds)
+    float creationInterval = 0.01f; // Time interval between circle creations (in seconds)
     float elapsedTime = 0.0f; // Elapsed time since the last circle creation
 
 
     sf::Vector2f circlePos(window.getSize().x / 2, window.getSize().y / 2);
 
 
-
-
     while (window.isOpen())
     {
-
         window.clear();
-
-
 
         sf::Event evnt;
         while (window.pollEvent(evnt)) // events ie. close/resize/character
@@ -137,11 +146,6 @@ int main()
 
         float deltaTime = clock.restart().asSeconds();
         elapsedTime += deltaTime;
-        //circle.sprite.move(0.0f,moveSpeed*deltaTime);
-
-
-
-
 
 
 
@@ -151,10 +155,11 @@ int main()
             {
                 if (c.id != o.id)
                 {
-                    if (c.checkCollision2D(o)) c.circle.setFillColor(sf::Color::Red);
-
-
-
+                    if (c.onCollision2D(o))
+                    {
+                            c.display_circ();
+                            c.circle.setFillColor(sf::Color::Red);
+                    }
                 }
             }
 
