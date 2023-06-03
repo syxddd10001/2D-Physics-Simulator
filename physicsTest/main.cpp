@@ -1,52 +1,11 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
+#include <cmath>
 
-
-
-struct Circle
-{
-    sf::Vector2f pos;
-    sf::Vector2f vel;
-    sf::Vector2f acc;
-    float radius;
-    int id;
-    sf::CircleShape circle;
-    Circle (sf::Vector2f p, sf::Vector2f v, float rad)
-    {
-        pos = p;
-        vel = v;
-        radius = rad;
-    }
-
-    void display_circ()
-    {
-        circle = sf::CircleShape(radius);
-        sf::Vector2f circleCenter(circle.getRadius(), circle.getRadius());
-        circle.setOrigin(circleCenter);
-        sf::Vector2f circlePos(pos.x, pos.y);
-        circle.setPosition(circlePos);
-    }
-
-    void physics(sf::Vector2f velocity)
-    {
-        circle.move(velocity);
-    }
-
-};
 
 void Render()
 {
-
-}
-
-int main()
-{
-     // Create the main window
-    sf::RenderWindow window(sf::VideoMode(1000, 1000), "S", sf::Style::Default);
-
-    std::vector <Circle> circ;
-    sf::Clock clock;
     /*
     //-- -- -- FOR GAME MAKING -- will use later
     sf::RectangleShape rect (sf::Vector2f(300.0f,300.0f));
@@ -65,6 +24,77 @@ int main()
 
     // -- -- --
     */
+}
+
+float calculateDistance(sf::Vector2f pos1, sf::Vector2f pos2)
+{
+    float dx = pos1.x-pos2.x;
+    float dy = pos1.y-pos2.y;
+
+    return std::sqrt(dx*dx + dy*dy);
+
+}
+
+
+
+struct CircleObj
+{
+    sf::Vector2f pos;
+    sf::Vector2f vel;
+    sf::Vector2f acc;
+    float radius;
+
+    int id;
+
+    sf::CircleShape circle;
+
+    CircleObj (sf::Vector2f p, sf::Vector2f v, float rad, int id)
+    {
+        pos = p;
+        vel = v;
+        radius = rad;
+        this->id = id;
+        display_circ();
+    }
+
+    void display_circ()
+    {
+        circle = sf::CircleShape(radius);
+        sf::Vector2f circleCenter(circle.getRadius(), circle.getRadius());
+        circle.setOrigin(circleCenter);
+        sf::Vector2f circlePos(pos.x, pos.y);
+        circle.setPosition(circlePos);
+
+    }
+
+    void physics(sf::Vector2f velocity)
+    {
+        circle.move(velocity);
+    }
+
+    bool checkCollision2D(CircleObj other)
+    {
+
+        if (calculateDistance(this->pos, other.pos) < radius*2)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+
+};
+
+
+int main()
+{
+     // Create the main window
+    sf::RenderWindow window(sf::VideoMode(1000, 1000), "Circle Generator", sf::Style::Default);
+
+    std::vector <CircleObj> circ;
+    sf::Clock clock;
+
     float moveSpeed = 350.0f;
 
     // simple circle
@@ -78,8 +108,10 @@ int main()
 
 
 
+
     while (window.isOpen())
     {
+
         window.clear();
 
 
@@ -115,7 +147,17 @@ int main()
 
         for (auto& c : circ)
         {
-            c.physics(sf::Vector2f(0.0f,moveSpeed*deltaTime));
+            for (auto& o : circ)
+            {
+                if (c.id != o.id)
+                {
+                    if (c.checkCollision2D(o)) c.circle.setFillColor(sf::Color::Red);
+
+
+
+                }
+            }
+
             window.draw(c.circle);
         }
 
@@ -161,14 +203,19 @@ int main()
         else rect.setTexture(&iTextureIDLE);
 
         */
+
+
+
         if (sf::Mouse::isButtonPressed(sf::Mouse::Left) && elapsedTime >= creationInterval)
         {
             elapsedTime = 0.0f;
             sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 
-            Circle circlex (sf::Vector2f((float)mousePos.x, (float)mousePos.y), sf::Vector2f(0.0f,0.0f), circleRadius);
-            circlex.display_circ();
+            CircleObj circlex (sf::Vector2f((float)mousePos.x, (float)mousePos.y), sf::Vector2f(0.0f,0.0f), circleRadius, circ.size());
+
             circ.emplace_back(circlex);
+
+            //std::cout << "x: " << circlex.pos.x << " y: " << circlex.pos.y << std::endl;
 
 
             //circle.circle.setPosition((float)mousePos.x, (float)mousePos.y); // can also use static_cast<float>(mousePos.x/y)
