@@ -42,13 +42,15 @@ struct CircleObj
     sf::Vector2f pos_f;
     sf::Vector2f velocity;
     sf::Vector2f acc;
+
+    float mass;
     float radius;
 
     int id;
 
     sf::CircleShape *circle = new sf::CircleShape;
 
-    CircleObj (sf::Vector2f point, float rad, sf::Vector2f acceleration,int id)
+    CircleObj (sf::Vector2f point, float rad, sf::Vector2f acceleration, float mass, int id)
     {
         radius = rad;
         circle->setRadius(radius);
@@ -57,6 +59,8 @@ struct CircleObj
         pos_i = point;
         this->id = id;
         this->acc = acceleration;
+
+        this->mass = radius*10.0f;
 
         sf::Vector2f circleCenter(circle->getRadius(), circle->getRadius());
         circle->setOrigin(circleCenter);
@@ -127,6 +131,41 @@ struct CircleObj
 };
 
 
+void dynamicResponse(CircleObj* j1, CircleObj* j2)
+{
+    // normal calculation
+    sf::Vector2f collisionNormal = j2->pos_f - j1->pos_f;
+
+    //distance calculation using pythagorean theorem
+    float distance = calculateDistance(j1->pos_f, j2->pos_f);
+
+    if (distance != 0.0f) collisionNormal /= distance; // avoid div by 0
+
+    sf::Vector2f collisionTangent(-collisionNormal.y, collisionNormal.x);
+
+        // Tangential Velocity calculation (90 degrees to the collision) using dot product
+    float dotVelTan1 = j1->velocity.x * collisionTangent.x + j1->velocity.y * collisionTangent.y;
+    float dotVelTan2 = j2->velocity.x * collisionTangent.x + j2->velocity.y * collisionTangent.y;
+
+        // Normal Velocity calculation (180 degrees to the collision) using dot product
+    float dotVelNorm1 = j1->velocity.x * collisionNormal.x + j1->velocity.y * collisionNormal.y;
+    float dotVelNorm2 = j2->velocity.x * collisionNormal.x + j2->velocity.y * collisionNormal.y;
+
+        // Momentum Calculation using the mass and dot products of normal
+    float momentum_j1 = (dotVelNorm1 * (j1->mass - j2->mass) + 2.0f * j2->mass * dotVelNorm2) / (j1->mass + j2->mass);
+    float momentum_j2 = (dotVelNorm2 * (j2->mass - j1->mass) + 2.0f * j1->mass * dotVelNorm1) / (j1->mass + j2->mass);
+
+
+        // update the velocity of the objects
+    j1->velocity = collisionTangent * dotVelTan1 + collisionNormal * momentum_j1;
+    j2->velocity = collisionTangent * dotVelTan2 + collisionNormal * momentum_j2;
+
+    // Adjust the positions slightly to prevent overlap
+    float overlap = (j1->radius + j2->radius) - distance;
+    sf::Vector2f correction = collisionNormal * (overlap * 0.5f);
+    j1->pos_f -= correction;
+    j2->pos_f += correction;
+}
 
 
 int main()
@@ -191,16 +230,11 @@ int main()
                     pSelectedCirc = nullptr;
                     break;
                 }
-
-
-
             }
         }
 
         float deltaTime = clock.restart().asSeconds();
         elapsedTime += deltaTime;
-
-
 
 
         for (auto& c : circ)
@@ -217,36 +251,10 @@ int main()
                 {
                     if (c.onCollision2D(o))
                     {
-                        collidedCircles.push_back({&c, &o});
+                        dynamicResponse(&c,&o);
                     }
                 }
             }
-
-            //c.velocity2D(sf::Vector2f(0.0f, moveSpeed*deltaTime));
-
-        }
-
-        for (auto j : collidedCircles)
-        {
-            CircleObj *j1 = j.first;
-            CircleObj *j2 = j.second;
-
-            float dist = calculateDistance(j1->pos_f, j2->pos_f);
-
-            sf::Vector2f normal = (j1->pos_f - j2->pos_f)/dist;
-
-            float tanj_x = -normal.y;
-            float tanj_y = normal.x;
-
-
-            float dotpTan1 = j1->velocity.x * tanj_x + j1->velocity.y * tanj_y;
-            float dotpTan2 = j2->velocity.x * tanj_x + j2->velocity.y * tanj_y;
-
-
-            j1->velocity.x = tanj_x * dotpTan1;
-            j1->velocity.y = tanj_y * dotpTan1;
-            j2->velocity.x = tanj_x * dotpTan2;
-            j2->velocity.y = tanj_y * dotpTan2;
 
         }
 
@@ -303,13 +311,25 @@ int main()
         */
 
 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) && elapsedTime >= creationInterval)
+        {
+            elapsedTime = 0.0f;
+            circleRadius -= 10.0f;
+            std::cout<<circleRadius<<std::endl;
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) && elapsedTime >= creationInterval)
+        {
+            elapsedTime = 0.0f;
+            circleRadius += 10.0f;
+            std::cout<<circleRadius<<std::endl;
+        }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && elapsedTime >= creationInterval)
         {
             elapsedTime = 0.0f;
             sf::Vector2i mousePos = sf::Mouse::getPosition(window);
 
-            CircleObj circlex (sf::Vector2f((float)mousePos.x, (float)mousePos.y), circleRadius, {0.0f,0.0f}, circ.size());
+            CircleObj circlex (sf::Vector2f((float)mousePos.x, (float)mousePos.y), circleRadius, {0.0f,0.0f}, 1.0f,circ.size());
 
             circ.emplace_back(circlex);
 
