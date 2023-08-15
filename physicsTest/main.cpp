@@ -3,9 +3,9 @@
 #include <vector>
 #include <cmath>
 #include <sstream>
-
-
-
+#include <random>
+#include <memory>
+#include <list>
 float calculateDistance(sf::Vector2f pos1, sf::Vector2f pos2)
 {
     float dx = pos1.x-pos2.x;
@@ -15,203 +15,297 @@ float calculateDistance(sf::Vector2f pos1, sf::Vector2f pos2)
 
 // Testing QuadTree for collision detection
 
-struct Point
-{
-    float x;
-    float y;
+struct Circle{
+    sf::Vector2f pos;
+    float radius;
 
-    Point(float x, float y)
+    Circle(const sf::Vector2f& p = {0.0f, 0.0f}, const float r = 1.0f) : pos(p), radius(r)
     {
-        this->x = x;
-        this->y = y;
+
     }
 
-    Point()
+};
+
+struct Rectangle{
+
+    sf::Vector2f pos;
+    sf::Vector2f sizer;
+
+    Rectangle(const sf::Vector2f& p = {0.0f, 0.0f}, const sf::Vector2f& s = {1.0f, 1.0f}) : pos(p), sizer(s)
     {
-        x = 0;
-        y = 0;
+
     }
+
+    constexpr bool contains(const sf::Vector2f& p) const
+    {
+        return !(p.x < pos.x || p.y < pos.y || p.x >= (pos.x + sizer.x) || p.y >= (pos.y + sizer.y));
+    }
+
+    constexpr bool contains(const Rectangle& r) const
+    {
+        return (r.pos.x >= pos.x) && (r.pos.x + r.sizer.x < pos.x + sizer.x) &&
+        (r.pos.y >= pos.y) && (r.pos.y + r.sizer.y < pos.y + sizer.y);
+    }
+
+    constexpr bool overlaps(const Rectangle& r) const
+    {
+        return ( pos.x < r.pos.x + r.sizer.x && pos.x + sizer.x >= r.pos.x &&
+        pos.y < r.pos.y + r.sizer.y && pos.y + sizer.y >= r.pos.y );
+    }
+
+
+
+    constexpr bool contains(const Circle& c) const
+    {
+        return ( c.pos.x >= pos.x) && ( c.pos.x + c.radius < pos.x + sizer.x ) &&
+        ( c.pos.y >= pos.y ) && ( c.pos.y + c.radius < pos.y + sizer.y );
+    }
+
+    constexpr bool overlaps(const Circle& c) const
+    {
+        return ( pos.x < c.pos.x + c.radius && pos.x + sizer.x >= c.pos.x &&
+        pos.y < c.pos.y + c.radius && pos.y + sizer.y >= c.pos.y );
+    }
+
 
 };
 
 
 
+constexpr size_t MAX_DEPTH = 6;
 
-struct Node
+template <typename OBJECT>
+class StaticQuadTree
 {
-    Point pos;
-    int data;
-
-    Node(Point pos, int data)
-    {
-        this->pos = pos;
-        this->data = data;
-    }
-    Node()
-    {
-        data = 0;
-    }
-
-};
-
-class Quadtree
-{
-    //boundary
-    Point topLeft;
-    Point bottomRight;
-
-    Node* n;
-    //children
-    Quadtree* topLeftTree;
-    Quadtree* bottomLeftTree;
-    Quadtree* topRightTree;
-    Quadtree* bottomRightTree;
+    public:
+        size_t m_depth = 0;
+        Rectangle rect;
+        std::array<Rectangle, 4> rChild;
+        std::array<std::shared_ptr<StaticQuadTree<OBJECT>>,4> pChild{};
+        std::vector<std::pair<Rectangle, OBJECT>> pItems;
 
 
-
-
-public:
-    Quadtree(Point topL, Point bottomR)
-    {
-        this->topLeft = topL;
-        this->bottomRight = bottomR;
-        this->n = NULL;
-        topLeftTree = NULL;
-        bottomLeftTree = NULL;
-        topRightTree = NULL;
-        bottomRightTree = NULL;
-    }
-
-    Quadtree()
-    {
-        this->topLeft = Point({0.0f, 0.0f});
-        this->bottomRight = Point({0.0f, 0.0f});
-        this->n = NULL;
-        topLeftTree = NULL;
-        bottomLeftTree = NULL;
-        topRightTree = NULL;
-        bottomRightTree = NULL;
-    }
-    void insert(Node* node);
-    Node* search(Point);
-    bool inBound(Point);
-};
-
-void Quadtree::insert(Node* node) // recursive algorithm for inserting a node to a tree
-{
-
-    if (node == NULL) return; // base case, exit function if the node is null
-
-    if (!inBound(node->pos)) return; // 2nd base case, if the point is not in the boundary, exit function
-
-    if (abs(topLeft.x-bottomRight.x) <= 1 && abs(topLeft.y-bottomRight.y) <= 1)
-    {
-        if (n == NULL) n = node;
-        return;
-    }
-
-    if ((topLeft.x + bottomRight.x)/2 >= node->pos.x)
-    {
-
-        if ((topLeft.y + bottomRight.y)/2 >= node->pos.y)
+        StaticQuadTree(const Rectangle& size = { {0.0f, 0.0f}, {100.0f, 100.0f} }, const size_t nDepth = 0)
         {
-            if (topLeftTree == NULL)
-                topLeftTree = new Quadtree(Point(topLeft.x, topLeft.y), Point((topLeft.x + bottomRight.x)/2, (topLeft.y + bottomRight.y)/2));
-
-            topLeftTree->insert(node);
+            m_depth = nDepth;
+            resize(size);
         }
 
-        else
-        {
-            if (bottomLeftTree == NULL)
-                bottomLeftTree = new Quadtree(Point(topLeft.x, (topLeft.y + bottomRight.y)/2), Point((topLeft.x + bottomRight.x)/2, bottomRight.y));
+        void resize(const Rectangle& rArea){
+            clear();
 
-            bottomLeftTree->insert(node);
+            rect = rArea;
 
-        }
+            sf::Vector2f childSize = rect.sizer / 2.0f;
 
-    }
-
-    else
-    {
-        if ((topLeft.y + bottomRight.y)/2 >= node->pos.y)
-        {
-            if (topRightTree == NULL)
-                topRightTree = new Quadtree(Point((topLeft.x + bottomRight.x)/2, topLeft.y ) , Point( bottomRight.x, (topLeft.y + bottomRight.y)/2) );
-
-            topRightTree->insert(node);
-        }
-
-        else
-        {
-            if (bottomRightTree == NULL)
-                bottomRightTree = new Quadtree( Point ((topLeft.x + bottomRight.x)/2, (topLeft.y + bottomRight.y)/2), Point(bottomRight.x, bottomRight.y));
-
-            bottomRightTree->insert(node);
-
-        }
-
-
-    }
-
-
-}
-
-Node* Quadtree::search(Point p)
-{
-    if (!inBound(p)) return NULL;
-
-    if (n != NULL) return n;
-
-
-    if ((topLeft.x + bottomRight.x) / 2 >= p.x)
-    {
-        if ((topLeft.y + bottomRight.y) / 2 >= p.y)
-        {
-            if (topLeftTree == NULL) return NULL;
-
-            return topLeftTree->search(p);
-        }
-
-
-        else
-        {
-            if (bottomLeftTree == NULL) return NULL;
-
-            return bottomLeftTree->search(p);
-        }
-    }
-
-    else
-    {
-            if ((topLeft.y+bottomRight.y) / 2 >= p.y)
+            rChild =
             {
-                if (topRightTree == NULL) return NULL;
+                Rectangle(rect.pos, childSize),
+                Rectangle({rect.pos.x + childSize.x, rect.pos.y}, childSize),
+                Rectangle({rect.pos.x, rect.pos.y + childSize.y}, childSize),
+                Rectangle(rect.pos + childSize, childSize)
+            };
 
-                return topRightTree->search(p);
+        }
+
+        void clear()
+        {
+            // Erase any items stored in this layer
+            pItems.clear();
+
+            // Iterate through children, erase them too
+            for (int i = 0; i < 4; i++)
+            {
+                if (pChild[i])
+                    pChild[i]->clear();
+                pChild[i].reset();
+            }
+        }
+
+        size_t size() const
+        {
+            size_t nCount = pItems.size();
+            for (int i = 0; i < 4; i++)
+                if (pChild[i]) nCount += pChild[i]->size();
+            return nCount;
+        }
+
+
+        void insert(const OBJECT& item, const Rectangle& itemSize){
+            for (int i =0; i < 4; i++)
+            {
+                if (rChild[i].contains(itemSize)){
+                    if (m_depth + 1 < MAX_DEPTH){
+                        if (!pChild[i])
+                        {
+                            pChild[i] = std::make_shared<StaticQuadTree<OBJECT>>(rChild[i], m_depth+1);
+                        }
+
+                        pChild[i]->insert(item, itemSize);
+                        return;
+                    }
+                }
+
 
             }
 
-            else
-            {
-                if (bottomRightTree == NULL) return NULL;
+            pItems.push_back({itemSize, item});
+        }
 
-                return bottomRightTree->search(p);
+
+
+        std::list<OBJECT> search(const Rectangle& rArea) const{
+            std::list<OBJECT> listItems;
+            search(rArea, listItems);
+            return listItems;
+        }
+
+        void search(const Rectangle& rArea, std::list<OBJECT>& listItems)
+        {
+            for (const auto& p : pItems)
+            {
+                if (rArea.overlaps(p.first)) listItems.push_back(p.second);
             }
 
-    }
+
+            for (int i =0; i<4; i++){
+                if (pChild[i])
+                {
+                    if (rArea.contains(rChild[i])) pChild[i]->items(listItems);
+                } else if (rChild[i].overlaps(rArea)) pChild->search(rArea, listItems);
+
+            }
+        }
+
+        void items(std::list<OBJECT>& listItems) const
+        {
+            for (const auto& p : pItems){
+                listItems.push_back(p.second);
+            }
+
+            for (int i = 0; i < 4; i++) if (pChild[i]) pChild[i]->items(listItems);
+        }
+
+        std::list<OBJECT> items() const
+        {
+            std::list<OBJECT> listItems;
+            items(listItems);
+            return listItems;
+        }
+
+        const Rectangle& area()
+        {
+            return rect;
+        }
+
+        bool remove(OBJECT pItem){
+
+            auto it = std::find_if(pItems.begin(),pItems.end(),
+            [&pItem](const std::pair<Rectangle,OBJECT>& a)
+            {
+                return a.second == pItem;
+            });
+
+            if (it != pItems.end()){
+                pItems.erase(it);
+                return true;
+            }
+            else{
+                for (int i = 0; i < 4; i++)
+                {
+                    if (pChild[i])
+                    {
+                        if (pChild[i]->remove(pItem)) return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+};
+template <typename OBJECT>
+class StaticQuadTreeContainer
+{
+    public:
+        using QuadTreeContainer = std::list<OBJECT>;
+
+        QuadTreeContainer m_allItems;
+        StaticQuadTree<typename QuadTreeContainer::iterator> root;
+
+        StaticQuadTreeContainer(const Rectangle& size = { {0.0f, 0.0f}, {100.0f, 100.0f} }, const size_t nDepth=0) : root(size,nDepth){
+
+        }
+
+        void resize(const Rectangle& rArea){
+            root.resize(rArea);
+        }
+
+        size_t size() const{
+            return m_allItems;
+        }
+
+        bool empty() const{
+            return m_allItems.empty();
+        }
+
+        bool clear()
+        {
+            root.clear();
+            m_allItems.clear();
+        }
+
+        typename QuadTreeContainer::iterator begin()
+        {
+            return m_allItems.begin();
+        }
+
+        typename QuadTreeContainer::iterator end()
+        {
+            return m_allItems.end();
+        }
+
+        typename QuadTreeContainer::const_iterator cbegin()
+        {
+            return m_allItems.cbegin();
+        }
+
+        typename QuadTreeContainer::const_iterator cend()
+        {
+            return m_allItems.cend();
+        }
+
+
+
+        void insert(const OBJECT& item, const Rectangle& itemsize)
+        {
+            m_allItems.push_back(item);
+            root.insert(std::prev(m_allItems.end()), itemsize);
+        }
+
+
+        std::list<typename QuadTreeContainer::iterator> search(const Rectangle& rArea) const
+        {
+            std::list<typename QuadTreeContainer::iterator> listItemPointers;
+            root.search(rArea, listItemPointers);
+            return listItemPointers;
+        }
+
+        void remove(typename QuadTreeContainer::iterator item)
+        {
+            root.remove(item);
+            m_allItems.erase(item);
+        }
+
 };
 
-bool Quadtree::inBound(Point p)
-{
-    return (p.x >= topLeft.x && p.x <= bottomRight.x && p.y >= topLeft.y && p.y <= bottomRight.y);
-}
+
 
 
 struct Object
 {
-    sf::Vector2f pos_i;
-    sf::Vector2f pos_f;
+
+    sf::Vector2f pos;
     sf::Vector2f velocity;
     sf::Vector2f acc;
 
@@ -229,8 +323,8 @@ struct Object
         circle = new sf::CircleShape;
         radius = rad;
         circle->setRadius(radius);
-        pos_f = point;
-        pos_i = point;
+        pos = point;
+
         this->id = id;
         this->acc = acceleration;
 
@@ -247,16 +341,16 @@ struct Object
 
     void update(float time)
     {
-        verletIntegration(pos_i,pos_f,acc,time);
-        circle->setPosition(pos_f);
+        verletIntegration(pos,acc,time);
+        circle->setPosition(pos);
 
     }
 
-    void verletIntegration(sf::Vector2f pos_i, sf::Vector2f pos_fn, sf::Vector2f acceleration, float time)
+    void verletIntegration(sf::Vector2f pos_fn, sf::Vector2f acceleration, float time)
     {
         acceleration = -velocity * 0.8f;
         velocity += acceleration * time;
-        pos_f += velocity * time;
+        pos += velocity * time;
 
         if (std::sqrt(velocity.x*velocity.x + velocity.y * velocity.y) < 0.01f)
         {
@@ -266,18 +360,18 @@ struct Object
 
     bool onCollision2D(Object obj2)
     {
-        float dist = calculateDistance(this->pos_f, obj2.pos_f);
+        float dist = calculateDistance(this->pos, obj2.pos);
         float pushDist;
-        sf::Vector2f delta = this->pos_f - obj2.pos_f;
+        sf::Vector2f delta = this->pos - obj2.pos;
 
         if (dist < (this->radius+obj2.radius)) // static resolution for circle
         {
             pushDist = 0.5f * (dist - this->radius - obj2.radius);
-            this->pos_f.x -= pushDist * (delta.x) / dist;
-            this->pos_f.y -= pushDist * (delta.y) / dist;
+            this->pos.x -= pushDist * (delta.x) / dist;
+            this->pos.y -= pushDist * (delta.y) / dist;
 
-            obj2.pos_f.x += pushDist * (delta.x) / dist;
-            obj2.pos_f.y += pushDist * (delta.y) / dist;
+            obj2.pos.x += pushDist * (delta.x) / dist;
+            obj2.pos.y += pushDist * (delta.y) / dist;
 
             return true;
         }
@@ -287,9 +381,9 @@ struct Object
 
     bool mouseOnObj(sf::Vector2f vect)
     {
-        float dist = calculateDistance(this->pos_f, vect);
+        float dist = calculateDistance(this->pos, vect);
 
-        sf::Vector2f delta = this->pos_f - vect;
+        sf::Vector2f delta = this->pos - vect;
 
         if (dist < (this->radius))
         {
@@ -304,10 +398,10 @@ struct Object
 void dynamicResponse(Object* j1, Object* j2)
 {
     // normal calculation
-    sf::Vector2f collisionNormal = j2->pos_f - j1->pos_f;
+    sf::Vector2f collisionNormal = j2->pos - j1->pos;
 
     //distance calculation using pythagorean theorem
-    float distance = calculateDistance(j1->pos_f, j2->pos_f);
+    float distance = calculateDistance(j1->pos, j2->pos);
 
     if (distance != 0.0f) collisionNormal /= distance; // avoid div by 0
 
@@ -333,40 +427,35 @@ void dynamicResponse(Object* j1, Object* j2)
     // Adjust the positions slightly to prevent overlap
     float overlap = (j1->radius + j2->radius) - distance;
     sf::Vector2f correction = collisionNormal * (overlap * 0.5f);
-    j1->pos_f -= correction;
-    j2->pos_f += correction;
+    j1->pos -= correction;
+    j2->pos += correction;
 }
-
-
-struct lineSeg
-{
-    sf::Vector2f s_start;
-    sf::Vector2f s_end;
-    float radius;
-
-};
-
-
 
 
 int main()
 {
+
      // Create the main window
     sf::RenderWindow window(sf::VideoMode(1000, 1000), "Circle Generator", sf::Style::Default);
     sf::FloatRect boundary(0.0f, 0.0f, window.getSize().x, window.getSize().y);  // Define the boundary rectangle
-    std::vector <Object> circ;
-    std::vector <lineSeg> lseg;
+
+
+    sf::Font font;
+
+    if (!font.loadFromFile("./fonts/Silver.ttf")) return 10;
+
+    std::string t = "Press Spacebar to spawn a circle\nPress A to decrease and D to increase the radius of circles\nHold Right Mouse button to launch the circles";
+
+    sf::Text text(t, font, 30);
+    text.setPosition(0.0f,0.0f);
 
 
     Object *pSelectedObj = nullptr;
-    lineSeg *pSelectedSeg = nullptr;
+
 
     // simple circle
     float circleRadius = 60.0f;
 
-    //rect
-    float height = 100.0f;
-    float width = 300.0f;
 
     bool circle_mode = true;
 
@@ -378,36 +467,28 @@ int main()
     sf::Vector2f circlePos(window.getSize().x / 2, window.getSize().y / 2);
 
 
-    Quadtree center(Point(0, 0), Point(1000, 1000));
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> dis(1, 500);
 
 
-    for (int i = 0; i < 10; i++)
-    {
-        Node a(Point(i*i, i+i), i+1);
-        std::cout << a.pos.x << ", " << a.pos.y << std::endl;
-        center.insert(&a);
-    }
-
-    while(true)
-    {
-
-
-        std::cout << "Search: " << "\n";
-        float p1, p2;
-        std::cin >> p1 >> p2;
-        if (p1 < 0 || p2 < 0) break;
-        if (center.search(Point(p1,p2)) != NULL) std::cout<< "point found\n";
-        else std::cout<< "point not found\n";
-
-    }
-
+    std::list <Object> circ;
+    StaticQuadTree<Object> treeObj;
+    Rectangle rScreen = {{0.0f,0.0f}, {window.getSize().x, window.getSize().y}};
 
 
     while (window.isOpen())
     {
         sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+
         sf::Vector2f mousePosf(static_cast<float>(mousePos.x), static_cast<float>(mousePos.y));
         std::vector<std::pair<Object*,Object*>> collidedCircles;
+
+        window.clear();
+        std::string circle_size_text = "Radius and Mass: " + std::to_string( (int) circleRadius);
+        sf::Text radius_text(circle_size_text, font, 30);
+        radius_text.setPosition(window.getSize().x/2+300,0.0f);
+
         sf::Event evnt;
         while (window.pollEvent(evnt)) // events ie. close/resize/character
         {
@@ -427,25 +508,22 @@ int main()
 
                     if (pSelectedObj != nullptr)
                     {
-                        pSelectedObj->velocity = 5.0f * ((pSelectedObj->pos_f) - mousePosf);
+                        pSelectedObj->velocity = 5.0f * ((pSelectedObj->pos) - mousePosf);
                         pSelectedObj = nullptr;
                     }
 
                     break;
                 }
-
             }
         }
 
         float deltaTime = clock.restart().asSeconds();
         elapsedTime += deltaTime;
 
-
         for (auto& c : circ)
         {
             c.update(deltaTime);
         }
-
 
         for (auto& c : circ)
         {
@@ -462,38 +540,40 @@ int main()
 
         }
 
-        window.clear();
+
+
+
+
         for (auto& c : circ)
         {
             if (c.circle != nullptr)
                 window.draw(*(c.circle));
-
-
         }
+
+        window.draw(text);
+        window.draw(radius_text);
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A) && elapsedTime >= creationInterval)
         {
             elapsedTime = 0.0f;
             circleRadius -= 10.0f;
-            std::cout<<circleRadius<<std::endl;
+
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D) && elapsedTime >= creationInterval)
         {
             elapsedTime = 0.0f;
             circleRadius += 10.0f;
-            std::cout<<circleRadius<<std::endl;
+
         }
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Space) && elapsedTime >= creationInterval)
         {
             elapsedTime = 0.0f;
 
-
-
-
             if (circle_mode)
             {
                 Object obx (sf::Vector2f((float)mousePos.x, (float)mousePos.y), circleRadius, {0.0f,0.0f}, 1.0f,circ.size());
+                treeObj.insert(obx, Rectangle(obx.pos,{obx.radius, obx.radius}));
                 circ.emplace_back(obx);
             }
 
@@ -527,14 +607,14 @@ int main()
 
         if (pSelectedObj != nullptr)
         {
-            float dist = calculateDistance(pSelectedObj->pos_f, mousePosf);
+            float dist = calculateDistance(pSelectedObj->pos, mousePosf);
             if (dist > 300.0f)
             {
                 pSelectedObj = nullptr;
                 continue;
             }
             sf::VertexArray line(sf::Lines, 10);
-            line[0].position = pSelectedObj->pos_f;
+            line[0].position = pSelectedObj->pos;
             line[0].color = sf::Color::Green;
             line[1].position = mousePosf;
             line[1].color = sf::Color::Green;
