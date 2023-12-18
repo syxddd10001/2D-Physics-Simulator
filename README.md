@@ -5,5 +5,6 @@ The optimization aims to create a more accurate simulation and handle simulating
 The project is also expanding to simulate more complex objects, like trapezoids and polygons. 
 
 Preview:
-https://github.com/syxddd10001/2D-Physics-Simulator/assets/121273500/6548c586-49a1-4ee3-8beb-8c0cf65f4d0e
+
+https://github.com/syxddd10001/2D-Physics-Simulator/assets/121273500/f8373521-5a74-43fb-9f0f-b913b7c9aa74
 
