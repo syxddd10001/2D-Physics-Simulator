@@ -8,13 +8,14 @@ protected:
     float velocity_x, velocity_y;
     float acceleration_x, acceleration_y;
     float mass;
+    int object_id;
     sf::Shape* shape;
     
 
 public:
     Object( float mass, float pos_x, float pos_y );
     Object( );
-    virtual ~Object( );
+    virtual ~Object( ) = 0;
     
     std::pair<float, float> getPosition();
 
@@ -32,6 +33,9 @@ public:
     std::pair<float, float> getAcceleration( );
     std::pair<float, float> setAcceleration( float acc_x, float acc_y );
     void setAcceleration( std::pair<float, float> acc );
+
+    void setID( int id );
+    int getID( );
 
     virtual bool mouseOnObject( sf::Vector2f vector );
 

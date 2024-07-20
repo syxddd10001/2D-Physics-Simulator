@@ -8,7 +8,7 @@ private:
     sf::CircleShape* shape;
 
 public:
-    Circle( float rad, float mass, float posX, float posY );
+    Circle( float rad, float mass, float pos_x, float pos_y );
     Circle( );
     float getRadius( );
     sf::Shape* getShape( ) override; 
