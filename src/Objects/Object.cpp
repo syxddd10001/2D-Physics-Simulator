@@ -72,6 +72,14 @@ std::pair<float, float> Object::setAcceleration( float acc_x, float acc_y ){
     return std::pair<float, float> ( acceleration_x, acceleration_y );
 }
 
+void Object::setID( int id ){
+    this->object_id = id;
+}
+
+int Object::getID(){
+    return this->object_id;
+}
+
 bool Object::mouseOnObject( sf::Vector2f vector ){
     return false;
 }

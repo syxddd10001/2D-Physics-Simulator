@@ -4,13 +4,14 @@
 #include <iostream>
 #include <utility>
 
-Circle::Circle( float rad, float mass, float pos_x, float pos_y )
-: Object( mass, pos_x, pos_y ), radius( rad )
+Circle::Circle( float rad, float mass, float posX, float posY)
+: Object( mass, posX, posY ), radius( rad )
 { 
     shape = new sf::CircleShape( radius );
     sf::Vector2f circleCenter( getRadius(), getRadius() );
     shape->setOrigin( circleCenter );
     shape->setOutlineThickness( 1.0f );
+    shape->setFillColor( sf::Color::Black );
     shape->setOutlineColor( sf::Color::Black );
 
 }
