@@ -8,10 +8,10 @@ Circle::Circle( float rad, float mass, float posX, float posY)
 : Object( mass, posX, posY ), radius( rad )
 { 
     shape = new sf::CircleShape( radius );
-    sf::Vector2f circleCenter( getRadius(), getRadius() );
+    sf::Vector2f circleCenter( rad, rad );
     shape->setOrigin( circleCenter );
     shape->setOutlineThickness( 1.0f );
-    shape->setFillColor( sf::Color::Black );
+    shape->setFillColor( sf::Color::White );
     shape->setOutlineColor( sf::Color::Black );
 
 }

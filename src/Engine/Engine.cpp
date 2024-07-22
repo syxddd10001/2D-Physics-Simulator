@@ -9,10 +9,14 @@
 #include <Objects/Rectangle.hpp>
 Engine::Engine(  ){
     Window = new sf::RenderWindow ( sf::VideoMode( 1000, 1000 ), "2D Physics Simulator" );
+    HalfSize = sf::Vector2f(Window->getSize().x/2, Window->getSize().y/2);
+    if (!font.loadFromFile("static/fonts/Silver.ttf")){
+        std::cout << "No such file" << std::endl; 
+    }
     spawn_type = "cir";
-    mainView = sf::View(sf::FloatRect(0, 0, 1500, 1500));
+    mainView = sf::View(sf::FloatRect(0, 0, Window->getSize().x, Window->getSize().y));
+    Window->setFramerateLimit(frame_rate);
     Window->setView(mainView);
-
 }
 
 Engine::~Engine(){
@@ -27,17 +31,52 @@ void Engine::EventManager( ){
             break;
             
             case sf::Event::Resized:
-                Window->setView( sf::View( sf::FloatRect( 0.0f, 0.0f, evnt.size.width, evnt.size.height ) ) );
+                Window->setView( mainView = sf::View( sf::FloatRect( 0.0f, 0.0f, evnt.size.width, evnt.size.height ) ) );
+                Window->setView( UIView = sf::View( sf::FloatRect( 0.0f, 0.0f, evnt.size.width, evnt.size.height ) ) );
             break;
            
             case sf::Event::MouseButtonPressed:
-                if (evnt.mouseButton.button == sf::Mouse::Middle) dragging = true;
+                if ( evnt.mouseButton.button == sf::Mouse::Middle ) dragging = true;
+
+                if ( evnt.mouseButton.button ==  sf::Mouse::Right ) {
+                    
+                    if (!p_selected_object) { 
+                        for ( auto& selected : objects ) {
+                            if ( selected->mouseOnObject( mousePosf ) ) 
+                            {
+                                p_selected_object = selected;
+                                std::cout << "selected: " << selected->getID() << std::endl;
+                                
+                                break;
+                            }
+                            std::cout << "not selected: " << selected->getID() << std::endl;
+
+                        }
+                    }
+                }
+
+                if ( evnt.mouseButton.button == sf::Mouse::Left ) {
+                    
+                    if ( !p_selected_object ) {
+                        for ( auto& selected : objects )
+                        {
+                            if ( selected->mouseOnObject( mousePosf ) )
+                            {
+                                p_selected_object = selected;
+                                break;
+                            }
+                        }
+                    }
+      
+
+                }
+                
             break;
 
             case sf::Event::MouseButtonReleased:
-                if (evnt.mouseButton.button == sf::Mouse::Right)
+                if ( evnt.mouseButton.button == sf::Mouse::Right )
                 {
-                    if (p_selected_object != nullptr)
+                    if ( p_selected_object != nullptr )
                     {     
                         float launch_speed = 3.5f;
                         point position ( p_selected_object->getPosition() ); 
@@ -53,6 +92,8 @@ void Engine::EventManager( ){
                 }
 
                 if ( evnt.mouseButton.button == sf::Mouse::Left ){
+                    clicked = false;
+                    mouseDrawnBox.setSize(sf::Vector2f({0.0f,0.0f}));
                     p_selected_object = nullptr;
                 }
 
@@ -64,16 +105,55 @@ void Engine::EventManager( ){
                 if (evnt.key.code == sf::Keyboard::Tab && elapsed_time_spawn >= interrupt_interval){
                     elapsed_time_spawn = 0.0f;   
         
-                    spawn_type = (spawn_type == "cir") ? "rec" : "cir";
+                    spawn_type = ( spawn_type == "cir" ) ? "rec" : "cir";
                 
                     std::cout << spawn_type << std::endl;
                 }
+
+                if ( evnt.key.code == sf::Keyboard::T && elapsed_time_spawn >= creation_interval ) 
+                {
+                    elapsed_time_spawn = 0.0f;   
+                    spawn_size += 10.0f;
+                    std::cout << spawn_size << std::endl;
+                }
+                if (evnt.key.code == sf::Keyboard::Y && elapsed_time_spawn >= creation_interval ) 
+                {
+                    elapsed_time_spawn = 0.0f;   
+                    spawn_size -= 10.0f;
+                    std::cout << spawn_size << std::endl;
+
+                }
+
+
+            break;
+
+            case sf::Event::KeyPressed:
+                if ( evnt.key.code == sf::Keyboard::Space && elapsed_time_spawn >= creation_interval ){
+                    elapsed_time_spawn = 0.0f;   
+                    Object* obj = nullptr;
+                    
+                    if ( spawn_type == "cir" ) {
+                        float t_mass = spawn_size*10.0f;
+                        obj = new Circle( spawn_size, t_mass, mousePosf.x, mousePosf.y );
+                        obj->setID( objects.size() );
+                        
+                    }
+                    else if (spawn_type == "rec") {
+                        float t_mass = spawn_size*10.0f;
+                        obj = new Rectangle( t_mass, mousePosf.x,  mousePosf.y, spawn_size, spawn_size );
+                        obj->setID( objects.size() );
+                    }
+                    std::cout << obj << std::endl; 
+                    addObject( obj );
+                }
+
+                
             break;
 
             case sf::Event::MouseWheelScrolled:
-				if (evnt.mouseWheelScroll.delta > 0)
+				if ( evnt.mouseWheelScroll.delta > 0 )
 					zoomViewAt({ evnt.mouseWheelScroll.x, evnt.mouseWheelScroll.y }, (1.f / zoomAmount));
-				else if (evnt.mouseWheelScroll.delta < 0)
+				else if ( evnt.mouseWheelScroll.delta < 0 )
 					zoomViewAt({ evnt.mouseWheelScroll.x, evnt.mouseWheelScroll.y }, zoomAmount);
             
             break;
@@ -95,85 +175,62 @@ void Engine::EventManager( ){
                 }
 
                 original_mouse_position = mouse_position;
+
+                
             break;
 
 
          }
     }
-}
-
-void Engine::InputManager( ){
-
-    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Y ) && elapsed_time_move >= interrupt_interval ) 
-    {
-        elapsed_time_move = 0.0f;   
-        mainView.move(sf::Vector2f(-50.0f, 0.0f));
-        Window->setView(mainView);
-
-    }
-    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::U ) && elapsed_time_move >= interrupt_interval ) 
-    {
-        elapsed_time_move = 0.0f;   
-        
-        mainView.move(sf::Vector2f(50.0f, 0.0f));
-        Window->setView(mainView);
-
-    }
-
-    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::Space ) && elapsed_time_spawn >= creation_interval ){
-        elapsed_time_spawn = 0.0f;   
-        Object* obj = nullptr;
-        
-        if (spawn_type == "cir") {
-            obj = new Circle( 50.0f, 2.0f, (float)mousePos.x, (float)mousePos.y );
-            obj->setID(objects.size());
-            
-        }
-        else {
-            obj = new Rectangle( 50.0f, (float) mousePos.x, (float) mousePos.y, 50.0f, 50.0f);
-            obj->setID(objects.size());
-        }
-
-        addObject( obj );      
-    }
-
-    if ( sf::Mouse::isButtonPressed( sf::Mouse::Right ) ) {
-        if (!p_selected_object) { 
-            for ( auto& selected : objects ) {
-                if ( selected->mouseOnObject( mousePosf ) && p_selected_object == nullptr )
-                {
-                    p_selected_object = selected;
-                    break;
-                }
-            }
-        }
-    }
-
+    
     if ( sf::Mouse::isButtonPressed( sf::Mouse::Left ) ) {
         
-        if ( !p_selected_object ) {
-            for ( auto& selected : objects )
-            {
-                if ( selected->mouseOnObject( mousePosf ) && p_selected_object == nullptr )
-                {
-                    p_selected_object = selected;
-                    break;
-                }
-            }
-        }
 
-        else {
-            mousePosf = Window->mapPixelToCoords(sf::Mouse::getPosition(*Window));
+        if ( p_selected_object ) {
             
+            mousePosf = Window->mapPixelToCoords( sf::Mouse::getPosition(*Window) );    
             point mouse ( mousePosf.x, mousePosf.y );
             p_selected_object->setPosition( mouse );
             p_selected_object->setVelocity( point ( 0.0f, 0.0f ) );
-            p_selected_object = nullptr;
-
+                    
         }
 
     }
 
+}
+
+void Engine::DragRectangle(){
+
+    if ( sf::Event::MouseMoved ){
+        if ( sf::Mouse::isButtonPressed(sf::Mouse::Left) && clicked ){
+
+            sf::Vector2f rect_size( mousePosf.x - mouseOnClickStart.x, mousePosf.y - mouseOnClickStart.y );
+            mouseDrawnBox.setPosition( mouseOnClickStart.x, mouseOnClickStart.y );
+            mouseDrawnBox.setOutlineColor(sf::Color::White);
+            mouseDrawnBox.setOutlineThickness(1.0f);
+            mouseDrawnBox.setSize( rect_size );
+            Window->draw(mouseDrawnBox);
+
+        }
+    }
+
+
+    
+
+    if ( sf::Mouse::isButtonPressed( sf::Mouse::Left ) ) {
+        
+        if ( !p_selected_object && !clicked ){
+            clicked = true;
+            mouseOnClickStart = mousePosf;
+        }
+
+        if ( clicked ){
+            mouseDrawnBox.setFillColor( sf::Color(0,200,0, 80) );
+            Window->draw(mouseDrawnBox);
+
+        }
+
+    }
 }
 
 void Engine::Update( float* delta_time ){
@@ -213,12 +270,25 @@ void Engine::collisionCheck( ){
     }
 }
 
+float Engine::getFramesPerSecond( ){
+    return 0.0;
+}
+
+void Engine::UI( ) {
+    sf::Text spawn_size_text;
+    spawn_size_text.setFont(font);
+    spawn_size_text.setString("Spawn Size: " +  std::to_string( (int) spawn_size ) );
+
+    spawn_size_text.setCharacterSize(35);
+    Window->draw(spawn_size_text);
+}
+
 void Engine::Render( ){
     if ( p_selected_object != nullptr && sf::Mouse::isButtonPressed( sf::Mouse::Right ) )
     {
         std::pair<float, float> position( p_selected_object->getPosition() );
         float distance = calculateDistance( position, std::pair<float, float> ( mousePosf.x, mousePosf.y ) );
-        if ( distance > 500.0f )
+        if ( distance > p_selected_object->getMass()*1.15f )
         {
             p_selected_object = nullptr;
         }
@@ -231,15 +301,17 @@ void Engine::Render( ){
         Window->draw( line );
 
     }
+
+
 }
 
 void Engine::zoomViewAt( sf::Vector2i pixel, float zoom )
 {
 	const sf::Vector2f beforeCoord{ Window->mapPixelToCoords(pixel) };
-	mainView.zoom(zoom);
-	Window->setView(mainView);
+	mainView.zoom( zoom );
+	Window->setView( mainView );
 	const sf::Vector2f afterCoord{ Window->mapPixelToCoords(pixel) };
 	const sf::Vector2f offsetCoords{ beforeCoord - afterCoord };
-	mainView.move(offsetCoords);
-	Window->setView(mainView);
+	mainView.move( offsetCoords );
+	Window->setView( mainView );
 }
