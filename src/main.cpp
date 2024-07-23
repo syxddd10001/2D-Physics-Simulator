@@ -10,7 +10,7 @@
 
 
 int main(){
-    Engine* Instance = new Engine(  );
+    Engine* Instance = new Engine(  ); // reserves memory in heap for this Instance 
 
     while ( Instance->Window->isOpen() ) {
         Instance->Window->clear( );   
@@ -39,5 +39,8 @@ int main(){
         Instance->Window->display( );
 
     }
+
+    delete Instance;
+
     return EXIT_SUCCESS;
 }

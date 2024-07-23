@@ -48,7 +48,7 @@ public:
     
     Engine( );
     ~Engine();
-    void Update( float* delta_time );
+    void Update( const float* delta_time );
     void EventManager( );
     void addObject( Object* object );
     void zoomViewAt( sf::Vector2i pixel, float zoom );
