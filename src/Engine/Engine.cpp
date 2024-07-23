@@ -8,17 +8,17 @@
 #include <Physics.hpp>
 #include <Rectangle.hpp>
 
-
+#define FRAME_RATE 144
 Engine::Engine( ){
     Window = new sf::RenderWindow ( sf::VideoMode( 1000, 1000 ), "2D Physics Simulator" );
-    HalfSize = sf::Vector2f(Window->getSize().x/2, Window->getSize().y/2);
-    if (!font.loadFromFile("static/fonts/Silver.ttf")){
+    HalfSize = sf::Vector2f( Window->getSize().x/2, Window->getSize().y/2 );
+    if ( !font.loadFromFile( "static/fonts/Silver.ttf" ) ){
         std::cout << "No such file\n"; 
     }
     spawn_type = "cir";
-    mainView = sf::View(sf::FloatRect(0, 0, Window->getSize().x, Window->getSize().y));
-    Window->setFramerateLimit(frame_rate);
-    Window->setView(mainView);
+    mainView = sf::View( sf::FloatRect( 0, 0, Window->getSize().x, Window->getSize().y ) );
+    Window->setFramerateLimit( FRAME_RATE );
+    Window->setView( mainView );
 }
 
 Engine::~Engine( ){
@@ -42,20 +42,18 @@ void Engine::EventManager( ){
 
                 if ( evnt.mouseButton.button ==  sf::Mouse::Right ) {
                     
-                    if (!p_selected_object) { 
+                    if ( !p_selected_object ) { 
                         for ( auto& selected : objects ) {
                             if ( selected->mouseOnObject( mousePosf ) ) 
                             {
                                 p_selected_object = selected;                             
                                 break;
                             }
-
-
                         }
                     }
                 }
 
-                if ( evnt.mouseButton.button == sf::Mouse::Left ) {
+                if ( evnt.mouseButton.button == sf::Mouse::Left && !select_mode) {
                     
                     if ( !p_selected_object ) {
                         for ( auto& selected : objects )
@@ -69,12 +67,14 @@ void Engine::EventManager( ){
                     }
 
                     else {
-                        p_selected_object->getShape()->setOutlineColor(sf::Color::Red);
-                        p_selected_object->getShape()->setOutlineThickness(3.0f);                                  
+                        p_selected_object->getShape()->setOutlineColor( sf::Color::Red );
+                        p_selected_object->getShape()->setOutlineThickness( 3.0f );                                  
                     }
       
 
                 }
+
+               
                 
             break;
 
@@ -103,12 +103,16 @@ void Engine::EventManager( ){
                 if ( evnt.mouseButton.button == sf::Mouse::Left ){
                     clicked = false;
                     mouseDrawnBox.setSize(sf::Vector2f({0.0f,0.0f}));
-                    
+
                     if ( p_selected_object ){
                         sf::Shape* sh = p_selected_object->getShape();
-                        sh->setOutlineColor(sf::Color::Black);
+                        sh->setOutlineColor( sf::Color::Black );
 
                         p_selected_object = nullptr;
+                    }
+
+                    if ( select_mode && selected_objects.size() > 0 ) {
+                        selection_stop = true;
                     }
                 }
 
@@ -139,6 +143,20 @@ void Engine::EventManager( ){
 
                 }
 
+                if (evnt.key.code == sf::Keyboard::S){
+                    select_mode = !select_mode;
+                }
+                if (evnt.key.code == sf::Keyboard::Escape){
+                    for ( auto* obj : objects ){
+                       obj->getShape()->setOutlineColor(sf::Color::Black);
+                    }
+                    selection_stop = false;
+                    selected_objects.clear();
+                    selected_objects.shrink_to_fit();
+
+                }
+
+
 
             break;
 
@@ -161,6 +179,7 @@ void Engine::EventManager( ){
                     std::cout << obj << std::endl; 
                     addObject( obj );
                 }
+
 
                 
             break;
@@ -190,47 +209,95 @@ void Engine::EventManager( ){
                 }
 
                 original_mouse_position = mouse_position;
-
-                
             break;
 
 
          }
     }
-    
-    if ( sf::Mouse::isButtonPressed( sf::Mouse::Left ) ) {
-        
-
-        if ( p_selected_object ) {
-            
-            mousePosf = Window->mapPixelToCoords( sf::Mouse::getPosition(*Window) );    
-            point mouse ( mousePosf.x, mousePosf.y );
-            p_selected_object->setPosition( mouse );
-            p_selected_object->setVelocity( point ( 0.0f, 0.0f ) );
-                    
-        }
-
+    if ( !p_selected_object ){
+        mousePos_prev = Window->mapPixelToCoords( sf::Mouse::getPosition( *Window)  );    
     }
 
+
+    if ( sf::Event::MouseMoved && sf::Mouse::isButtonPressed( sf::Mouse::Left ) && p_selected_object ){
+        point mouse ( mousePosf.x-mousePos_prev.x, mousePosf.y-mousePos_prev.y );
+        std::cout << mouse.first << ", " << mouse.second << std::endl; 
+        point curr_pos { p_selected_object->getPosition().first+mouse.first, p_selected_object->getPosition().second+mouse.second };
+        p_selected_object->setPosition( curr_pos );
+        p_selected_object->setVelocity( point ( 0.0f, 0.0f ) );
+        mousePos_prev = mousePosf;
+    }
+
+    
+    if ( sf::Event::MouseMoved && sf::Mouse::isButtonPressed( sf::Mouse::Left ) && select_mode && selected_objects.size() != 0) {
+        
+        std::cout << "mousemove2: " <<  mousePos.x << ", " <<  mousePos.y << std::endl;
+        std::cout << "mouseprev: " <<  mousePos_prev_all.x << ", " <<  mousePos_prev_all.y << std::endl;  
+
+          
+
+        sf::Vector2i delta_2 = mousePos - mousePos_prev_all;
+        
+        std::cout << "delta: " <<  delta_2.x << ", " <<  delta_2.y << std::endl;  
+        
+        for ( auto& selected : selected_objects )
+        {
+            mouseonobj = false;
+            if ( selected->mouseOnObject( mousePosf ) ){
+                mouseonobj = true;
+                break;
+                
+            }
+
+        }
+        if ( mouseonobj && selection_stop ){
+            for ( auto* selected : selected_objects ){
+                std::cout << "pos1: " << selected->getPosition().first << ", " << selected->getPosition().second << std::endl;
+                point curr_pos 
+                {   selected->getPosition().first+(float)delta_2.x, 
+                    selected->getPosition().second+(float)delta_2.y 
+                };
+                std::cout << "pos2: " << selected->getPosition().first << ", " << selected->getPosition().second << std::endl;
+                std::cout << "curr: " << curr_pos.first << ", " <<  curr_pos.second << std::endl;  
+        
+                
+                selected->setPosition( curr_pos );
+                selected->setVelocity( point ( 0.0f, 0.0f ) );
+            }
+
+        }
+        mousePos_prev_all = mousePos;
+
+
+    }
+                    
+}
+
+void Engine::GetObjectsInArea( const point start, const point rect_size ){
+    for ( auto* obj : objects ){
+        point pos = obj->getPosition();
+        if ( (pos.first >= start.first && pos.first <= (start.first+rect_size.first)) && 
+             (pos.second >= start.second && pos.second <= (start.second+rect_size.second)) ){
+            selected_objects.push_back( obj );
+            obj->getShape()->setOutlineColor(sf::Color::Red);
+        }
+    }
 }
 
 void Engine::DragRectangle( ){
+    if ( !select_mode || selection_stop ) return ;
 
-    if ( sf::Event::MouseMoved ){
-        if ( sf::Mouse::isButtonPressed(sf::Mouse::Left) && clicked && !p_selected_object ){
-            
-            sf::Vector2f rect_size( mousePosf.x - mouseOnClickStart.x, mousePosf.y - mouseOnClickStart.y );
-            mouseDrawnBox.setPosition( mouseOnClickStart.x, mouseOnClickStart.y );
-            mouseDrawnBox.setOutlineColor(sf::Color::White);
-            mouseDrawnBox.setOutlineThickness(1.0f);
-            mouseDrawnBox.setSize( rect_size );
-            Window->draw(mouseDrawnBox);
-
-        }
+    if ( sf::Event::MouseMoved && sf::Mouse::isButtonPressed( sf::Mouse::Left ) && clicked && !p_selected_object ){
+        
+        sf::Vector2f rect_size( mousePosf.x - mouseOnClickStart.x, mousePosf.y - mouseOnClickStart.y );
+        mouseDrawnBox.setPosition( mouseOnClickStart.x, mouseOnClickStart.y );
+        mouseDrawnBox.setOutlineColor( sf::Color::White );
+        mouseDrawnBox.setOutlineThickness(1.0f);
+        mouseDrawnBox.setSize( rect_size );
+        GetObjectsInArea( point( mouseOnClickStart.x, mouseOnClickStart.y ), point( rect_size.x,rect_size.y ) );
+        Window->draw( mouseDrawnBox );
     }
 
-
-    
 
     if ( sf::Mouse::isButtonPressed( sf::Mouse::Left ) ) {
         
@@ -242,20 +309,20 @@ void Engine::DragRectangle( ){
         if ( clicked ){
             mouseDrawnBox.setFillColor( sf::Color( 0, 200, 0, 80 ) );
             Window->draw(mouseDrawnBox);
-
         }
 
     }
+
 }
 
 
 
 void Engine::Update( const float* delta_time ){
     for ( int i = 0; i < objects.size(); i++ ) {
-            point pos_f = calculateVelocity( objects[i], *delta_time );
-            objects[i]->setPosition( pos_f );
-            sf::Shape* sh = objects[i]->getShape();
-            Window->draw( *sh );
+        point pos_f = calculateVelocity( objects[i], *delta_time );
+        objects[i]->setPosition( pos_f );
+        sf::Shape* sh = objects[i]->getShape();
+        Window->draw( *sh );
     }
 }
 
