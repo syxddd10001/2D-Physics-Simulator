@@ -1,5 +1,5 @@
-#include <Objects/Circle.hpp>
-#include <Math/PhysicsMath.hpp>
+#include <Circle.hpp>
+#include <PhysicsMath.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <utility>
@@ -20,7 +20,7 @@ Circle::Circle( ){
 }
 
 sf::Shape* Circle::getShape( ){
-    return shape;
+    return this->shape;
 }
 
 

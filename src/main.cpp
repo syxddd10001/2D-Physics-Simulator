@@ -4,9 +4,9 @@
 #include <thread>
 #include <iostream>
 #include <SFML/Graphics.hpp>
-#include <Objects/Circle.hpp>
-#include <Math/PhysicsMath.hpp>
-#include <Engine/Engine.hpp>
+#include <Circle.hpp>
+#include <PhysicsMath.hpp>
+#include <Engine.hpp>
 
 
 int main(){
@@ -24,18 +24,16 @@ int main(){
         Instance->elapsed_time_move += delta_time; 
 
         Instance->EventManager( );
-
-        Instance->Render( );
         
         Instance->collisionCheck( );
 
         Instance->Update( &delta_time );
 
-        Instance->DragRectangle();
+        Instance->Render( );
 
-        Instance->Window->setView(Instance->UIView);
+        Instance->Window->setView( Instance->UIView );
         Instance->UI( );
-        Instance->Window->setView(Instance->mainView);
+        Instance->Window->setView( Instance->mainView );
         
 
         Instance->Window->display( );

@@ -1,5 +1,5 @@
-#include <Objects/Object.hpp>
-#include "PhysicsMath.hpp"
+#include <Object.hpp>
+#include <PhysicsMath.hpp>
 
 #include <utility>
 #include <cmath>

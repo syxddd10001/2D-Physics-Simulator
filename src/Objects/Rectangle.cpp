@@ -1,11 +1,11 @@
-#include <Objects/Rectangle.hpp>
-#include <Math/PhysicsMath.hpp>
+#include <Rectangle.hpp>
+#include <PhysicsMath.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <utility>
 
-Rectangle::Rectangle(float mass, float pos_x, float pos_y, float dimX, float dimY)
-: Object(mass, pos_x, pos_y), dimensions(dimX, dimY)
+Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float dimY )
+: Object( mass, pos_x, pos_y ), dimensions( dimX, dimY )
 {
     shape = new sf::RectangleShape(sf::Vector2f(dimX, dimY));
     
@@ -29,10 +29,10 @@ void Rectangle::setDimension( std::pair<float, float> dim ){
 }
 
 sf::Shape* Rectangle::getShape(){
-    return shape;
+    return this->shape;
 }
 
-void Rectangle::setPosition(std::pair<float, float> pos){
+void Rectangle::setPosition( std::pair<float, float> pos ){
     position_x = pos.first;
     position_y = pos.second;
     shape->setPosition( sf::Vector2f( pos.first, pos.second ) );

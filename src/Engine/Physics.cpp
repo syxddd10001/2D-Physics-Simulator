@@ -1,8 +1,8 @@
 #include <utility> // for std::pair
 #include <cmath>
-#include <Math/PhysicsMath.hpp> // for physics related math functions
+#include <PhysicsMath.hpp> // for physics related math functions
 #include "Physics.hpp"
-#include <Objects/Circle.hpp>
+#include <Circle.hpp>
 
 
 bool onCollision( Circle* object1, Circle* object2 ){
@@ -73,4 +73,3 @@ void dynamicResponse( Circle* object1, Circle* object2 ){
 
     
 }
-

@@ -1,5 +1,5 @@
 #pragma once
-#include <Objects/Object.hpp>
+#include "Object.hpp"
 #include <utility>
 
 using point = std::pair<float, float>;

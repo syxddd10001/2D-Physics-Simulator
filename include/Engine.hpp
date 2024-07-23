@@ -1,9 +1,9 @@
 #pragma once
 #include <vector>
 
-#include <Objects/Object.hpp>
-#include <Math/PhysicsMath.hpp>
-#include <Engine/Physics.hpp>
+#include "Object.hpp"
+#include "PhysicsMath.hpp"
+#include "Physics.hpp"
 
 
 class Engine{
@@ -18,7 +18,7 @@ public:
     float interrupt_interval = 0.01f;
     float zoomAmount = 1.1f;
 
-    unsigned int frame_rate = 144;
+    const uint8_t frame_rate = 144;
 
     Object* p_selected_object = nullptr;
     sf::Vector2i mousePos;

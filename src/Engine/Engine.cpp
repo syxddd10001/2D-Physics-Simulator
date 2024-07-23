@@ -2,16 +2,18 @@
 #include <utility>
 #include <thread>
 #include <iostream>
-#include <Objects/Object.hpp>
-#include <Math/PhysicsMath.hpp>
+#include <Object.hpp>
+#include <PhysicsMath.hpp>
 #include "Engine.hpp"
-#include <Engine/Physics.hpp>
-#include <Objects/Rectangle.hpp>
-Engine::Engine(  ){
+#include <Physics.hpp>
+#include <Rectangle.hpp>
+
+
+Engine::Engine( ){
     Window = new sf::RenderWindow ( sf::VideoMode( 1000, 1000 ), "2D Physics Simulator" );
     HalfSize = sf::Vector2f(Window->getSize().x/2, Window->getSize().y/2);
     if (!font.loadFromFile("static/fonts/Silver.ttf")){
-        std::cout << "No such file" << std::endl; 
+        std::cout << "No such file\n"; 
     }
     spawn_type = "cir";
     mainView = sf::View(sf::FloatRect(0, 0, Window->getSize().x, Window->getSize().y));
@@ -19,7 +21,7 @@ Engine::Engine(  ){
     Window->setView(mainView);
 }
 
-Engine::~Engine(){
+Engine::~Engine( ){
 
 }
 
@@ -44,12 +46,10 @@ void Engine::EventManager( ){
                         for ( auto& selected : objects ) {
                             if ( selected->mouseOnObject( mousePosf ) ) 
                             {
-                                p_selected_object = selected;
-                                std::cout << "selected: " << selected->getID() << std::endl;
-                                
+                                p_selected_object = selected;                             
                                 break;
                             }
-                            std::cout << "not selected: " << selected->getID() << std::endl;
+
 
                         }
                     }
@@ -67,6 +67,11 @@ void Engine::EventManager( ){
                             }
                         }
                     }
+
+                    else {
+                        p_selected_object->getShape()->setOutlineColor(sf::Color::Red);
+                        p_selected_object->getShape()->setOutlineThickness(3.0f);                                  
+                    }
       
 
                 }
@@ -83,6 +88,10 @@ void Engine::EventManager( ){
                         float velocity_x = launch_speed * ( position.first - mousePosf.x );
                         float velocity_y = launch_speed * ( position.second - mousePosf.y );
                         p_selected_object->setVelocity( point( velocity_x, velocity_y ) );
+                        
+                        sf::Shape* sh = p_selected_object->getShape();
+                        sh->setOutlineColor(sf::Color::Black);
+      
                         p_selected_object = nullptr;
                     }
 
@@ -94,7 +103,13 @@ void Engine::EventManager( ){
                 if ( evnt.mouseButton.button == sf::Mouse::Left ){
                     clicked = false;
                     mouseDrawnBox.setSize(sf::Vector2f({0.0f,0.0f}));
-                    p_selected_object = nullptr;
+                    
+                    if ( p_selected_object ){
+                        sf::Shape* sh = p_selected_object->getShape();
+                        sh->setOutlineColor(sf::Color::Black);
+
+                        p_selected_object = nullptr;
+                    }
                 }
 
                 if ( evnt.mouseButton.button == sf::Mouse::Middle ) dragging = false;
@@ -199,11 +214,11 @@ void Engine::EventManager( ){
 
 }
 
-void Engine::DragRectangle(){
+void Engine::DragRectangle( ){
 
     if ( sf::Event::MouseMoved ){
-        if ( sf::Mouse::isButtonPressed(sf::Mouse::Left) && clicked ){
-
+        if ( sf::Mouse::isButtonPressed(sf::Mouse::Left) && clicked && !p_selected_object ){
+            
             sf::Vector2f rect_size( mousePosf.x - mouseOnClickStart.x, mousePosf.y - mouseOnClickStart.y );
             mouseDrawnBox.setPosition( mouseOnClickStart.x, mouseOnClickStart.y );
             mouseDrawnBox.setOutlineColor(sf::Color::White);
@@ -225,7 +240,7 @@ void Engine::DragRectangle(){
         }
 
         if ( clicked ){
-            mouseDrawnBox.setFillColor( sf::Color(0,200,0, 80) );
+            mouseDrawnBox.setFillColor( sf::Color( 0, 200, 0, 80 ) );
             Window->draw(mouseDrawnBox);
 
         }
@@ -233,13 +248,15 @@ void Engine::DragRectangle(){
     }
 }
 
-void Engine::Update( float* delta_time ){
+
+
+void Engine::Update( const float* delta_time ){
     for ( int i = 0; i < objects.size(); i++ ) {
             point pos_f = calculateVelocity( objects[i], *delta_time );
             objects[i]->setPosition( pos_f );
             sf::Shape* sh = objects[i]->getShape();
             Window->draw( *sh );
-    }  
+    }
 }
 
 void Engine::addObject( Object* object ) {
@@ -302,15 +319,23 @@ void Engine::Render( ){
 
     }
 
+    if ( p_selected_object && sf::Mouse::isButtonPressed( sf::Mouse::Left )){
+        sf::Shape* sh = p_selected_object->getShape( );
+        sh->setOutlineColor( sf::Color::Red );
+        Window->draw( *sh );
+
+    } 
+
+    DragRectangle( );
 
 }
 
 void Engine::zoomViewAt( sf::Vector2i pixel, float zoom )
 {
-	const sf::Vector2f beforeCoord{ Window->mapPixelToCoords(pixel) };
+	const sf::Vector2f beforeCoord{ Window->mapPixelToCoords( pixel ) };
 	mainView.zoom( zoom );
 	Window->setView( mainView );
-	const sf::Vector2f afterCoord{ Window->mapPixelToCoords(pixel) };
+	const sf::Vector2f afterCoord{ Window->mapPixelToCoords( pixel ) };
 	const sf::Vector2f offsetCoords{ beforeCoord - afterCoord };
 	mainView.move( offsetCoords );
 	Window->setView( mainView );
