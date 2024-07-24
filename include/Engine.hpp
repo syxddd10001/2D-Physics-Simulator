@@ -39,5 +39,6 @@ public:
     void UI( );
     void GetObjectsInArea( const point start, const point rect_size );
     void DragRectangle( );
+    void objectDefault( );
 };
 

@@ -90,7 +90,7 @@ void Engine::EventManager( ){
                     }
                 }
 
-                if ( evnt.mouseButton.button == sf::Mouse::Left && !select_mode) {
+                if ( evnt.mouseButton.button == sf::Mouse::Left && !select_mode ) {
                     
                     if ( !p_selected_object ) {
                         for ( auto& selected : objects )
@@ -158,12 +158,12 @@ void Engine::EventManager( ){
                 break;
 
             case sf::Event::KeyReleased:
-                if (evnt.key.code == sf::Keyboard::F && elapsed_time_spawn >= INTERRUPT_INTERVAL ){
+                if ( evnt.key.code == sf::Keyboard::F && elapsed_time_spawn >= INTERRUPT_INTERVAL ){
                     elapsed_time_spawn = 0.0f;  
                     focus = true;
                 }
                 
-                if (evnt.key.code == sf::Keyboard::Tab && elapsed_time_spawn >= INTERRUPT_INTERVAL ){
+                if ( evnt.key.code == sf::Keyboard::Tab && elapsed_time_spawn >= INTERRUPT_INTERVAL ){
                     elapsed_time_spawn = 0.0f;   
         
                     spawn_type = ( spawn_type == "cir" ) ? "rec" : "cir";
@@ -177,7 +177,7 @@ void Engine::EventManager( ){
                     spawn_size += 10.0f;
                     std::cout << spawn_size << std::endl;
                 }
-                if (evnt.key.code == sf::Keyboard::Y && elapsed_time_spawn >= CREATION_INTERVAL ) 
+                if ( evnt.key.code == sf::Keyboard::Y && elapsed_time_spawn >= CREATION_INTERVAL ) 
                 {
                     elapsed_time_spawn = 0.0f;   
                     spawn_size -= 10.0f;
@@ -185,16 +185,12 @@ void Engine::EventManager( ){
 
                 }
 
-                if (evnt.key.code == sf::Keyboard::S){
+                if ( evnt.key.code == sf::Keyboard::S ){
                     select_mode = !select_mode;
+                    objectDefault( );
                 }
-                if (evnt.key.code == sf::Keyboard::Escape){
-                    for ( auto* obj : objects ){
-                       obj->getShape()->setOutlineColor(sf::Color::Black);
-                    }
-                    selection_stop = false;
-                    selected_objects.clear();
-                    selected_objects.shrink_to_fit();
+                if ( evnt.key.code == sf::Keyboard::Escape ){
+                    objectDefault( );
 
                 }
 
@@ -263,7 +259,6 @@ void Engine::EventManager( ){
 
     if ( sf::Event::MouseMoved && sf::Mouse::isButtonPressed( sf::Mouse::Left ) && p_selected_object ){
         point delta ( mousePosf.x-mousePos_prev.x, mousePosf.y-mousePos_prev.y );
-        std::cout << delta.first << ", " << delta.second << std::endl; 
         point curr_pos { p_selected_object->getPosition().first+delta.first, p_selected_object->getPosition().second+delta.second };
         p_selected_object->setPosition( curr_pos );
         p_selected_object->setVelocity( point ( 0.0f, 0.0f ) );
@@ -304,6 +299,16 @@ void Engine::EventManager( ){
                     
 }
 
+void Engine::objectDefault(){
+    for ( auto* obj : objects ){
+        obj->getShape()->setOutlineColor(sf::Color::Black);
+    }
+    selection_stop = false;
+    selected_objects.clear();
+    selected_objects.shrink_to_fit();
+}
+
+
 void Engine::GetObjectsInArea( const point start, const point rect_size ){
     for ( auto* obj : objects ){
         point pos = obj->getPosition();
@@ -316,6 +321,7 @@ void Engine::GetObjectsInArea( const point start, const point rect_size ){
 
     selected_objects.shrink_to_fit();
 }
+
 
 void Engine::DragRectangle( ){
     if ( !select_mode || selection_stop ) return ;
