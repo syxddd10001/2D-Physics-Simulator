@@ -14,10 +14,10 @@ public:
     std::pair<float, float> getDimension( );
     sf::Shape* getShape( ) override;
 
-    void setDimension( std::pair<float, float> dim );
-    void setPosition( std::pair<float, float> pos ); 
+    void setDimension( const std::pair<float, float> dim );
+    void setPosition( const std::pair<float, float> pos ); 
 
-    bool inBounds( sf::Vector2f vector );
+    bool inBounds( const sf::Vector2f vector );
 
-    bool mouseOnObject( sf::Vector2f vector ) override;
+    bool mouseOnObject( const sf::Vector2f vector ) override;
 };

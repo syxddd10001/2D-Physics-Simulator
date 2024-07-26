@@ -8,7 +8,9 @@
 #include <Physics.hpp>
 #include <Rectangle.hpp>
 #include <cmath>
+
 #define FRAME_RATE 144
+#define EXPERIMENTAL_1 0
 
 sf::Event evnt;
 std::vector<Object*> objects;
@@ -39,23 +41,25 @@ bool dragging = false;
 bool mouseonobj = false;
 bool selection_stop = false;
 bool select_mode = false;
+bool objects_selected = false;
+bool deleted = false;
 
 sf::Vector2i originalCoordinates;
 bool focus = false;
 
 Engine::Engine( ){
-    Window = new sf::RenderWindow ( sf::VideoMode( 1000, 1000 ), "2D Physics Simulator" );
-    HalfSize = sf::Vector2f( Window->getSize().x/2, Window->getSize().y/2 );
+    WINDOW = std::make_shared<sf::RenderWindow>(sf::VideoMode( 1000, 1000 ), "2D Physics Simulator");
+    HalfSize = sf::Vector2f( WINDOW->getSize().x/2, WINDOW->getSize().y/2 );
     if ( !font.loadFromFile( "static/fonts/Silver.ttf" ) ){
         std::cout << "No such file\n"; 
     }
     spawn_type = "cir";
-    mainView = sf::View( sf::FloatRect( 0, 0, Window->getSize().x, Window->getSize().y ) );
+    mainView = sf::View( sf::FloatRect( 0, 0, WINDOW->getSize().x, WINDOW->getSize().y ) );
     
-    originalCoordinates = Window->mapCoordsToPixel(sf::Vector2f{ ((float)(Window->getSize().x)/2), ((float)(Window->getSize().y)/2)});
+    originalCoordinates = WINDOW->mapCoordsToPixel(sf::Vector2f{ ((float)(WINDOW->getSize().x)/2), ((float)(WINDOW->getSize().y)/2)});
     std::cout << originalCoordinates.x << "," << originalCoordinates.y << "\n";
-    Window->setFramerateLimit( FRAME_RATE );
-    Window->setView( mainView );
+    WINDOW->setFramerateLimit( FRAME_RATE );
+    WINDOW->setView( mainView );
 }
 
 Engine::~Engine( ){
@@ -63,15 +67,15 @@ Engine::~Engine( ){
 }
 
 void Engine::EventManager( ){
-    if( Window->pollEvent( evnt ) ){
+    if( WINDOW->pollEvent( evnt ) ){
         switch( evnt.type ){
             case sf::Event::Closed:
-                Window->close();
+                WINDOW->close();
             break;
             
             case sf::Event::Resized:
-                Window->setView( mainView = sf::View( sf::FloatRect( 0.0f, 0.0f, evnt.size.width, evnt.size.height ) ) );
-                Window->setView( UIView = sf::View( sf::FloatRect( 0.0f, 0.0f, evnt.size.width, evnt.size.height ) ) );
+                WINDOW->setView( mainView = sf::View( sf::FloatRect( 0.0f, 0.0f, evnt.size.width, evnt.size.height ) ) );
+                WINDOW->setView( UIView = sf::View( sf::FloatRect( 0.0f, 0.0f, evnt.size.width, evnt.size.height ) ) );
             break;
            
             case sf::Event::MouseButtonPressed:
@@ -141,16 +145,22 @@ void Engine::EventManager( ){
                     clicked = false;
                     mouseDrawnBox.setSize(sf::Vector2f({0.0f,0.0f}));
 
-                    if ( p_selected_object ){
+                    if ( p_selected_object && !deleted){
                         sf::Shape* sh = p_selected_object->getShape();
                         sh->setOutlineColor( sf::Color::Black );
 
                         p_selected_object = nullptr;
                     }
 
-                    if ( select_mode && selected_objects.size() > 0 ) {
+                    if ( select_mode && !objects_selected ) {
                         selection_stop = true;
                     }
+
+                    if ( select_mode && objects_selected ) {
+                        objects_selected = false;
+                    }
+
+
                 }
 
                 if ( evnt.mouseButton.button == sf::Mouse::Middle ) dragging = false;
@@ -194,6 +204,13 @@ void Engine::EventManager( ){
 
                 }
 
+                if ( evnt.key.code == sf::Keyboard::Delete && p_selected_object != nullptr ){   
+                    deleteObject( p_selected_object, objects );
+                    delete p_selected_object;
+                    p_selected_object = nullptr;
+                    deleted = false;
+                }
+
 
 
             break;
@@ -207,15 +224,18 @@ void Engine::EventManager( ){
                         float t_mass = spawn_size*10.0f;
                         obj = new Circle( spawn_size, t_mass, mousePosf.x, mousePosf.y );
                         obj->setID( objects.size() );
+                        std::cout << obj << std::endl; 
+                        addObject( obj );
                         
                     }
                     else if (spawn_type == "rec") {
                         float t_mass = spawn_size*10.0f;
                         obj = new Rectangle( t_mass, mousePosf.x,  mousePosf.y, spawn_size, spawn_size );
                         obj->setID( objects.size() );
+                        std::cout << obj << std::endl; 
+                        addObject( obj );
                     }
-                    std::cout << obj << std::endl; 
-                    addObject( obj );
+                    
                 }
 
 
@@ -238,12 +258,12 @@ void Engine::EventManager( ){
 
                 if (dragging) {
                     const auto delta = 
-                        Window->mapPixelToCoords(mouse_position) -
-                        Window->mapPixelToCoords(original_mouse_position);
+                        WINDOW->mapPixelToCoords(mouse_position) -
+                        WINDOW->mapPixelToCoords(original_mouse_position);
 
 
                     mainView.move(-delta);
-                    Window->setView(mainView);
+                    WINDOW->setView(mainView);
                 }
 
                 original_mouse_position = mouse_position;
@@ -253,7 +273,7 @@ void Engine::EventManager( ){
          }
     }
     if ( !p_selected_object ){
-        mousePos_prev = Window->mapPixelToCoords( sf::Mouse::getPosition( *Window)  );    
+        mousePos_prev = WINDOW->mapPixelToCoords( sf::Mouse::getPosition( *WINDOW)  );    
     }
 
 
@@ -264,48 +284,72 @@ void Engine::EventManager( ){
         p_selected_object->setVelocity( point ( 0.0f, 0.0f ) );
         mousePos_prev = mousePosf;
     }
-
-    #define EXPERIMENTAL_1 0
-    #if EXPERIMENTAL_1
-    if ( sf::Event::MouseMoved && sf::Mouse::isButtonPressed( sf::Mouse::Left ) && !p_selected_object && select_mode && selected_objects.size() != 0) {
-        point delta ( mousePosf.x-mousePos_prev_all.x, mousePosf.y-mousePos_prev_all.y );
-        Object* temp;
-        for ( auto& selected : selected_objects )
-        {
-            mouseonobj = false;
-            if ( selected->mouseOnObject( mousePosf ) ){
-                mouseonobj = true;
-                temp = selected;
-                break;
-            }
-        }
-        
-        if ( mouseonobj && selection_stop ){
-            
-            point curr_pos { 
-                temp->getPosition().first+delta.first, 
-                temp->getPosition().second+delta.second };
-
-            
-            temp->setPosition( curr_pos );
-            temp->setVelocity( point ( 0.0f, 0.0f ) );
-        }
-
-        mousePos_prev_all = mousePosf;
-
-
-    }
-    #endif
-                    
+    
+    sf::Vector2f delta = mousePosf - mousePos_prev_all;
+    moveSelection( delta );
+    mousePos_prev_all = mousePosf;
+                   
 }
 
-void Engine::objectDefault(){
+void Engine::deleteObject( Object* object_to_delete, std::vector<Object*>& all_objects ){
+    auto it = std::find( all_objects.begin( ), all_objects.end( ), object_to_delete );
+    if ( it != all_objects.end( ) ){
+        all_objects.erase( it );
+
+    }
+    deleted = true;
+}
+
+#if EXPERIMENTAL_1
+void Engine::deleteSelectedObjects( std::vector<Object*>& all_objects ){
+    for (auto it = all_objects.begin(); it != all_objects.end(); ++it) {
+        delete *it;
+    }
+    all_objects.clear();
+}
+#endif
+
+
+void Engine::moveSelection( const sf::Vector2f delta ){
+
+    if ( sf::Event::MouseMoved && sf::Mouse::isButtonPressed( sf::Mouse::Left ) && select_mode && !deleted ) {
+        
+        checkObjectsSelected( );
+        if ( objects_selected && selection_stop ){
+            moveAll( &selected_objects, delta );
+        }
+    }
+
+}
+void Engine::checkObjectsSelected( ){
+    for ( Object* selected : selected_objects )
+    {
+        mouseonobj = false;
+        if ( selected->mouseOnObject( mousePosf ) ){
+            mouseonobj = true;
+            objects_selected = true;
+            break;
+        }
+    }
+
+}
+
+void Engine::moveAll( std::vector<Object*>* objects, const sf::Vector2f delta ){ 
+    std::cout << objects->size() << "\n";
+    for ( Object* obj : *objects ){
+        obj->setVelocity( point ( 0.0f, 0.0f ) );
+        obj->setPosition( point{ obj->getPosition().first + (delta.x/(objects->size()/2)), obj->getPosition().second + (delta.y/(objects->size()/2)) } ) ;
+    }
+
+}
+
+void Engine::objectDefault( ){
     for ( auto* obj : objects ){
         obj->getShape()->setOutlineColor(sf::Color::Black);
     }
     selection_stop = false;
-    selected_objects.clear();
-    selected_objects.shrink_to_fit();
+    selected_objects.clear( );
+    selected_objects.shrink_to_fit( );
 }
 
 
@@ -334,7 +378,7 @@ void Engine::DragRectangle( ){
         mouseDrawnBox.setOutlineThickness(1.0f);
         mouseDrawnBox.setSize( rect_size );
         GetObjectsInArea( point( mouseOnClickStart.x, mouseOnClickStart.y ), point( rect_size.x,rect_size.y ) );
-        Window->draw( mouseDrawnBox );
+        WINDOW->draw( mouseDrawnBox );
     }
 
 
@@ -347,7 +391,7 @@ void Engine::DragRectangle( ){
 
         if ( clicked ){
             mouseDrawnBox.setFillColor( sf::Color( 0, 200, 0, 80 ) );
-            Window->draw( mouseDrawnBox );
+            WINDOW->draw( mouseDrawnBox );
         }
 
     }
@@ -361,7 +405,7 @@ void Engine::Update( const float* delta_time ){
         point pos_f = calculateVelocity( objects[i], *delta_time );
         objects[i]->setPosition( pos_f );
         sf::Shape* sh = objects[i]->getShape();
-        Window->draw( *sh );
+        WINDOW->draw( *sh );
     }
 }
 
@@ -415,13 +459,13 @@ void Engine::UI( ) {
         selection.setString((selection_stop) ? "Selection disabled: Press Escape To Enable": "");
         selection.setCharacterSize(35);
         selection.setPosition(0,mode.getPosition().y+30);
-        Window->draw(selection);
+        WINDOW->draw(selection);
 
     }
 
-    Window->draw(mode);
+    WINDOW->draw(mode);
 
-    Window->draw(spawn_size_text);
+    WINDOW->draw(spawn_size_text);
 }
 
 void Engine::Render( ){
@@ -439,24 +483,24 @@ void Engine::Render( ){
         line[0].color = sf::Color::Green;
         line[1].position = mousePosf;
         line[1].color = sf::Color::Green;
-        Window->draw( line );
+        WINDOW->draw( line );
 
     }
 
     if ( p_selected_object && sf::Mouse::isButtonPressed( sf::Mouse::Left )){
         sf::Shape* sh = p_selected_object->getShape( );
         sh->setOutlineColor( sf::Color::Red );
-        Window->draw( *sh );
+        WINDOW->draw( *sh );
 
     }
 
     if ( focus ){
-        sf::Vector2i currentCoordinates = Window->mapCoordsToPixel( sf::Vector2f{( (float) ( Window->getSize().x )/2 ), ( (float) ( Window->getSize().y ) / 2 )} );
+        sf::Vector2i currentCoordinates = WINDOW->mapCoordsToPixel( sf::Vector2f{( (float) ( WINDOW->getSize().x )/2 ), ( (float) ( WINDOW->getSize().y ) / 2 )} );
         sf::Vector2i offset = currentCoordinates - originalCoordinates;
         
         mainView.move( offset.x, offset.y );
 
-        Window->setView( mainView );
+        WINDOW->setView( mainView );
 
         if (offset.x == 0 && offset.y == 0) {
             focus = false;
@@ -469,11 +513,11 @@ void Engine::Render( ){
 
 void Engine::zoomViewAt( sf::Vector2i pixel, float zoom )
 {
-	const sf::Vector2f beforeCoord{ Window->mapPixelToCoords( pixel ) };
+	const sf::Vector2f beforeCoord{ WINDOW->mapPixelToCoords( pixel ) };
 	mainView.zoom( zoom );
-	Window->setView( mainView );
-	const sf::Vector2f afterCoord{ Window->mapPixelToCoords( pixel ) };
+	WINDOW->setView( mainView );
+	const sf::Vector2f afterCoord{ WINDOW->mapPixelToCoords( pixel ) };
 	const sf::Vector2f offsetCoords{ beforeCoord - afterCoord };
 	mainView.move( offsetCoords );
-	Window->setView( mainView );
+	WINDOW->setView( mainView );
 }

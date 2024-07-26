@@ -10,33 +10,32 @@ protected:
     float mass;
     int object_id;
     sf::Shape* shape;
-    
 
-public:
+public:    
     Object( float mass, float pos_x, float pos_y );
     Object( );
     virtual ~Object( ) = 0;
     
     std::pair<float, float> getPosition();
 
-    virtual void setPosition( std::pair<float, float> pos );
+    virtual void setPosition( const std::pair<float, float> pos );
 
     void print_info( );
     virtual sf::Shape* getShape();
     float getMass( );
-    void setMass( float mass );
+    void setMass( const float mass );
     
     std::pair<float, float> getVelocity( );
-    std::pair<float, float> setVelocity( float vel_x, float vel_y );
-    void setVelocity( std::pair<float, float> vel );
+    std::pair<float, float> setVelocity( const float vel_x, const float vel_y );
+    void setVelocity( const std::pair<float, float> vel );
     
     std::pair<float, float> getAcceleration( );
-    std::pair<float, float> setAcceleration( float acc_x, float acc_y );
-    void setAcceleration( std::pair<float, float> acc );
+    std::pair<float, float> setAcceleration( const float acc_x, const float acc_y );
+    void setAcceleration( const std::pair<float, float> acc );
 
     void setID( int id );
     int getID( );
 
-    virtual bool mouseOnObject( sf::Vector2f vector );
+    virtual bool mouseOnObject( const sf::Vector2f vector );
 
 };

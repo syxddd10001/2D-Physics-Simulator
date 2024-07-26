@@ -24,7 +24,7 @@ sf::Shape* Circle::getShape( ){
 }
 
 
-float Circle::setRadius( float rad ){
+float Circle::setRadius( const float rad ){
     this->radius = rad;
     return radius;
 }
@@ -33,14 +33,14 @@ float Circle::getRadius( ){
     return radius;
 }
 
-void Circle::setPosition( std::pair<float, float> pos ){
+void Circle::setPosition( const std::pair<float, float> pos ){
     position_x = pos.first;
     position_y = pos.second;
     shape->setPosition( sf::Vector2f( position_x, position_y ) );
     
 }
 
-bool Circle::mouseOnObject( sf::Vector2f vector ){
+bool Circle::mouseOnObject( const sf::Vector2f vector ){
     float distance = calculateDistance( getPosition(), std::pair<float, float> ( vector.x, vector.y ) );
 
     if ( distance < getRadius( ) )

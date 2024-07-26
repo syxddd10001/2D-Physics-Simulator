@@ -1,11 +1,11 @@
-#include <Objects/Object.hpp>
+#include <Object.hpp>
 #include <iostream>
 #include <utility>
 
 Object::Object( float mass, float pos_x, float pos_y ) 
 : mass( mass ), position_x( pos_x ), position_y( pos_y )
 {
-    
+    this->setVelocity( std::pair<float, float> { 0.f, 0.f } );
 }
 
 Object::Object( )
@@ -15,7 +15,7 @@ Object::Object( )
 
 Object::~Object( ){
     std::cout << "Object destroyed\n";
-    delete shape;
+
 }
 
 void Object::print_info( ){
@@ -32,7 +32,7 @@ sf::Shape* Object::getShape( ){
     return shape;
 }
 
-void Object::setPosition( std::pair<float, float> pos ){
+void Object::setPosition( const std::pair<float, float> pos ){
     position_x = pos.first;
     position_y = pos.second;
     
@@ -46,18 +46,18 @@ std::pair<float, float> Object::getVelocity(){
     return std::pair<float, float> ( velocity_x, velocity_y );
 }
 
-std::pair<float, float> Object::setVelocity( float vel_x, float vel_y ){
+std::pair<float, float> Object::setVelocity( const float vel_x, const float vel_y ){
     this->velocity_x = vel_x; 
     this->velocity_y = vel_y; 
     return std::pair<float, float> ( velocity_x, velocity_y );
 }
 
-void Object::setVelocity( std::pair<float, float> vel ){
+void Object::setVelocity( const std::pair<float, float> vel ){
     velocity_x = vel.first;
     velocity_y = vel.second;
 }
 
-void Object::setAcceleration( std::pair<float, float> acc ){
+void Object::setAcceleration( const std::pair<float, float> acc ){
     acceleration_x = acc.first;
     acceleration_y = acc.second;
 }
@@ -66,7 +66,7 @@ std::pair<float, float> Object::getAcceleration(){
     return std::pair<float, float> ( acceleration_x, acceleration_y );
 }
 
-std::pair<float, float> Object::setAcceleration( float acc_x, float acc_y ){
+std::pair<float, float> Object::setAcceleration( const float acc_x, const float acc_y ){
     this->acceleration_x = acc_x;
     this->acceleration_y = acc_y;
     return std::pair<float, float> ( acceleration_x, acceleration_y );
@@ -80,6 +80,6 @@ int Object::getID(){
     return this->object_id;
 }
 
-bool Object::mouseOnObject( sf::Vector2f vector ){
+bool Object::mouseOnObject( const sf::Vector2f vector ){
     return false;
 }

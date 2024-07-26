@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <memory>
 
 #include "Object.hpp"
 #include "PhysicsMath.hpp"
@@ -13,7 +14,7 @@ protected:
     const float ZOOM_AMOUNT = 1.1f;
 
 public:
-    sf::RenderWindow* Window;
+    std::shared_ptr<sf::RenderWindow> WINDOW;
     sf::Clock clock;
     sf::View mainView;
     sf::View UIView;
@@ -40,5 +41,10 @@ public:
     void GetObjectsInArea( const point start, const point rect_size );
     void DragRectangle( );
     void objectDefault( );
+    void moveSelection( const sf::Vector2f delta );
+    void checkObjectsSelected( );
+    void moveAll( std::vector<Object*>* objects, const sf::Vector2f delta );
+    void deleteObject( Object* object_to_delete, std::vector<Object*>& all_objects );
+    void deleteSelectedObjects( std::vector<Object*>& all_objects );
 };
 

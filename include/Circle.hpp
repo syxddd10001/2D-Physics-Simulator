@@ -12,8 +12,7 @@ public:
     Circle( );
     float getRadius( );
     sf::Shape* getShape( ) override; 
-    float setRadius( float rad );
-    void setPosition( std::pair<float, float> pos ) override;
-    
-    bool mouseOnObject( sf::Vector2f vector ) override;
+    float setRadius( const float rad );
+    void setPosition( const std::pair<float, float> pos ) override;
+    bool mouseOnObject( const sf::Vector2f vector ) override;
 };

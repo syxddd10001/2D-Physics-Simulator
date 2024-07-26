@@ -23,7 +23,7 @@ std::pair<float, float> Rectangle::getDimension( ){
     return  std::make_pair( this->dimensions.first, this->dimensions.second );
 }
 
-void Rectangle::setDimension( std::pair<float, float> dim ){
+void Rectangle::setDimension( const std::pair<float, float> dim ){
     this->dimensions.first = dim.first;
     this->dimensions.second = dim.second;
 }
@@ -32,17 +32,17 @@ sf::Shape* Rectangle::getShape(){
     return this->shape;
 }
 
-void Rectangle::setPosition( std::pair<float, float> pos ){
+void Rectangle::setPosition( const std::pair<float, float> pos ){
     position_x = pos.first;
     position_y = pos.second;
     shape->setPosition( sf::Vector2f( pos.first, pos.second ) );
 }
 
-bool Rectangle::inBounds( sf::Vector2f mousepos ) {   
+bool Rectangle::inBounds( const sf::Vector2f mousepos ) {   
   return ((mousepos.x >= position_x && mousepos.x <= position_x + dimensions.first) &&
           (mousepos.y >= position_y && mousepos.y <= position_y + dimensions.second));
 }
 
-bool Rectangle::mouseOnObject( sf::Vector2f vector ){
+bool Rectangle::mouseOnObject( const sf::Vector2f vector ){
     return inBounds( vector );
 }
