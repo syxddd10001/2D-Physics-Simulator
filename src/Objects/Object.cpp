@@ -1,3 +1,4 @@
+#pragma once
 #include <Object.hpp>
 #include <iostream>
 #include <utility>

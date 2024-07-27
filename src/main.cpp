@@ -12,6 +12,7 @@
 #include <PhysicsMath.hpp>
 #include <Engine.hpp>
 
+//
 
 int main(){
     std::unique_ptr<Engine> Instance = std::make_unique<Engine>( ); // unique pointer that reserves memory in heap for an Engine instance 
@@ -26,6 +27,7 @@ int main(){
         float delta_time = Instance->clock.restart().asSeconds(); // getting deltaTme
         Instance->elapsed_time_spawn += delta_time;
         Instance->elapsed_time_move += delta_time; 
+        Instance->elapsed_time_input += delta_time;
 
         Instance->EventManager( ); // calling event manager ie input
         

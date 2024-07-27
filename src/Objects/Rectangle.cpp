@@ -1,3 +1,4 @@
+#pragma once
 #include <Rectangle.hpp>
 #include <PhysicsMath.hpp>
 #include <SFML/Graphics.hpp>

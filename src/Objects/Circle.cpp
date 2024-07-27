@@ -1,3 +1,4 @@
+#pragma once
 #include <Circle.hpp>
 #include <PhysicsMath.hpp>
 #include <SFML/Graphics.hpp>
@@ -41,13 +42,5 @@ void Circle::setPosition( const std::pair<float, float> pos ){
 }
 
 bool Circle::mouseOnObject( const sf::Vector2f vector ){
-    float distance = calculateDistance( getPosition(), std::pair<float, float> ( vector.x, vector.y ) );
-
-    if ( distance < getRadius( ) )
-    {
-        return true;
-    }
-
-    return false;
-
+    return calculateDistance( getPosition(), std::pair<float, float> ( vector.x, vector.y ) ) < getRadius( );
 }
