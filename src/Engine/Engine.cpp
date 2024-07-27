@@ -13,6 +13,9 @@
 #include <Physics.hpp>
 #include <Rectangle.hpp>
 
+#define WINDOW_SIZE_X 1000
+#define WINDOW_SIZE_Y 1000
+#define WINDOW_NAME "2D Physics Simulator"
 
 #define FRAME_RATE 144
 #define EXPERIMENTAL_1 0
@@ -81,11 +84,11 @@ sf::RectangleShape cursor;
 
 sf::Text command_indicator;
 
-
-
 Engine::Engine( ){
-    WINDOW = std::make_shared<sf::RenderWindow>(sf::VideoMode( 1000, 1000 ), "2D Physics Simulator");
+    WINDOW = std::make_shared<sf::RenderWindow>( sf::VideoMode( WINDOW_SIZE_X, WINDOW_SIZE_Y ), WINDOW_NAME );
+    
     HalfSize = sf::Vector2f( WINDOW->getSize().x/2, WINDOW->getSize().y/2 );
+    
     if ( !default_font.loadFromFile( "static/fonts/Silver.ttf" ) ){
         std::cout << "No such file\n"; 
     }
@@ -93,7 +96,6 @@ Engine::Engine( ){
     mainView = sf::View( sf::FloatRect( 0, 0, WINDOW->getSize().x, WINDOW->getSize().y ) );
     
     originalCoordinates = WINDOW->mapCoordsToPixel(sf::Vector2f{ ((float)(WINDOW->getSize().x)/2), ((float)(WINDOW->getSize().y)/2)});
-    std::cout << originalCoordinates.x << "," << originalCoordinates.y << "\n";
     
     cursor.setSize( sf::Vector2f { 5.0f, 20.0f } );
     cursor.setFillColor( sf::Color::White );
@@ -102,10 +104,13 @@ Engine::Engine( ){
     command_indicator.setCharacterSize( h2_char_size );
     command_indicator.setString("> ");
     
-    inputBox.setCharacterSize(h2_char_size);
+    inputBox.setCharacterSize( h2_char_size );
 
     WINDOW->setFramerateLimit( FRAME_RATE );
     WINDOW->setView( mainView );
+
+    DEBUG_PRINT("%dx%d window spawned \n", WINDOW_SIZE_X, WINDOW_SIZE_Y);
+    
 }
 
 Engine::~Engine( ){
@@ -137,7 +142,6 @@ void Engine::EventManager( ){
                 }
 
             break;
-            
             
             case sf::Event::MouseButtonPressed:
                 if ( evnt.mouseButton.button == sf::Mouse::Middle ) dragging = true;
@@ -174,10 +178,7 @@ void Engine::EventManager( ){
                     }
       
 
-                }
-
-               
-                
+                }        
             break;
 
             case sf::Event::MouseButtonReleased:
@@ -222,7 +223,9 @@ void Engine::EventManager( ){
 
                 }
 
-                if ( evnt.mouseButton.button == sf::Mouse::Middle ) dragging = false;
+                if ( evnt.mouseButton.button == sf::Mouse::Middle ) {
+                    dragging = false;
+                }
 
                 break;
 
@@ -266,7 +269,10 @@ void Engine::EventManager( ){
                 }
                 if ( evnt.key.code == sf::Keyboard::Escape ){
                     if (command_mode) {
-                        input_text = "";
+                        if ( !input_text.empty() && cursor_position > 0) {    
+                        input_text.clear();
+                        cursor_position = 0;
+                    }
                     }
                     objectDefault( );
 
@@ -280,7 +286,6 @@ void Engine::EventManager( ){
                     object_count--;
 
                 }
-
 
             break;
 
@@ -410,7 +415,6 @@ void Engine::deleteSelectedObjects( std::vector<Object*>& all_objects ){
     all_objects.clear();
 }
 #endif
-
 
 void Engine::moveSelection( const sf::Vector2f delta ){
 
@@ -550,25 +554,28 @@ float Engine::getFramesPerSecond( ){
 void Engine::UI( ) {
 
     sf::Text spawn_size_text;
-    spawn_size_text.setFont(default_font);
-    spawn_size_text.setString("Spawn Size: " +  std::to_string( (int) spawn_size ) );
-    spawn_size_text.setCharacterSize(h2_char_size);
+    spawn_size_text.setFont( default_font );
+    spawn_size_text.setString( "Spawn Size: " +  std::to_string( (int) spawn_size ) );
+    spawn_size_text.setCharacterSize( h2_char_size );
 
     sf::Text select_mode_text;
-    select_mode_text.setFont(default_font);
-    select_mode_text.setString((select_mode) ? "Multi Select Mode - Right click and Drag to select multiple objects" : "Single Select Mode");
-    select_mode_text.setCharacterSize(h2_char_size);
+    select_mode_text.setFont( default_font );
+    select_mode_text.setString( 
+        ( select_mode ) ? 
+        "Multi Select Mode - Right click and Drag to select multiple objects and Left Click an Object to move all objects" : 
+        "Single Select Mode - Left Click Object to move and Right click and drag to launch object" );
+    select_mode_text.setCharacterSize( h2_char_size );
     select_mode_text.setPosition(0,30);
 
-    if ( select_mode && selection_lock ){
-        sf::Text selection;
-        selection.setFont(default_font);
-        selection.setString((selection_lock) ? "Selection disabled: Press Escape To Enable": "");
-        selection.setCharacterSize(h2_char_size);
-        selection.setPosition(0,select_mode_text.getPosition().y+30);
-        WINDOW->draw(selection);
+    
+    sf::Text spawn_text;
+    spawn_text.setFont(default_font);
+    spawn_text.setString("Tab to change object type, SpaceBar to spawn an Object");
+    spawn_text.setCharacterSize( h2_char_size );
+    spawn_text.setPosition( 0, select_mode_text.getPosition().y + 30 );
+    WINDOW->draw( spawn_text );
 
-    }
+    
 
     sf::Text command_mode_text;
     command_mode_text.setFont( default_font );
@@ -585,7 +592,7 @@ void Engine::UI( ) {
 
     if ( cursor_show && elapsed_time_cursor_blink >= CURSOR_BLINK_INTERVAL ) {
         cursor_show = false;
-        elapsed_time_cursor_blink = 0.0f; //
+        elapsed_time_cursor_blink = 0.0f;
     }
     
     if ( !cursor_show && elapsed_time_cursor_blink >= CURSOR_BLINK_INTERVAL ){
@@ -593,13 +600,13 @@ void Engine::UI( ) {
         elapsed_time_cursor_blink = 0.0f;
     }
 
-    if ( cursor_show ) WINDOW->draw(cursor);
+    if ( cursor_show && command_mode ) WINDOW->draw( cursor );
 
-    WINDOW->draw(command_indicator);
-    WINDOW->draw(inputBox);
-    WINDOW->draw(select_mode_text);
-    WINDOW->draw(command_mode_text);
-    WINDOW->draw(spawn_size_text);
+    WINDOW->draw( command_indicator );
+    WINDOW->draw( inputBox );
+    WINDOW->draw( select_mode_text );
+    WINDOW->draw( command_mode_text );
+    WINDOW->draw( spawn_size_text );
 }
 
 void Engine::Render( ){
@@ -633,7 +640,7 @@ void Engine::Render( ){
         mainView.move( offset.x, offset.y );
         WINDOW->setView( mainView );
 
-        if (offset.x == 0 && offset.y == 0) {
+        if ( offset.x == 0 && offset.y == 0 ) {
             focus = false;
         }
     }
