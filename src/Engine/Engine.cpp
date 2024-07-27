@@ -66,17 +66,21 @@ bool objects_selected = false;
 bool deleted = false;
 bool command_mode = false;
 bool input_lock = true;
+bool cursor_show = true;
 
 sf::Vector2i originalCoordinates;
 bool focus = false;
 
 int32_t object_count = 0;
+
 int32_t cursor_position = 0;
-
-
 std::string input_text = "";
-
 sf::Text inputBox("Input text: ", default_font);
+sf::RectangleShape cursor;
+
+
+sf::Text command_indicator;
+
 
 
 Engine::Engine( ){
@@ -90,7 +94,16 @@ Engine::Engine( ){
     
     originalCoordinates = WINDOW->mapCoordsToPixel(sf::Vector2f{ ((float)(WINDOW->getSize().x)/2), ((float)(WINDOW->getSize().y)/2)});
     std::cout << originalCoordinates.x << "," << originalCoordinates.y << "\n";
-    input_text.insert(cursor_position, 1, 'I');
+    
+    cursor.setSize( sf::Vector2f { 5.0f, 20.0f } );
+    cursor.setFillColor( sf::Color::White );
+
+    command_indicator.setFont( default_font );
+    command_indicator.setCharacterSize( h2_char_size );
+    command_indicator.setString("> ");
+    
+    inputBox.setCharacterSize(h2_char_size);
+
     WINDOW->setFramerateLimit( FRAME_RATE );
     WINDOW->setView( mainView );
 }
@@ -119,6 +132,7 @@ void Engine::EventManager( ){
                             char ch = static_cast<char>(evnt.text.unicode);
                             input_text.insert(cursor_position, 1, ch);
                             cursor_position++;
+
                     }
                 }
 
@@ -215,12 +229,11 @@ void Engine::EventManager( ){
             case sf::Event::KeyReleased:
                 
                 if ( evnt.key.code == sf::Keyboard::LControl && command_mode ){
-                    DEBUG_PRINT("%s", "released");
-                    
+                    DEBUG_PRINT("%s\n", "released");
                     input_lock = false;
                 }
                 
-                if ( evnt.key.code == sf::Keyboard::F && elapsed_time_spawn >= INTERRUPT_INTERVAL ){
+                if ( evnt.key.code == sf::Keyboard::F && elapsed_time_spawn >= INTERRUPT_INTERVAL && !command_mode ){
                     elapsed_time_spawn = 0.0f;  
                     focus = true;
                 }
@@ -273,15 +286,11 @@ void Engine::EventManager( ){
 
             case sf::Event::KeyPressed:
                 if ( evnt.key.code == sf::Keyboard::Left && cursor_position > 0 && command_mode && elapsed_time_input >= INPUT_INTERVAL){
-                    input_text.erase(cursor_position,1);
                     cursor_position --;
-                    input_text.insert(cursor_position, 1, 'I');
                 }
 
                 if ( evnt.key.code == sf::Keyboard::Right && cursor_position < input_text.size() && command_mode && elapsed_time_input >= INPUT_INTERVAL){
-                    input_text.erase(cursor_position,1);
-                    cursor_position ++;    
-                    input_text.insert(cursor_position, 1, 'I');
+                    cursor_position ++;  
                 }                
                 
                 if ( evnt.key.code == sf::Keyboard::LControl && command_mode ){
@@ -289,13 +298,16 @@ void Engine::EventManager( ){
                     DEBUG_PRINT("%s", "locked");
                 }
                 if ( evnt.key.code == sf::Keyboard::BackSpace && command_mode ){
-                    if ( !input_text.empty() && cursor_position > 0) {
-                        input_text.erase(cursor_position,1);
-                        
-                        input_text.pop_back();
-                        input_text.insert(cursor_position, 1, 'I');
-
+                    if ( !input_text.empty() && cursor_position > 0) {    
+                        input_text.erase(cursor_position-1,1);
                         cursor_position--;
+                    }
+                }
+
+                if ( input_lock && evnt.key.code == sf::Keyboard::BackSpace && command_mode ){
+                    if ( !input_text.empty() && cursor_position > 0) {    
+                        input_text.clear();
+                        cursor_position = 0;
                     }
                 }
                 
@@ -525,7 +537,7 @@ void Engine::collisionCheck( ){
                 {
                     // collision response
                 }
-            }*/
+            }*/ 
         }
     }
 }
@@ -562,12 +574,28 @@ void Engine::UI( ) {
     command_mode_text.setFont( default_font );
     command_mode_text.setString( (!command_mode) ? "Ctrl + I for Command Mode" : "Ctrl + I to Exit Command Mode" );
     command_mode_text.setCharacterSize( h2_char_size );
-    command_mode_text.setPosition( 0, select_mode_text.getPosition().y+60 );
+    command_mode_text.setPosition( 0, select_mode_text.getPosition().y + 60 );
     
-    inputBox.setPosition( sf::Vector2f { 0.f, (float)WINDOW->getSize().y - 60 } );
-    inputBox.setCharacterSize(h2_char_size);
-    inputBox.setString( "> " + input_text );
+    inputBox.setPosition( sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 60 } );
+
+    inputBox.setString( input_text );
+
+    cursor.setPosition( sf::Vector2f { inputBox.findCharacterPos(cursor_position).x, inputBox.findCharacterPos(cursor_position).y+17.f } );
+    command_indicator.setPosition( 0, (float)WINDOW->getSize().y - 60 );
+
+    if ( cursor_show && elapsed_time_cursor_blink >= CURSOR_BLINK_INTERVAL ) {
+        cursor_show = false;
+        elapsed_time_cursor_blink = 0.0f; //
+    }
     
+    if ( !cursor_show && elapsed_time_cursor_blink >= CURSOR_BLINK_INTERVAL ){
+        cursor_show = true;
+        elapsed_time_cursor_blink = 0.0f;
+    }
+
+    if ( cursor_show ) WINDOW->draw(cursor);
+
+    WINDOW->draw(command_indicator);
     WINDOW->draw(inputBox);
     WINDOW->draw(select_mode_text);
     WINDOW->draw(command_mode_text);
@@ -597,15 +625,12 @@ void Engine::Render( ){
         sf::Shape* sh = p_selected_object->getShape( );
         sh->setOutlineColor( sf::Color::Red );
         WINDOW->draw( *sh );
-
     }
 
     if ( focus ){
         sf::Vector2i currentCoordinates = WINDOW->mapCoordsToPixel( sf::Vector2f{( (float) ( WINDOW->getSize().x )/2 ), ( (float) ( WINDOW->getSize().y ) / 2 )} );
         sf::Vector2i offset = currentCoordinates - originalCoordinates;
-        
         mainView.move( offset.x, offset.y );
-
         WINDOW->setView( mainView );
 
         if (offset.x == 0 && offset.y == 0) {

@@ -14,6 +14,7 @@ protected:
     const float ZOOM_AMOUNT = 1.1f;
     float MOVE_SENSITIVITY = 1.f;
     float INPUT_INTERVAL = 0.1f;
+    float CURSOR_BLINK_INTERVAL = 0.50f;
 
 public:
     std::shared_ptr<sf::RenderWindow> WINDOW;
@@ -27,6 +28,7 @@ public:
     float elapsed_time_spawn = CREATION_INTERVAL;
     float elapsed_time_move = INTERRUPT_INTERVAL;
     float elapsed_time_input = INPUT_INTERVAL;
+    float elapsed_time_cursor_blink = CURSOR_BLINK_INTERVAL;
 
 
     Engine( );

@@ -28,6 +28,7 @@ int main(){
         Instance->elapsed_time_spawn += delta_time;
         Instance->elapsed_time_move += delta_time; 
         Instance->elapsed_time_input += delta_time;
+        Instance->elapsed_time_cursor_blink += delta_time;
 
         Instance->EventManager( ); // calling event manager ie input
         
