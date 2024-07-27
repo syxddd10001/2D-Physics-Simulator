@@ -12,6 +12,8 @@ protected:
     const float CREATION_INTERVAL = 0.2f;
     const float INTERRUPT_INTERVAL = 0.01f; 
     const float ZOOM_AMOUNT = 1.1f;
+    float MOVE_SENSITIVITY = 1.f;
+    float INPUT_INTERVAL = 0.1f;
 
 public:
     std::shared_ptr<sf::RenderWindow> WINDOW;
@@ -22,10 +24,9 @@ public:
     sf::Vector2i mousePos;
     sf::Vector2f mousePosf;
     
-    
     float elapsed_time_spawn = CREATION_INTERVAL;
     float elapsed_time_move = INTERRUPT_INTERVAL;
-
+    float elapsed_time_input = INPUT_INTERVAL;
 
 
     Engine( );
@@ -46,5 +47,6 @@ public:
     void moveAll( std::vector<Object*>* objects, const sf::Vector2f delta );
     void deleteObject( Object* object_to_delete, std::vector<Object*>& all_objects );
     void deleteSelectedObjects( std::vector<Object*>& all_objects );
+
 };
 
