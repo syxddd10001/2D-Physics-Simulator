@@ -70,18 +70,17 @@ bool deleted = false;
 bool command_mode = false;
 bool input_lock = true;
 bool cursor_show = true;
+bool focus = false;
 
 sf::Vector2i originalCoordinates;
-bool focus = false;
 
 int32_t object_count = 0;
 
+//UI 
 int32_t cursor_position = 0;
 std::string input_text = "";
 sf::Text inputBox("Input text: ", default_font);
 sf::RectangleShape cursor;
-
-
 sf::Text command_indicator;
 
 Engine::Engine( ){
@@ -95,7 +94,7 @@ Engine::Engine( ){
     spawn_type = "cir";
     mainView = sf::View( sf::FloatRect( 0, 0, WINDOW->getSize().x, WINDOW->getSize().y ) );
     
-    originalCoordinates = WINDOW->mapCoordsToPixel(sf::Vector2f{ ((float)(WINDOW->getSize().x)/2), ((float)(WINDOW->getSize().y)/2)});
+    originalCoordinates = WINDOW->mapCoordsToPixel(sf::Vector2f{ ((float)(HalfSize.x)), ((float)(HalfSize.y))});
     
     cursor.setSize( sf::Vector2f { 5.0f, 20.0f } );
     cursor.setFillColor( sf::Color::White );
