@@ -8,77 +8,77 @@
 #endif
 
 
-std::pair<float, float> pairAdd( std::pair<float,float> pair1, std::pair<float,float> pair2 ){
-    return std::pair<float, float>( pair1.first+pair2.first, pair1.second+pair2.second );
+point pairAdd( point pair1, point pair2 ) {
+  return point( pair1.first+pair2.first, pair1.second+pair2.second );
 }    
 
-std::pair<float, float> pairSubtract( std::pair<float,float> pair1, std::pair<float,float> pair2 ){
-    return std::pair<float, float>( pair1.first-pair2.first, pair1.second-pair2.second );
+point pairSubtract( point pair1, point pair2 ) {
+  return point( pair1.first-pair2.first, pair1.second-pair2.second );
 }
 
-std::pair<float, float> pairMultiply( std::pair<float,float> pair1, std::pair<float,float> pair2 ){
-    return std::pair<float, float>( pair1.first*pair2.first, pair1.second*pair2.second );
+point pairMultiply( point pair1, point pair2 ) {
+  return point( pair1.first*pair2.first, pair1.second*pair2.second );
 }
 
-float calculateDistance( std::pair<float,float> pos1, std::pair<float,float> pos2 ){
-    std::pair<float, float> difference = pairSubtract( pos1, pos2 );
-    return std::sqrt( difference.first * difference.first + difference.second * difference.second );
+float calculateDistance( point pos1, point pos2 ) {
+  point difference = pairSubtract( pos1, pos2 );
+  return std::sqrt( difference.first * difference.first + difference.second * difference.second );
 }
 
-float dotProduct( std::pair<float,float> vectorA, std::pair<float, float> vectorB ){
-    return vectorA.first*vectorB.first + vectorA.second*vectorB.second;
+float dotProduct( point vectorA, point vectorB ) {
+  return vectorA.first*vectorB.first + vectorA.second*vectorB.second;
 }
 
-std::pair<float, float> calculateVelocity( Object* object, float delta_time, const double force ){
-    std::pair<float, float> velocity = object->getVelocity();
-    std::pair<float, float> position = object->getPosition();
+point calculateVelocity( Object* object, float delta_time, const double force ){
+  point velocity_0 = object->getVelocity();
+  point position_0 = object->getPosition();
 
-    velocity.first += velocity.first * force * delta_time; 
-    velocity.second += velocity.second * force * delta_time;
-    
-    position.first += velocity.first * delta_time; 
-    position.second += velocity.second * delta_time;
-    
-    if ( std::sqrt( velocity.first*velocity.first + velocity.second * velocity.second ) < 0.01f ) 
-    velocity = std::make_pair( 0.0f, 0.0f );
-    
-    object->setVelocity( velocity );
+  if ( std::sqrt( velocity_0.first*velocity_0.first + velocity_0.second * velocity_0.second ) < 0.01f ) 
+  velocity_0 = std::make_pair( 0.0f, 0.0f );
+  
+  object->setVelocity( point( velocity_0.first + ( velocity_0.first* force * delta_time ), 
+                              velocity_0.second+ ( velocity_0.second* force * delta_time ) ) );
+  
+  object->setAcceleration( calculateAcceleration( object, delta_time, velocity_0 ) );
+  
+  object->setPosition( point( position_0.first + (object->getVelocity().first * delta_time ), 
+                              position_0.second + (object->getVelocity().second * delta_time ) ) );
 
-    return position;
+  return object->getPosition();
 }
 //
-std::pair<float, float> calculateVelocity( Object* object, float delta_time ){
-    std::pair<float, float> velocity = object->getVelocity();
-    std::pair<float, float> position = object->getPosition();
+point calculateVelocity( Object* object, float delta_time ) {
+  point velocity_0 = object->getVelocity();
+  point position_0 = object->getPosition();
 
-    velocity.first += velocity.first  * delta_time; 
-    velocity.second += velocity.second * delta_time;
-    
-    position.first += velocity.first * delta_time; 
-    position.second += velocity.second * delta_time;
-    
-    if ( std::sqrt( velocity.first*velocity.first + velocity.second * velocity.second ) < 0.01f ) 
-    velocity = std::make_pair( 0.0f, 0.0f );
-    
-    object->setVelocity( velocity );
+  if ( std::sqrt( velocity_0.first*velocity_0.first + velocity_0.second * velocity_0.second ) < 0.01f ) 
+  velocity_0 = std::make_pair( 0.0f, 0.0f );
+  
+  object->setVelocity( point( velocity_0.first + ( velocity_0.first * delta_time ), 
+                              velocity_0.second+ ( velocity_0.second * delta_time ) ) );
+  
+  object->setAcceleration( calculateAcceleration( object, delta_time, velocity_0 ) );
+  
+  object->setPosition( point( position_0.first + (object->getVelocity().first * delta_time ), 
+                              position_0.second + (object->getVelocity().second * delta_time ) ) );
 
-    return position;
+  return object->getPosition();
 }
 
 double applyForce( Object* object1, Object* object2 ) {
-    double distance = calculateDistance(object1->getPosition(), object2->getPosition());
-    double mass_1 = object1->getMass();
-    double mass_2 = object2->getMass();
-    std::cout << std::setprecision(13);
-    std::cout << "dist:" << distance << std::endl;
-    double force =  ( GRAVITATIONAL_CONSTANT * mass_1 * mass_2 ) / ( distance*distance );
-    
-    return force;
+  double distance = calculateDistance( object1->getPosition(), object2->getPosition() );
+  double mass_1 = object1->getMass();
+  double mass_2 = object2->getMass();
+  std::cout << std::setprecision( 13 );
+  std::cout << "dist:" << distance << std::endl;
+  double force =  ( GRAVITATIONAL_CONSTANT * mass_1 * mass_2 ) / ( distance*distance );
+  
+  return force;
 
 }
 
-std::pair<double, double> calculateAcceleration(Object* object, double force) {
-    double mass = object->getMass();
-    double acceleration = force / mass;
-    return std::pair<double, double>(acceleration, acceleration); // Assuming equal acceleration in both directions
+point calculateAcceleration( Object* object, float delta_time, point velocity ) {
+  point acceleration = pairSubtract( velocity, object->getVelocity() );
+  acceleration = point( acceleration.first / delta_time, acceleration.second / delta_time );
+  return std::pair<double, double>( acceleration.first, acceleration.second ); // Assuming equal acceleration in both directions
 }

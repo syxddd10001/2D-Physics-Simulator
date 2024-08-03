@@ -12,13 +12,13 @@ const long double GRAVITATIONAL_CONSTANT = 6.674010551359 * pow(10,-11); // N m^
 
 using point = std::pair<float, float>;
 
-std::pair<float, float> pairAdd( std::pair<float,float> pair1, std::pair<float,float> pair2 ) ;
-std::pair<float, float> pairSubtract( std::pair<float, float> pair1, std::pair<float, float> pair2 );
-std::pair<float, float> pairMultiply( std::pair<float,float> pair1, std::pair<float,float> pair2 );
+point pairAdd( point pair1, point pair2 ) ;
+point pairSubtract( point pair1, point pair2 );
+point pairMultiply( point pair1, point pair2 );
 
-float calculateDistance( std::pair<float,float> pos1, std::pair<float,float> pos2 );
-std::pair<float, float> calculateVelocity( Object* object, float delta_time, const double force );
-std::pair<float, float> calculateVelocity( Object* object, float delta_time );
+float calculateDistance( point pos1, point pos2 );
+point calculateVelocity( Object* object, float delta_time, const double force );
+point calculateVelocity( Object* object, float delta_time );
 double applyForce( Object* object1, Object* object2 );
-float dotProduct( std::pair<float,float> vectorA, std::pair<float,float> vectorB );
-std::pair<double, double> calculateAcceleration( Object* object, double force );
+float dotProduct( point vectorA, point vectorB );
+point calculateAcceleration( Object* object, float delta_time, point velocity );

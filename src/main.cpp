@@ -41,7 +41,6 @@ int main(){
     Instance->UI( ); // rendering UI
     Instance->WINDOW->setView( Instance->mainView ); // resetting view to main
     
-
     Instance->WINDOW->display( ); // displaying everything
 
   }

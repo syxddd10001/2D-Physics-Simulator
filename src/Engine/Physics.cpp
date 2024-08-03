@@ -1,6 +1,6 @@
 #include "Physics.hpp"
 
-
+// Detect circle vs. circle collisions
 bool onCollision( Circle* object1, Circle* object2 ) {
     
   float distance = calculateDistance( object1->getPosition(), object2->getPosition() );
@@ -32,6 +32,7 @@ bool onCollision( Circle* object1, Circle* object2 ) {
   return false;
 }
 
+// Response to circle vs. circle collisions
 void dynamicResponse( Circle* object1, Circle* object2 ) {
   point position1 ( object1->getPosition( ) );
   point position2 ( object2->getPosition( ) );

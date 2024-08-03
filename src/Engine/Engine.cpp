@@ -23,6 +23,7 @@
 #define DEBUG_PRINT(format, ...) // Do nothing //
 #endif
 
+#define print std::cout
 
 sf::Event evnt;
 std::vector<Object*> objects;
@@ -103,15 +104,19 @@ Engine::Engine( ){
   
   inputBox.setCharacterSize( h2_char_size );
   
+  sf::Vector2f move_amount { -HalfSize.x, -HalfSize.y } ;
+  mainView.move( move_amount );
+  
   WINDOW->setFramerateLimit( FRAME_RATE );
   WINDOW->setView( mainView );
   
+  
+  print << std::setprecision(13);
   DEBUG_PRINT("%dx%d window spawned \n", WINDOW_SIZE_X, WINDOW_SIZE_Y);
-
 }
 
 Engine::~Engine( ){
-std::cout << "Engine Destroyed\n";
+  std::cout << "Engine Destroyed\n";
 }
 /*
  Events and input manager
@@ -421,7 +426,7 @@ void Engine::deleteSelectedObjects( std::vector<Object*>& all_objects ){
 /*
 Moves a selected object
 */
-void Engine::moveSelection( const sf::Vector2f delta ){
+void Engine::moveSelection( const sf::Vector2f delta ) {
   if ( sf::Event::MouseMoved && sf::Mouse::isButtonPressed( sf::Mouse::Left ) && select_mode && !deleted ) {  
     checkObjectsSelected( );
     if ( objects_selected ){
@@ -432,11 +437,11 @@ void Engine::moveSelection( const sf::Vector2f delta ){
 /*
 Checks if any object from an area is selected
 */
-void Engine::checkObjectsSelected( ){
+void Engine::checkObjectsSelected( ) {
 for ( Object* selected : selected_objects )
 {
   mouseonobj = false;
-  if ( selected->mouseOnObject( mousePosf ) ){
+  if ( selected->mouseOnObject( mousePosf ) ) {
     mouseonobj = true;
     objects_selected = true;
     break;
@@ -459,7 +464,7 @@ for ( auto obj : *objects ){
 /*
 Turns selected objects into their default configuration
 */
-void Engine::objectDefault( ){
+void Engine::objectDefault( ) {
   for ( auto* obj : objects ){
     obj->getShape()->setOutlineColor(sf::Color::Black);
   }
@@ -486,7 +491,7 @@ void Engine::GetObjectsInArea( const point start, const point rect_size ) {
 /*
 Draws a temporary rectangle to select objects
 */
-void Engine::DragRectangle( ){
+void Engine::DragRectangle( ) {
   if ( !select_mode ) return ;
   
   if ( sf::Event::MouseMoved && sf::Mouse::isButtonPressed( sf::Mouse::Right ) && clicked && !p_selected_object ) { 
@@ -521,8 +526,7 @@ Updates objects (position, shape and velocity) and draws it on the screen
 */
 void Engine::Update( const float* delta_time ) { 
   for ( int i = 0; i < objects.size(); i++ ) {
-    point pos_f = calculateVelocity( objects[i], *delta_time, friction );
-    objects[i]->setPosition( pos_f );
+    calculateVelocity( objects[i], *delta_time, friction );
     sf::Shape* sh = objects[i]->getShape();
     WINDOW->draw( *sh );
   }
@@ -538,7 +542,7 @@ void Engine::addObject( Object* object ) {
 /*
 Checks if any collision has occured and provides a response to that collision 
 */
-void Engine::collisionCheck( ){
+void Engine::collisionCheck( ) {
   for ( auto& current : objects )
   {
     for ( auto& other : objects )
@@ -564,7 +568,7 @@ void Engine::collisionCheck( ){
 /*
 Returns the Frames Per Second of the window 
 */
-float Engine::getFramesPerSecond( ){
+float Engine::getFramesPerSecond( ) {
   return 0.0;
 }
 
@@ -635,8 +639,8 @@ void Engine::Render( ) {
       p_selected_object != nullptr && 
       sf::Mouse::isButtonPressed( sf::Mouse::Right ) ) {
     
-    std::pair<float, float> position( p_selected_object->getPosition() );
-    float distance = calculateDistance( position, std::pair<float, float> ( mousePosf.x, mousePosf.y ) );
+    point position( p_selected_object->getPosition() );
+    float distance = calculateDistance( position, point ( mousePosf.x, mousePosf.y ) );
     
     if ( distance > breakpoint ) {
       p_selected_object = nullptr;
@@ -675,8 +679,7 @@ void Engine::Render( ) {
 /*
 Zoom
 */ 
-void Engine::zoomViewAt( sf::Vector2i pixel, float zoom )
-{
+void Engine::zoomViewAt( sf::Vector2i pixel, float zoom ) {
 	const sf::Vector2f beforeCoord{ WINDOW->mapPixelToCoords( pixel ) };
 	mainView.zoom( zoom );
 	WINDOW->setView( mainView );
