@@ -1,18 +1,24 @@
 #pragma once
-#include "Object.hpp"
 #include <utility>
+#include <iostream>
+#include <utility>
+
+#include <SFML/Graphics.hpp>
+#include "Object.hpp"
+#include "PhysicsMath.hpp"
+
 
 class Circle : public Object{
 private: 
-    float radius;
-    sf::CircleShape* shape;
+  float radius;
+  sf::CircleShape* shape;
 
 public:
-    Circle( float rad, float mass, float pos_x, float pos_y );
-    Circle( );
-    float getRadius( );
-    sf::Shape* getShape( ) override; 
-    float setRadius( const float rad );
-    void setPosition( const std::pair<float, float> pos ) override;
-    bool mouseOnObject( const sf::Vector2f vector ) override;
+  Circle( float rad, float mass, float pos_x, float pos_y );
+  Circle( );
+  float getRadius( );
+  sf::Shape* getShape( ) override; 
+  float setRadius( const float rad );
+  void setPosition( const std::pair<float, float> pos ) override;
+  bool mouseOnObject( const sf::Vector2f vector ) override;
 };

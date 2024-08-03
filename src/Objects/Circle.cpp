@@ -1,9 +1,5 @@
-#pragma once
-#include <Circle.hpp>
-#include <PhysicsMath.hpp>
-#include <SFML/Graphics.hpp>
-#include <iostream>
-#include <utility>
+#include "Circle.hpp"
+
 
 Circle::Circle( float rad, float mass, float posX, float posY)
 : Object( mass, posX, posY ), radius( rad )

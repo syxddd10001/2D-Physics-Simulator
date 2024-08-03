@@ -1,0 +1,44 @@
+#pragma once
+#include <string>
+#include <vector>
+#include <algorithm>
+#include <cctype>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <cstring>
+#include <ObjectFactory.hpp>
+#include <Object.hpp>
+#include <Engine.hpp>
+
+class Receiver{
+private:
+  static Receiver * p_instance;
+  Receiver() {};
+  enum CommandType { SPAWN, MODE, EXIT, FRICTION, MANUAL };
+  std::map <std::string, CommandType> commandMap = { 
+      { "spawn", SPAWN }, 
+      { "mode", MODE }, 
+      { "exit", EXIT }, 
+      { "friction", FRICTION },
+      { "man", MANUAL },
+      { "manual", MANUAL },
+      { "help", MANUAL }
+  };
+  bool CallCommand( std::vector<std::string> commands, Engine* engine_instance); //Calls a command and executes the appropriate function
+  std::vector<std::string> DeconstructCommand( const std::string& str ); // Breaks down string into words (i.e deconstructs command)
+  void NormalizeString( std::vector<std::string>& string_vector ); // converts elements in a string vector to lower case i.e normalizes it
+  CommandType StringToCommand( const std::string& cmd ); //Converts a String to a Command (Enum Type)
+
+
+public:
+  Receiver(Receiver& other) = delete;
+  ~Receiver();
+
+  void operator=( const Receiver& ) = delete;
+
+  static Receiver* GetInstance(); 
+
+  bool Receive( const std::string command, Engine* engine_instance ); // Receives commands 
+
+};

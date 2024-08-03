@@ -1,18 +1,13 @@
-#pragma once
-#include <Rectangle.hpp>
-#include <PhysicsMath.hpp>
-#include <SFML/Graphics.hpp>
-#include <iostream>
-#include <utility>
+#include "Rectangle.hpp"
 
 Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float dimY )
 : Object( mass, pos_x, pos_y ), dimensions( dimX, dimY )
 {
-    shape = new sf::RectangleShape(sf::Vector2f(dimX, dimY));
-    
-    shape->setOutlineThickness(1.0f);
-    shape->setOutlineColor(sf::Color::Black);
-    shape->setFillColor(sf::Color::Blue);
+  shape = new sf::RectangleShape(sf::Vector2f(dimX, dimY));
+  
+  shape->setOutlineThickness(1.0f);
+  shape->setOutlineColor(sf::Color::Black);
+  shape->setFillColor(sf::Color::Blue);
 }
 
 Rectangle::Rectangle( ){
@@ -21,22 +16,22 @@ Rectangle::Rectangle( ){
 }
 
 std::pair<float, float> Rectangle::getDimension( ){
-    return  std::make_pair( this->dimensions.first, this->dimensions.second );
+  return  std::make_pair( this->dimensions.first, this->dimensions.second );
 }
 
 void Rectangle::setDimension( const std::pair<float, float> dim ){
-    this->dimensions.first = dim.first;
-    this->dimensions.second = dim.second;
+  this->dimensions.first = dim.first;
+  this->dimensions.second = dim.second;
 }
 
 sf::Shape* Rectangle::getShape(){
-    return this->shape;
+  return this->shape;
 }
 
 void Rectangle::setPosition( const std::pair<float, float> pos ){
-    position_x = pos.first;
-    position_y = pos.second;
-    shape->setPosition( sf::Vector2f( pos.first, pos.second ) );
+  position_x = pos.first;
+  position_y = pos.second;
+  shape->setPosition( sf::Vector2f( pos.first, pos.second ) );
 }
 
 bool Rectangle::inBounds( const sf::Vector2f mousepos ) {   
@@ -45,5 +40,5 @@ bool Rectangle::inBounds( const sf::Vector2f mousepos ) {
 }
 
 bool Rectangle::mouseOnObject( const sf::Vector2f vector ){
-    return inBounds( vector );
+  return inBounds( vector );
 }
