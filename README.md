@@ -6,5 +6,8 @@ The project is also expanding to simulate more complex objects, like quadrilater
 
 Preview:
 
-https://github.com/syxddd10001/2D-Physics-Simulator/assets/121273500/2024-08-05 00-39-51
+https://github.com/user-attachments/assets/42eede7c-7130-4e16-81aa-cee28c88fa78
+
+
+
 
