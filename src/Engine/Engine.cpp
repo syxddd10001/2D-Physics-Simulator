@@ -532,7 +532,7 @@ void Engine::DragRectangle( ) {
 /*
 Updates objects (position, shape and velocity) and draws it on the screen
 */
-void Engine::Update( const float* delta_time ) { 
+void Engine::Update( const float* delta_time ) {
   
   for ( int i = 0; i < objects.size(); i++ ) {
     calculateVelocity( objects[i], *delta_time, point( friction, friction ) );
