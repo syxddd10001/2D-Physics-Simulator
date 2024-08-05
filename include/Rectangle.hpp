@@ -7,18 +7,18 @@
 
 class Rectangle : public Object {
 private:  
-  std::pair<float, float> dimensions;
+  point dimensions;
   sf::RectangleShape* shape;
 
 public:
   Rectangle( float mass, float pos_x, float pos_y, float dim_x, float dim_y );
   Rectangle( );
 
-  std::pair<float, float> getDimension( );
+  point getDimension( );
   sf::Shape* getShape( ) override;
 
-  void setDimension( const std::pair<float, float> dim );
-  void setPosition( const std::pair<float, float> pos ); 
+  void setDimension( const point dim );
+  void setPosition( const point pos ); 
 
   bool inBounds( const sf::Vector2f vector );
 

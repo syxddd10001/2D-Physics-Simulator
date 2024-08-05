@@ -43,7 +43,6 @@ float spawn_size = 50.0f;
 
 sf::Vector2i original_mouse_position;
 
-sf::Font default_font;
 
 sf::Vector2f mouseOnClickStart;
 sf::RectangleShape mouseDrawnBox;
@@ -70,7 +69,7 @@ volatile int32_t cursor_position = 0;
 // store command mode input text 
 std::string input_text = "";
 // command mode text ui
-sf::Text inputBox("Input text: ", default_font);
+sf::Text inputBox;
 // physical cursor for command mode
 sf::RectangleShape cursor;
 sf::Text command_indicator;
@@ -85,9 +84,16 @@ Engine::Engine( ){
   
   HalfSize = sf::Vector2f( WINDOW->getSize().x/2, WINDOW->getSize().y/2 );
   
-  if ( !default_font.loadFromFile( "static/fonts/Silver.ttf" ) ){
-      std::cout << "No such file\n"; 
-  }
+  #if DEBUG
+    if ( !default_font.loadFromFile( "static/fonts/Silver.ttf" ) ){
+        std::cout << "No such file\n"; 
+    }
+  #else
+    if ( !default_font.loadFromFile( "fonts/Silver.ttf" ) ){
+        std::cout << "Silver.tff font not found\n";
+    }
+  #endif
+  
   spawn_type = "cir";
   mainView = sf::View( sf::FloatRect( 0, 0, WINDOW->getSize().x, WINDOW->getSize().y ) );
   
@@ -95,6 +101,8 @@ Engine::Engine( ){
   
   cursor.setSize( sf::Vector2f { 5.0f, 20.0f } );
   cursor.setFillColor( sf::Color::White );
+  
+  inputBox = sf::Text( "Input text: ", default_font );
   
   command_indicator.setFont( default_font );
   command_indicator.setCharacterSize( h2_char_size );
@@ -525,8 +533,9 @@ void Engine::DragRectangle( ) {
 Updates objects (position, shape and velocity) and draws it on the screen
 */
 void Engine::Update( const float* delta_time ) { 
+  
   for ( int i = 0; i < objects.size(); i++ ) {
-    calculateVelocity( objects[i], *delta_time, friction );
+    calculateVelocity( objects[i], *delta_time, point( friction, friction ) );
     sf::Shape* sh = objects[i]->getShape();
     WINDOW->draw( *sh );
   }
@@ -568,8 +577,22 @@ void Engine::collisionCheck( ) {
 /*
 Returns the Frames Per Second of the window 
 */
-float Engine::getFramesPerSecond( ) {
-  return 0.0;
+void Engine::displayFramesPerSecond( std::chrono::high_resolution_clock::time_point start ) {
+  
+  std::chrono::high_resolution_clock::time_point end;
+  float fps;
+    // window.draw, etc.
+  end = std::chrono::high_resolution_clock::now();
+
+  fps = ((float)1e9/(float)std::chrono::duration_cast<std::chrono::nanoseconds>( end - start ).count());
+  fps = round( fps * 100.0 ) / 100.0;
+  sf::Text fps_text;
+  fps_text.setFont( default_font );
+  fps_text.setString( "FPS: " +  std::to_string( fps ) );
+  fps_text.setCharacterSize( h2_char_size );
+  fps_text.setPosition( sf::Vector2f { (float) WINDOW->getSize().x - 120.0f, (float) WINDOW->getSize().y - 60.0f } );
+  WINDOW->draw( fps_text );
+  
 }
 
 /*

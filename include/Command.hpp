@@ -28,8 +28,7 @@ private:
   bool CallCommand( std::vector<std::string> commands, Engine* engine_instance); //Calls a command and executes the appropriate function
   std::vector<std::string> DeconstructCommand( const std::string& str ); // Breaks down string into words (i.e deconstructs command)
   void NormalizeString( std::vector<std::string>& string_vector ); // converts elements in a string vector to lower case i.e normalizes it
-  CommandType StringToCommand( const std::string& cmd ); //Converts a String to a Command (Enum Type)
-
+  
 
 public:
   Receiver(Receiver& other) = delete;
@@ -40,5 +39,16 @@ public:
   static Receiver* GetInstance(); 
 
   bool Receive( const std::string command, Engine* engine_instance ); // Receives commands 
+  
+  template <typename T>
+  T StringToCommand( const std::map<std::string, T>& enum_map, const std::string& cmd ) { //Converts a String to a Command (Enum Type)
+    auto it = enum_map.find(cmd);
+    if (it != enum_map.end()){
+      return it->second;
+    } else{
+      return static_cast<T>(-1);  
+    }
+  
+  };
 
 };

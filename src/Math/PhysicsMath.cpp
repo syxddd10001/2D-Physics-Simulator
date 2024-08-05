@@ -29,15 +29,15 @@ float dotProduct( point vectorA, point vectorB ) {
   return vectorA.first*vectorB.first + vectorA.second*vectorB.second;
 }
 
-point calculateVelocity( Object* object, float delta_time, const double force ){
+point calculateVelocity( Object* object, const float delta_time, const point acceleration ){
   point velocity_0 = object->getVelocity();
   point position_0 = object->getPosition();
 
   if ( std::sqrt( velocity_0.first*velocity_0.first + velocity_0.second * velocity_0.second ) < 0.01f ) 
   velocity_0 = std::make_pair( 0.0f, 0.0f );
   
-  object->setVelocity( point( velocity_0.first + ( velocity_0.first* force * delta_time ), 
-                              velocity_0.second+ ( velocity_0.second* force * delta_time ) ) );
+  object->setVelocity( point( velocity_0.first + ( velocity_0.first* (acceleration.first) * delta_time ), 
+                              velocity_0.second+ ( velocity_0.second* (acceleration.second) * delta_time ) ) );
   
   object->setAcceleration( calculateAcceleration( object, delta_time, velocity_0 ) );
   
@@ -82,3 +82,19 @@ point calculateAcceleration( Object* object, float delta_time, point velocity ) 
   acceleration = point( acceleration.first / delta_time, acceleration.second / delta_time );
   return std::pair<double, double>( acceleration.first, acceleration.second ); // Assuming equal acceleration in both directions
 }
+
+point normalizeVector( const point p ) {
+  float magnitude = sqrt( p.first * p.first + p.second * p.second );
+  return ( (magnitude != 0) ? point( p.first / magnitude, p.second / magnitude ) : point( 0, 0 ) );
+}
+
+point applyForce( Object* this_object, Object* other_object, const float delta_time ){
+  float distance = calculateDistance( this_object->getPosition( ), other_object->getPosition( ) );
+  float force_mag = ( ( GRAVITATIONAL_CONSTANT * this_object->getMass( ) * other_object->getMass( ) ) / ( distance * distance ) );
+  point forceDirection = normalizeVector( pairSubtract( other_object->getPosition( ), this_object->getPosition( ) ) );
+  point force ( forceDirection.first * force_mag / other_object->getMass(), forceDirection.second * force_mag / other_object->getMass());
+
+  std::cout << force.first << ", " << force.second << '\n';
+  return force;
+}
+

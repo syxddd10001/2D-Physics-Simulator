@@ -8,6 +8,7 @@
 #include <locale>
 #include <conio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 #include "Rectangle.hpp"
 #include "Object.hpp"
@@ -29,7 +30,8 @@ public:
   sf::Clock clock; // to keep track of time between frames
   sf::View mainView; // main view of the world
   sf::View UIView; // ui has a seperate view so that zooming/moving through the world doesn't affect the ui
-  
+  sf::Font default_font;
+    
   sf::Vector2i mousePos;
   sf::Vector2f mousePosf;
   
@@ -53,7 +55,7 @@ public:
   void zoomViewAt( sf::Vector2i pixel, float zoom ); // zoom
   void collisionCheck( ); // checks if any collision has occured and provides a response to that collision 
   void Render( ); // render any non-ui and non-world elements
-  float getFramesPerSecond( ); // returns window frames per second
+  void displayFramesPerSecond( std::chrono::high_resolution_clock::time_point start ); // returns window frames per second
   void UI( ); // UI
   void GetObjectsInArea( const point start, const point rect_size ); // returns all objects in a selected area
   void DragRectangle( ); // draws a rectangle to select objects in an area

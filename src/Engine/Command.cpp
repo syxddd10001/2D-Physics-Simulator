@@ -20,17 +20,6 @@ Receiver* Receiver::GetInstance(){
   return p_instance;
 }
 
-//Converts a String to a Command (Enum Type)
-Receiver::CommandType Receiver::StringToCommand( const std::string& cmd ){
-  auto it = commandMap.find(cmd);
-  if (it != commandMap.end()){
-    return it->second;
-  } else{
-    return static_cast<CommandType>(-1);        
-  }
-
-}
-
 // Breaks down string into words (i.e deconstructs command)
 std::vector<std::string> Receiver::DeconstructCommand( const std::string& str ){
   std::vector<std::string> words;
@@ -74,87 +63,97 @@ bool Receiver::Receive( const std::string command, Engine* engine_instance ){
 
 // Calls a command and executes the appropriate function
 bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_instance ){
-  CommandType command = StringToCommand( commands[0] );
-  switch ( command ){
-    case SPAWN:   
-      if (commands.size() < 7)
-      {
-          std::cout << "Enter atleast 7 arguments\n";
+  CommandType command = StringToCommand( commandMap, commands[0] );
+  try
+  { 
+    switch ( command ){
+      case SPAWN:   
+        if (commands.size() < 7)
+        {
+            std::cout << "Enter atleast 7 arguments\n";
+            break;
+        }
+        
+        if ( commands[1] == "circle" ){
+            Object* cir = factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
+                                std::stof(commands[5]), std::stof(commands[6]) );
+            cir->setID(engine_instance->GetAllObjects()->size()+1);
+            engine_instance->addObject(cir);
+            
+            
+        } 
+        
+        else if ( commands[1] == "rectangle" ){
+            Object* rec = factory->createObject( Object::RECTANGLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
+                                std::stof(commands[5]), std::stof(commands[6])); 
+            rec->setID(engine_instance->GetAllObjects()->size()+1);
+            engine_instance->addObject(rec);
+        }
+          
+        std::cout << "Spawned Object\n";
+      break;
+  
+      case MODE:
+        if (commands.size() < 2) 
+        {
+          std::cout << "Enter atleast 2 arguments\n";
           break;
-      }
+        }
+        
+        if ( commands[1] == "single" ){
+          engine_instance->select_mode = false;
+          engine_instance->objectDefault();
+        }
+  
+        else if ( commands[1] == "multi" ){
+          engine_instance->select_mode = true;
+          engine_instance->objectDefault();
+        }
+      break;
+  
+      case FRICTION:
+        if ( commands.size() < 2 )
+        {
+          std::cout << "Enter atleast 2 arguments\n";
+          break;
+        }
+        if ( commands[1] == "off" ){
+          engine_instance->friction = 0.00000000001f;
+        }
+  
+        else if ( commands[1] == "on" ){
+          engine_instance->friction = engine_instance->default_friction;
+        }
+  
+        else{
+          engine_instance->friction = stof(commands[1]);
+        }
+      break;
       
-      if ( commands[1] == "circle" ){
-          Object* cir = factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
-                              std::stof(commands[5]), std::stof(commands[6]) );
-          cir->setID(engine_instance->GetAllObjects()->size()+1);
-          engine_instance->addObject(cir);
+      case MANUAL:
+        if ( commands.size() == 1 ) {
+          std::cout << "Manual Page\n";
+          std::cout << "spawn circle/rectangle mass size.x size.y position.x position.y\n";
+          std::cout << "friction on/off/any number value \n";   
+          std::cout << "mode single/multi \n";
+          std::cout << "exit \n"; 
+        }
+        
+        else if ( commands.size() >= 2 ){
           
-          
-      } 
+        }
       
-      else if ( commands[1] == "rectangle" ){
-          Object* rec = factory->createObject( Object::RECTANGLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
-                              std::stof(commands[5]), std::stof(commands[6])); 
-          rec->setID(engine_instance->GetAllObjects()->size()+1);
-          engine_instance->addObject(rec);
-      }
-        
-      std::cout << "Spawned Object\n";
-    break;
-
-    case MODE:
-      if (commands.size() < 2) 
-      {
-        std::cout << "Enter atleast 2 arguments\n";
-        break;
-      }
       
-      if ( commands[1] == "single" ){
-        engine_instance->select_mode = false;
-        engine_instance->objectDefault();
-      }
-
-      else if ( commands[1] == "multi" ){
-        engine_instance->select_mode = true;
-        engine_instance->objectDefault();
-      }
-    break;
-
-    case FRICTION:
-        
-      if ( commands.size() < 2 ) 
-      {
-        std::cout << "Enter atleast 2 arguments\n";
-        break;
-      }
-      if ( commands[1] == "off" ){
-        engine_instance->friction = 0.00000000001f;
-      }
-
-      else if ( commands[1] == "on" ){
-        engine_instance->friction = engine_instance->default_friction;
-      }
-
-      else{
-        engine_instance->friction = stof(commands[1]);
-      }
-    break;
-    
-    case MANUAL:
-      if ( commands.size() == 1 ) {
+      break;
       
-      }
-      
-      else if ( commands.size() >= 2 ){
-        
-      }
-    
-    
-    break;
-    
-    case EXIT:
-      engine_instance->WINDOW->close();
-    break;
+      case EXIT:
+        engine_instance->WINDOW->close();
+      break;
+    }
+  } catch(const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+    return false;
   }
   
   return true;

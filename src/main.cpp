@@ -16,7 +16,11 @@
 int main(){
   std::unique_ptr<Engine> Instance = std::make_unique<Engine>( ); // unique pointer that reserves memory in heap for an Engine instance 
 
+  std::chrono::high_resolution_clock::time_point start;
+
   while ( Instance->WINDOW->isOpen() ) { // program loop
+    start = std::chrono::high_resolution_clock::now();
+    
     Instance->WINDOW->clear( );
 
     Instance->mousePosf = Instance->WINDOW->mapPixelToCoords(sf::Mouse::getPosition( *(Instance->WINDOW) ) ); // current mouse pos in float
@@ -39,8 +43,8 @@ int main(){
 
     Instance->WINDOW->setView( Instance->UIView ); // setting view for UI, so that UI does not change size when moving / zooming in world
     Instance->UI( ); // rendering UI
+    Instance->displayFramesPerSecond( start );
     Instance->WINDOW->setView( Instance->mainView ); // resetting view to main
-    
     Instance->WINDOW->display( ); // displaying everything
 
   }
