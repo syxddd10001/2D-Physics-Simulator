@@ -75,12 +75,16 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
         }
         
         if ( commands[1] == "circle" ){
-            Object* cir = factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
-                                std::stof(commands[5]), std::stof(commands[6]) );
-            cir->setID(engine_instance->GetAllObjects()->size()+1);
-            engine_instance->addObject(cir);
-            
-            
+            int num_objects;
+            if ( commands.size() < 8 ) num_objects = 1;
+            else num_objects = std::stoi(commands[7]);
+            for (int i = 0; i < num_objects; i++){
+                Object* cir = factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
+                                   std::stof(commands[5])+(((std::stof(commands[3])*2)) * (i+1)), std::stof(commands[6]) );
+              
+                cir->setID(engine_instance->GetAllObjects()->size()+1);
+                engine_instance->addObject(cir);
+              }
         } 
         
         else if ( commands[1] == "rectangle" ){

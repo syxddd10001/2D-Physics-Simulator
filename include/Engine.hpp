@@ -14,7 +14,15 @@
 #include "Object.hpp"
 #include "PhysicsMath.hpp"
 #include "Physics.hpp"
+#include "Quadtree.hpp"
+#include "AbstractBox.hpp"
+#include "Vector2.hpp"
 
+#define WINDOW_SIZE_X 1000
+#define WINDOW_SIZE_Y 1000
+#define WINDOW_NAME "2D Physics Simulator"
+
+using Vec2 = syxd::Vector2<float>;
 
 class Engine{
 protected:
@@ -57,7 +65,7 @@ public:
   void Render( ); // render any non-ui and non-world elements
   void displayFramesPerSecond( std::chrono::high_resolution_clock::time_point start ); // returns window frames per second
   void UI( ); // UI
-  void GetObjectsInArea( const point start, const point rect_size ); // returns all objects in a selected area
+  void GetObjectsInArea( const Vec2 start, const Vec2 rect_size ); // returns all objects in a selected area
   void DragRectangle( ); // draws a rectangle to select objects in an area
   void objectDefault( ); // returns objects its default configuration
   void moveSelection( const sf::Vector2f delta ); // moves selected objects

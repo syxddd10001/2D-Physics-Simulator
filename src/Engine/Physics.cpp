@@ -8,20 +8,20 @@ bool onCollision( Circle* object1, Circle* object2 ) {
   float radius1 = object1->getRadius();
   float radius2 = object2->getRadius();
 
-  point delta ( 
-    object1->getPosition().first - object2->getPosition().first, 
-    object1->getPosition().second - object2->getPosition().second 
+  Vec2 delta ( 
+    object1->getPosition().x - object2->getPosition().x, 
+    object1->getPosition().y - object2->getPosition().y 
   );
 
   if ( distance < ( radius1 + radius2 ) ){
     push_distance = 1.0f * ( distance - radius1 - radius2 ); 
-    point position1 ( 
-      object1->getPosition().first - ( push_distance * delta.first/distance ), 
-      object1->getPosition().second - ( push_distance * delta.second/distance ) 
+    Vec2 position1 ( 
+      object1->getPosition().x - ( push_distance * delta.x/distance ), 
+      object1->getPosition().y - ( push_distance * delta.y/distance ) 
     );
-    point position2 ( 
-      object2->getPosition().first + ( push_distance * delta.first/distance ), 
-      object2->getPosition().second + ( push_distance * delta.second/distance ) 
+    Vec2 position2 ( 
+      object2->getPosition().x + ( push_distance * delta.x/distance ), 
+      object2->getPosition().y + ( push_distance * delta.y/distance ) 
     );
       
     object1->setPosition( position1 );
@@ -34,39 +34,35 @@ bool onCollision( Circle* object1, Circle* object2 ) {
 
 // Response to circle vs. circle collisions
 void dynamicResponse( Circle* object1, Circle* object2 ) {
-  point position1 ( object1->getPosition( ) );
-  point position2 ( object2->getPosition( ) );
-  point velocity1 ( object1->getVelocity( ) );
-  point velocity2 ( object2->getVelocity( ) );
+  Vec2 position1 ( object1->getPosition( ) );
+  Vec2 position2 ( object2->getPosition( ) );
+  Vec2 velocity1 ( object1->getVelocity( ) );
+  Vec2 velocity2 ( object2->getVelocity( ) );
   float mass1 = object1->getMass( );
   float mass2 = object2->getMass( );
   
-  point collision_normal ( pairSubtract( position1, position2 ) );
+  Vec2 collision_normal ( position1 - position2 );
 
   float distance = calculateDistance( position1, position2 );
 
-  if ( distance != 0.0f ) collision_normal = std::make_pair( collision_normal.first / distance, collision_normal.second / distance );
+  if ( distance != 0.0f ) collision_normal = Vec2( collision_normal.x / distance, collision_normal.y / distance );
 
-  point collision_tangent( -collision_normal.second, collision_normal.first );
+  Vec2 collision_tangent( -collision_normal.y, collision_normal.x );
 
-  float dot_velocity_tangent1 = dotProduct( velocity1, collision_tangent ); 
-  float dot_velocity_tangent2 = dotProduct( velocity2, collision_tangent );
+  float dot_velocity_tangent1 = velocity1 * collision_tangent ; 
+  float dot_velocity_tangent2 = velocity2 * collision_tangent ;
 
-  float dot_velocity_normal1 = dotProduct( velocity1, collision_normal );
-  float dot_velocity_normal2 = dotProduct( velocity2, collision_normal );
+  float dot_velocity_normal1 = velocity1 * collision_normal ;
+  float dot_velocity_normal2 = velocity2 * collision_normal ;
 
   float momentum1 = ( dot_velocity_normal1 * ( mass1 - mass2 ) + 2.0f * mass2 * dot_velocity_normal2 ) / ( mass1 + mass2 );
   float momentum2 = ( dot_velocity_normal2 * ( mass2 - mass1 ) + 2.0f * mass1 * dot_velocity_normal1 ) / ( mass1 + mass2 ); 
 
-  velocity1 = pairAdd( 
-                point( collision_tangent.first * dot_velocity_tangent1, collision_tangent.second * dot_velocity_tangent1 ),  
-                point( collision_normal.first * momentum1, collision_normal.second * momentum1 )
-                );
+  velocity1 = Vec2( collision_tangent.x * dot_velocity_tangent1, collision_tangent.y * dot_velocity_tangent1 ) +  
+                Vec2( collision_normal.x * momentum1, collision_normal.y * momentum1 );
   
-  velocity2 = pairAdd( 
-                point( collision_tangent.first * dot_velocity_tangent2, collision_tangent.second * dot_velocity_tangent2 ),  
-                point( collision_normal.first * momentum2, collision_normal.second * momentum2 )
-                );
+  velocity2 =  Vec2( collision_tangent.x * dot_velocity_tangent2, collision_tangent.y * dot_velocity_tangent2 ) +   
+                Vec2( collision_normal.x * momentum2, collision_normal.y * momentum2 ) ;
   
   object1->setVelocity(velocity1);
   object2->setVelocity(velocity2);  

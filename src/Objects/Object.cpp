@@ -1,10 +1,10 @@
 #include <Object.hpp>
 
-
+//
 Object::Object( float mass, float pos_x, float pos_y ) 
 : mass( mass ), position_x( pos_x ), position_y( pos_y )
 {
-  this->setVelocity( point { 0.f, 0.f } );
+  this->setVelocity( Vec2 { 0.f, 0.f } );
 }
 
 Object::Object( )
@@ -31,9 +31,9 @@ sf::Shape* Object::getShape( ){
   return shape;
 }
 
-void Object::setPosition( const point pos ){
-  position_x = pos.first;
-  position_y = pos.second;
+void Object::setPosition( const Vec2 pos ){
+  position_x = pos.x;
+  position_y = pos.y;
     
 }
 
@@ -41,42 +41,46 @@ void Object::setMass( const float mass ){
   this->mass = mass;
 }
 
-point Object::getPosition(){
-  return point ( position_x, position_y );
+Vec2 Object::getPosition(){
+  return Vec2 ( position_x, position_y );
 }
 
-point Object::getVelocity(){
-  return point ( velocity_x, velocity_y );
+Vec2 Object::getVelocity(){
+  return Vec2 ( velocity_x, velocity_y );
 }
 
-point Object::setVelocity( const float vel_x, const float vel_y ){
+Vec2 Object::setVelocity( const float vel_x, const float vel_y ){
   this->velocity_x = vel_x; 
   this->velocity_y = vel_y; 
-  return point ( velocity_x, velocity_y );
+  return Vec2 ( velocity_x, velocity_y );
 }
 
-void Object::setVelocity( const point vel ){
-  velocity_x = vel.first;
-  velocity_y = vel.second;
+void Object::setVelocity( const Vec2 vel ){
+  velocity_x = vel.x;
+  velocity_y = vel.y;
 }
 
-void Object::setAcceleration( const point acc ){
-  acceleration_x = acc.first;
-  acceleration_y = acc.second;
+void Object::setAcceleration( const Vec2 acc ){
+  acceleration_x = acc.x;
+  acceleration_y = acc.y;
 }
 
-point Object::getAcceleration(){
-  return point ( acceleration_x, acceleration_y );
+Vec2 Object::getAcceleration(){
+  return Vec2 ( acceleration_x, acceleration_y );
 }
 
-point Object::setAcceleration( const float acc_x, const float acc_y ){
+Vec2 Object::setAcceleration( const float acc_x, const float acc_y ){
   this->acceleration_x = acc_x;
   this->acceleration_y = acc_y;
-  return point ( acceleration_x, acceleration_y );
+  return Vec2 ( acceleration_x, acceleration_y );
 }
 
 void Object::setID( int id ){
   this->object_id = id;
+}
+
+Vec2 Object::getSize(){
+  return Vec2 ( 0.0f, 0.0f );
 }
 
 int Object::getID(){
@@ -85,4 +89,8 @@ int Object::getID(){
 
 bool Object::mouseOnObject( const sf::Vector2f vector ){
   return false;
+}
+
+Object::ObjectType Object::getType(){
+  return Object::NONE;
 }

@@ -12,33 +12,44 @@ Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float di
 
 Rectangle::Rectangle( ){
 
-
 }
 
-point Rectangle::getDimension( ){
-  return  std::make_pair( this->dimensions.first, this->dimensions.second );
+Vec2 Rectangle::getSize( ){
+  return Vec2( dimensions.x, dimensions.y );
 }
 
-void Rectangle::setDimension( const point dim ){
-  this->dimensions.first = dim.first;
-  this->dimensions.second = dim.second;
+Vec2 Rectangle::getDimension( ){
+  return Vec2( this->dimensions.x, this->dimensions.y );
+}
+
+void Rectangle::setDimension( const Vec2 dim ){
+  this->dimensions.x = dim.x;
+  this->dimensions.y = dim.y;
 }
 
 sf::Shape* Rectangle::getShape(){
   return this->shape;
 }
 
-void Rectangle::setPosition( const point pos ){
-  position_x = pos.first;
-  position_y = pos.second;
-  shape->setPosition( sf::Vector2f( pos.first, pos.second ) );
+void Rectangle::setPosition( const Vec2 pos ){
+  position_x = pos.x;
+  position_y = pos.y;
+  shape->setPosition( sf::Vector2f( pos.x, pos.y ) );
 }
 
 bool Rectangle::inBounds( const sf::Vector2f mousepos ) {   
-  return ( ( mousepos.x >= position_x && mousepos.x <= position_x + dimensions.first ) &&
-          ( mousepos.y >= position_y && mousepos.y <= position_y + dimensions.second ) );
+  return ( ( mousepos.x >= position_x && mousepos.x <= position_x + dimensions.x ) &&
+          ( mousepos.y >= position_y && mousepos.y <= position_y + dimensions.y ) );
 }
 
 bool Rectangle::mouseOnObject( const sf::Vector2f vector ){
   return inBounds( vector );
+}
+
+AbstractBox<float> Rectangle::getBoundingBox() {
+  float left = this->position_x;
+  float top = this->position_y;
+  float width = dimensions.x;
+  float height = dimensions.y;
+  return AbstractBox<float>(left, top, width, height);
 }

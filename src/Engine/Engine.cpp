@@ -1,9 +1,6 @@
 #include "Engine.hpp"
 #include <Command.hpp>
-
-#define WINDOW_SIZE_X 1000
-#define WINDOW_SIZE_Y 1000
-#define WINDOW_NAME "2D Physics Simulator"
+#include <Quadtree.hpp>
 
 #define FRAME_RATE 144
 #define EXPERIMENTAL_1 0
@@ -74,8 +71,12 @@ sf::Text inputBox;
 sf::RectangleShape cursor;
 sf::Text command_indicator;
 
+std::string input_previous = "";
+
 // Singleton Recevier that receives and executes commands
 Receiver* receiver;
+
+
 
 Engine::Engine( ){
   WINDOW = std::make_shared<sf::RenderWindow>( sf::VideoMode( WINDOW_SIZE_X, WINDOW_SIZE_Y ), WINDOW_NAME );
@@ -86,10 +87,10 @@ Engine::Engine( ){
   
   #if DEBUG
     if ( !default_font.loadFromFile( "static/fonts/Silver.ttf" ) ){
-        std::cout << "No such file\n"; 
+        std::cout << "Silver.tff font not found\n";
     }
   #else
-    if ( !default_font.loadFromFile( "fonts/Silver.ttf" ) ){
+    if ( !default_font.loadFromFile( "static/fonts/Silver.ttf" ) ){
         std::cout << "Silver.tff font not found\n";
     }
   #endif
@@ -98,6 +99,8 @@ Engine::Engine( ){
   mainView = sf::View( sf::FloatRect( 0, 0, WINDOW->getSize().x, WINDOW->getSize().y ) );
   
   originalCoordinates = WINDOW->mapCoordsToPixel(sf::Vector2f{ ((float)(HalfSize.x)), ((float)(HalfSize.y))});
+  
+  //
   
   cursor.setSize( sf::Vector2f { 5.0f, 20.0f } );
   cursor.setFillColor( sf::Color::White );
@@ -199,10 +202,10 @@ void Engine::EventManager( ){
           if ( p_selected_object != nullptr )
           {     
             float launch_speed = 3.5f;
-            point position ( p_selected_object->getPosition() ); 
-            float velocity_x = launch_speed * ( position.first - mousePosf.x );
-            float velocity_y = launch_speed * ( position.second - mousePosf.y );
-            p_selected_object->setVelocity( point( velocity_x, velocity_y ) );
+            Vec2 position ( p_selected_object->getPosition() ); 
+            float velocity_x = launch_speed * ( position.x - mousePosf.x );
+            float velocity_y = launch_speed * ( position.y - mousePosf.y );
+            p_selected_object->setVelocity( Vec2( velocity_x, velocity_y ) );
             
             sf::Shape* sh = p_selected_object->getShape();
             sh->setOutlineColor(sf::Color::Black);
@@ -237,19 +240,23 @@ void Engine::EventManager( ){
       break;
   
       case sf::Event::KeyReleased:
-          
+        if ( input_lock && command_mode && evnt.key.code == sf::Keyboard::P){
+          input_text = input_previous;
+        } 
+        
         if ( evnt.key.code == sf::Keyboard::Enter && command_mode ){
           receiver->Receive( input_text, this );
 
-          if ( !input_text.empty() && cursor_position > 0) {    
+          if ( !input_text.empty() && cursor_position > 0) {
+            input_previous = input_text;
             input_text.clear();
             cursor_position = 0;
           }
           if (objects.size() > 0) 
-          std::cout << "object id: " << objects[objects.size()-1]->getID() << 
-          " mass: " << objects[objects.size()-1]->getMass() << 
-          " position: " << objects[objects.size()-1]->getPosition().first << ", " 
-          << objects[objects.size()-1]->getPosition().second << "\n";
+            std::cout << "object id: " << objects[objects.size()-1]->getID() << 
+            " mass: " << objects[objects.size()-1]->getMass() << 
+            " position: " << objects[objects.size()-1]->getPosition().x << ", " 
+            << objects[objects.size()-1]->getPosition().y << "\n";
         }
   
         if ( evnt.key.code == sf::Keyboard::LControl && command_mode ){
@@ -391,10 +398,10 @@ void Engine::EventManager( ){
   
   
     if ( sf::Event::MouseMoved && sf::Mouse::isButtonPressed( sf::Mouse::Left ) && p_selected_object ) {
-      point delta ( mousePosf.x-mousePos_prev.x, mousePosf.y-mousePos_prev.y );
-      point curr_pos { p_selected_object->getPosition().first+delta.first, p_selected_object->getPosition().second+delta.second };
+      Vec2 delta ( mousePosf.x-mousePos_prev.x, mousePosf.y-mousePos_prev.y );
+      Vec2 curr_pos { p_selected_object->getPosition().x+delta.x, p_selected_object->getPosition().y+delta.y };
       p_selected_object->setPosition( curr_pos );
-      p_selected_object->setVelocity( point ( 0.0f, 0.0f ) );
+      p_selected_object->setVelocity( Vec2 ( 0.0f, 0.0f ) );
       mousePos_prev = mousePosf;
     }
   
@@ -462,9 +469,9 @@ Moves all objects in a selected area
 */
 void Engine::moveAll( std::vector<Object*>* objects, const sf::Vector2f delta ) { 
 for ( auto obj : *objects ){  
-  obj->setVelocity( point ( 0.0f, 0.0f ) );
-  obj->setPosition( point{ obj->getPosition().first + ((delta.x * MOVE_SENSITIVITY * 0.2f)), 
-                           obj->getPosition().second + ((delta.y * MOVE_SENSITIVITY * 0.2f)) } ) ;
+  obj->setVelocity( Vec2 ( 0.0f, 0.0f ) );
+  obj->setPosition( Vec2 { obj->getPosition().x + ((delta.x * MOVE_SENSITIVITY * 0.2f)), 
+                           obj->getPosition().y + ((delta.y * MOVE_SENSITIVITY * 0.2f)) } ) ;
                     // the 0.2f in delta * MOVE_SENSITIVITY * 0.2f is arbitrary
 }
 
@@ -484,11 +491,11 @@ void Engine::objectDefault( ) {
 /*
 Gets all objects in a selected area
 */
-void Engine::GetObjectsInArea( const point start, const point rect_size ) {
+void Engine::GetObjectsInArea( const Vec2 start, const Vec2 rect_size ) {
   for ( auto* obj : objects ){
-    point pos = obj->getPosition();
-    if ( ( pos.first >= start.first && pos.first <= ( start.first+rect_size.first ) ) && 
-         ( pos.second >= start.second && pos.second <= ( start.second+rect_size.second ) ) ){
+    Vec2 pos = obj->getPosition();
+    if ( ( pos.x >= start.x && pos.x <= ( start.x+rect_size.x ) ) && 
+         ( pos.y >= start.y && pos.y <= ( start.y + rect_size.y ) ) ){
       selected_objects.push_back( obj );
       obj->getShape()->setOutlineColor( sf::Color::Red );
     }
@@ -508,7 +515,7 @@ void Engine::DragRectangle( ) {
     mouseDrawnBox.setOutlineColor( sf::Color::White );
     mouseDrawnBox.setOutlineThickness(1.0f);
     mouseDrawnBox.setSize( rect_size );
-    GetObjectsInArea( point( mouseOnClickStart.x, mouseOnClickStart.y ), point( rect_size.x,rect_size.y ) );
+    GetObjectsInArea( Vec2( mouseOnClickStart.x, mouseOnClickStart.y ), Vec2( rect_size.x,rect_size.y ) );
     WINDOW->draw( mouseDrawnBox );
   }
 
@@ -535,7 +542,7 @@ Updates objects (position, shape and velocity) and draws it on the screen
 void Engine::Update( const float* delta_time ) {
   
   for ( int i = 0; i < objects.size(); i++ ) {
-    calculateVelocity( objects[i], *delta_time, point( friction, friction ) );
+    calculateVelocity( objects[i], *delta_time, Vec2( friction, friction ) );
     sf::Shape* sh = objects[i]->getShape();
     WINDOW->draw( *sh );
   }
@@ -555,22 +562,14 @@ void Engine::collisionCheck( ) {
   for ( auto& current : objects )
   {
     for ( auto& other : objects )
-    {     
+    {
       if ( current != other && ( typeid( *current ) == typeid( Circle ) && typeid( *other ) == typeid( Circle ) ) )
-      {    
+      {
         if ( onCollision( dynamic_cast<Circle*>( current ), dynamic_cast<Circle*>( other ) ) )
         {
           dynamicResponse( dynamic_cast<Circle*>( current ), dynamic_cast<Circle*>( other ) );
         }
       }
-
-      /*else if ( ( typeid( *current ) == typeid( Rectangle ) && typeid( *other ) == typeid( Circle ) ) )
-      {    
-        if ( onCollision( dynamic_cast<Circle*>(current), dynamic_cast<Circle*>(other) ) )
-        {
-            // collision response
-        }
-      }*/ 
     }
   }
 }
@@ -662,8 +661,8 @@ void Engine::Render( ) {
       p_selected_object != nullptr && 
       sf::Mouse::isButtonPressed( sf::Mouse::Right ) ) {
     
-    point position( p_selected_object->getPosition() );
-    float distance = calculateDistance( position, point ( mousePosf.x, mousePosf.y ) );
+    Vec2 position( p_selected_object->getPosition() );
+    float distance = calculateDistance( position, Vec2 ( mousePosf.x, mousePosf.y ) );
     
     if ( distance > breakpoint ) {
       p_selected_object = nullptr;
@@ -671,7 +670,7 @@ void Engine::Render( ) {
     
     sf::VertexArray line( sf::Lines, 10 );
     
-    line[0].position = sf::Vector2f( position.first, position.second );
+    line[0].position = sf::Vector2f( position.x, position.y );
     line[0].color = sf::Color::Green;
     line[1].position = mousePosf;
     line[1].color = sf::Color::Green;

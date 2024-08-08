@@ -5,6 +5,7 @@
 #include "Circle.hpp"
 #include "Rectangle.hpp"
 #include "PhysicsMath.hpp" // for physics related math functions
+#include "Vector2.hpp"
 
 bool onCollision( Circle* object1, Circle* object2 );
 void dynamicResponse ( Circle* object1, Circle* object2 );

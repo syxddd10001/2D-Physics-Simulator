@@ -6,6 +6,7 @@ Circle::Circle( float rad, float mass, float posX, float posY)
 { 
     shape = new sf::CircleShape( radius );
     sf::Vector2f circleCenter( rad, rad );
+    
     color = new sf::Color(sf::Color::White);
     shape->setOrigin( circleCenter );
     shape->setOutlineThickness( 1.0f );
@@ -21,6 +22,9 @@ sf::Shape* Circle::getShape( ){
     return this->shape;
 }
 
+Vec2 Circle::getSize( ){
+  return Vec2( radius, radius );
+}
 
 float Circle::setRadius( const float rad ){
     this->radius = rad;
@@ -31,13 +35,21 @@ float Circle::getRadius( ){
     return radius;
 }
 
-void Circle::setPosition( const point pos ){
-    position_x = pos.first;
-    position_y = pos.second;
+void Circle::setPosition( const Vec2 pos ){
+    position_x = pos.x;
+    position_y = pos.y;
     shape->setPosition( sf::Vector2f( position_x, position_y ) );
     
 }
 
 bool Circle::mouseOnObject( const sf::Vector2f vector ){
-    return calculateDistance( getPosition(), point ( vector.x, vector.y ) ) < getRadius( );
+  return calculateDistance( getPosition(), Vec2 ( vector.x, vector.y ) ) < getRadius( );
+}
+
+AbstractBox<float> Circle::getBoundingBox( ) {
+  float left = this->position_x - this->radius;
+  float top = this->position_y - this->radius;
+  float width = this->radius * 2;
+  float height = this->radius * 2;
+  return AbstractBox<float>(left, top, width, height);
 }

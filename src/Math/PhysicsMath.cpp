@@ -20,47 +20,29 @@ point pairMultiply( point pair1, point pair2 ) {
   return point( pair1.first*pair2.first, pair1.second*pair2.second );
 }
 
-float calculateDistance( point pos1, point pos2 ) {
-  point difference = pairSubtract( pos1, pos2 );
-  return std::sqrt( difference.first * difference.first + difference.second * difference.second );
+float calculateDistance( Vec2 pos1, Vec2 pos2 ){
+  Vec2 difference = pos1 - pos2;
+  return std::sqrt( difference.x * difference.x + difference.y * difference.y );
 }
 
 float dotProduct( point vectorA, point vectorB ) {
   return vectorA.first*vectorB.first + vectorA.second*vectorB.second;
 }
 
-point calculateVelocity( Object* object, const float delta_time, const point acceleration ){
-  point velocity_0 = object->getVelocity();
-  point position_0 = object->getPosition();
+Vec2 calculateVelocity( Object* object, const float delta_time, const Vec2 acceleration ) {
+  Vec2 velocity_0 = object->getVelocity();
+  Vec2 position_0 = object->getPosition();
 
-  if ( std::sqrt( velocity_0.first*velocity_0.first + velocity_0.second * velocity_0.second ) < 0.01f ) 
-  velocity_0 = std::make_pair( 0.0f, 0.0f );
+  if ( std::sqrt( velocity_0.x*velocity_0.x + velocity_0.y * velocity_0.y ) < 0.01f ) 
+  velocity_0 = Vec2( 0.0f, 0.0f );
   
-  object->setVelocity( point( velocity_0.first + ( velocity_0.first* (acceleration.first) * delta_time ), 
-                              velocity_0.second+ ( velocity_0.second* (acceleration.second) * delta_time ) ) );
+  object->setVelocity( Vec2( velocity_0.x + ( velocity_0.x* (acceleration.x) * delta_time ), 
+                              velocity_0.y+ ( velocity_0.y* (acceleration.y) * delta_time ) ) );
   
   object->setAcceleration( calculateAcceleration( object, delta_time, velocity_0 ) );
   
-  object->setPosition( point( position_0.first + (object->getVelocity().first * delta_time ), 
-                              position_0.second + (object->getVelocity().second * delta_time ) ) );
-
-  return object->getPosition();
-}
-//
-point calculateVelocity( Object* object, float delta_time ) {
-  point velocity_0 = object->getVelocity();
-  point position_0 = object->getPosition();
-
-  if ( std::sqrt( velocity_0.first*velocity_0.first + velocity_0.second * velocity_0.second ) < 0.01f ) 
-  velocity_0 = std::make_pair( 0.0f, 0.0f );
-  
-  object->setVelocity( point( velocity_0.first + ( velocity_0.first * delta_time ), 
-                              velocity_0.second+ ( velocity_0.second * delta_time ) ) );
-  
-  object->setAcceleration( calculateAcceleration( object, delta_time, velocity_0 ) );
-  
-  object->setPosition( point( position_0.first + (object->getVelocity().first * delta_time ), 
-                              position_0.second + (object->getVelocity().second * delta_time ) ) );
+  object->setPosition( Vec2( position_0.x + (object->getVelocity().x * delta_time ), 
+                              position_0.y + (object->getVelocity().y * delta_time ) ) );
 
   return object->getPosition();
 }
@@ -77,24 +59,24 @@ double applyForce( Object* object1, Object* object2 ) {
 
 }
 
-point calculateAcceleration( Object* object, float delta_time, point velocity ) {
-  point acceleration = pairSubtract( velocity, object->getVelocity() );
-  acceleration = point( acceleration.first / delta_time, acceleration.second / delta_time );
-  return std::pair<double, double>( acceleration.first, acceleration.second ); // Assuming equal acceleration in both directions
+Vec2 calculateAcceleration( Object* object, float delta_time, Vec2 velocity ) {
+  Vec2 acceleration = velocity - object->getVelocity();
+  acceleration = Vec2( acceleration.x / delta_time, acceleration.y / delta_time );
+  return Vec2( acceleration.x, acceleration.y ); // Assuming equal acceleration in both directions
 }
 
-point normalizeVector( const point p ) {
-  float magnitude = sqrt( p.first * p.first + p.second * p.second );
-  return ( (magnitude != 0) ? point( p.first / magnitude, p.second / magnitude ) : point( 0, 0 ) );
+Vec2 normalizeVector( const Vec2 p ) {
+  float magnitude = sqrt( p.x * p.x + p.y * p.y );
+  return ( (magnitude != 0) ? Vec2( p.x / magnitude, p.y / magnitude ) : Vec2( 0, 0 ) );
 }
 
-point applyForce( Object* this_object, Object* other_object, const float delta_time ){
+Vec2 applyForce( Object* this_object, Object* other_object, const float delta_time ){
   float distance = calculateDistance( this_object->getPosition( ), other_object->getPosition( ) );
   float force_mag = ( ( GRAVITATIONAL_CONSTANT * this_object->getMass( ) * other_object->getMass( ) ) / ( distance * distance ) );
-  point forceDirection = normalizeVector( pairSubtract( other_object->getPosition( ), this_object->getPosition( ) ) );
-  point force ( forceDirection.first * force_mag / other_object->getMass(), forceDirection.second * force_mag / other_object->getMass());
+  Vec2 forceDirection = normalizeVector( other_object->getPosition( ) - this_object->getPosition( ) );
+  Vec2 force ( forceDirection.x * force_mag / other_object->getMass(), forceDirection.y * force_mag / other_object->getMass());
 
-  std::cout << force.first << ", " << force.second << '\n';
+  std::cout << force.x << ", " << force.y << '\n';
   return force;
 }
 
