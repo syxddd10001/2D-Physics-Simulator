@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "Vector2.hpp"
+#include "AbstractBox.hpp"
 
 #define EPSILON 0.00000001
 
@@ -21,6 +22,7 @@ protected:
   int object_id;
   sf::Shape* shape;
   sf::Color* color;
+  AbstractBox<float> queryBox;
 
 public:    
   Object( float mass, float pos_x, float pos_y );
@@ -45,9 +47,12 @@ public:
   void setAcceleration( const Vec2 acc );
   
   virtual Vec2 getSize();
+  virtual Vec2 getCenter();
+  
   
   void setID( int id );
   int getID( );
+  
   
   virtual bool mouseOnObject( const sf::Vector2f vector );
 
@@ -60,6 +65,10 @@ public:
     return ((std::abs(this->position_x - other.position_x) >= EPSILON || std::abs(this->position_y - other.position_y) >= EPSILON )) || 
     (this->object_id != other.getID());
   };
+  
+  void setQueryBox( AbstractBox<float> refbox );
+  
+  AbstractBox<float> getQueryBox( );
 
   enum ObjectType {
       CIRCLE,

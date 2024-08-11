@@ -27,7 +27,7 @@ public:
   bool mouseOnObject( const sf::Vector2f vector ) override;
   
   Vec2 getSize( ) override;
-
+  Vec2 getCenter( ) override;
   
   AbstractBox<float> getBoundingBox( );
   

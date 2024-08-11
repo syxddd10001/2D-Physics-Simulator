@@ -49,6 +49,10 @@ Vec2 Object::getVelocity(){
   return Vec2 ( velocity_x, velocity_y );
 }
 
+Vec2 Object::getCenter() {
+  return Vec2 { 0.f, 0.f}; 
+}
+
 Vec2 Object::setVelocity( const float vel_x, const float vel_y ){
   this->velocity_x = vel_x; 
   this->velocity_y = vel_y; 
@@ -85,6 +89,14 @@ Vec2 Object::getSize(){
 
 int Object::getID(){
   return this->object_id;
+}
+
+void Object::setQueryBox( AbstractBox<float> refbox ){
+  this->queryBox = refbox;
+}
+
+AbstractBox<float> Object::getQueryBox(){
+  return this->queryBox;
 }
 
 bool Object::mouseOnObject( const sf::Vector2f vector ){

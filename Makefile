@@ -12,35 +12,38 @@ OBJECTS += objects/Command.o objects/ObjectFactory.o objects/AbstractBox.o objec
 $(EXECUTABLE): src/main.cpp $(OBJECTS)
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src $^ -o $@ $(SFML_LIB)
 
-objects/Engine.o: src/Engine/Engine.cpp objects/Object.o objects/PhysicsMath.o
+objects/Engine.o: src/Engine/Engine.cpp include/Engine.hpp objects/Object.o objects/PhysicsMath.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-objects/Physics.o: src/Engine/Physics.cpp objects/Object.o objects/PhysicsMath.o
+objects/Physics.o: src/Engine/Physics.cpp include/Physics.hpp objects/Object.o objects/PhysicsMath.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-objects/PhysicsMath.o: src/Math/PhysicsMath.cpp objects/Object.o
+objects/PhysicsMath.o: src/Math/PhysicsMath.cpp include/PhysicsMath.hpp objects/Object.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-objects/Command.o: src/Engine/Command.cpp objects/ObjectFactory.o
+objects/Command.o: src/Engine/Command.cpp include/Command.hpp objects/ObjectFactory.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-objects/ObjectFactory.o: src/Engine/ObjectFactory.cpp objects/Object.o objects/Circle.o objects/Rectangle.o
+objects/ObjectFactory.o: src/Engine/ObjectFactory.cpp include/ObjectFactory.hpp objects/Object.o objects/Circle.o objects/Rectangle.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-objects/Quadtree.o: src/Math/Quadtree.cpp objects/Object.o objects/Circle.o objects/Rectangle.o objects/AbstractBox.o
+objects/Quadtree.o: src/Math/Quadtree.cpp include/Quadtree.hpp objects/Object.o objects/Circle.o objects/Rectangle.o objects/AbstractBox.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-objects/Circle.o: src/Objects/Circle.cpp objects/Object.o
+objects/Circle.o: src/Objects/Circle.cpp include/Circle.hpp objects/Object.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-objects/Rectangle.o: src/Objects/Rectangle.cpp objects/Object.o
+objects/Rectangle.o: src/Objects/Rectangle.cpp include/Rectangle.hpp objects/Object.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-objects/AbstractBox.o: src/Math/AbstractBox.cpp objects/Object.o
-	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
-
-objects/Object.o: src/Objects/Object.cpp
+objects/Object.o: src/Objects/Object.cpp include/Object.hpp objects/Vector2.o objects/AbstractBox.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 	
-objects/Vector2.o: src/Math/Vector2.cpp
+objects/AbstractBox.o: src/Math/AbstractBox.cpp include/AbstractBox.hpp objects/Vector2.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+objects/Vector2.o: src/Math/Vector2.cpp include/Vector2.hpp
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+	
+clean:
+	rm -rf build/test/main.exe objects/*.o

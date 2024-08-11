@@ -1,5 +1,8 @@
 #pragma once
 #include <utility>
+#include <cmath>
+
+#include <SFML/Graphics.hpp>
 
 namespace syxd {
   template <typename T>
@@ -30,7 +33,25 @@ namespace syxd {
     operator std::pair<T, T>( ) const {
       return std::make_pair( static_cast<T>(x), static_cast<T>(y) );
     }
-
+    
+    operator sf::Vector2f( ) const {
+      return sf::Vector2f( (float) x, (float) y); 
+    }
+    
+    explicit Vector2(const sf::Vector2f other) : x(static_cast<T>(other.x)), y(static_cast<T>(other.y)) {}
+    explicit Vector2(const sf::Vector2u other) : x(static_cast<T>(other.x)), y(static_cast<T>(other.y)) {}
+    
+  
+    T magnitude( ) {
+      return (T) std::sqrt(x*x+y*y);
+    }
+    
+    Vector2<T> normalize( ) {
+      float mag = magnitude();
+      return ( (mag != 0) ? Vector2<T>( x / mag, y / mag ) : Vector2<T>( 0, 0 ) );
+    }
+    
+    
   
   };
   

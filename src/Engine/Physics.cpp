@@ -67,3 +67,23 @@ void dynamicResponse( Circle* object1, Circle* object2 ) {
   object1->setVelocity(velocity1);
   object2->setVelocity(velocity2);  
 }
+
+
+bool onCollision( Circle* object1, Rectangle* object2 ) {
+  Vec2 nearestPoint;
+  Vec2 circ_pos = object1->getPosition();
+  Vec2 rect_pos = object2->getPosition();
+  nearestPoint.x = std::max( rect_pos.x, std::min( circ_pos.x, rect_pos.x+object2->getDimension().x ) );
+  nearestPoint.y = std::max( rect_pos.y, std::min( circ_pos.y, rect_pos.y+object2->getDimension().y ) );
+  Vec2 RayToNearest = nearestPoint - circ_pos;
+  float overlap = object1->getRadius() - RayToNearest.magnitude();
+  
+  if ( std::isnan( overlap ) ) overlap = 0;
+  
+  if (overlap > 0){
+    object1->setPosition( circ_pos - RayToNearest.normalize() * overlap );
+    return true;
+  } 
+  
+  return false;
+}

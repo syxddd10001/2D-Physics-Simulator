@@ -84,6 +84,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
               
                 cir->setID(engine_instance->GetAllObjects()->size()+1);
                 engine_instance->addObject(cir);
+                if ( engine_instance->root != nullptr ) engine_instance->root->insert( cir );
               }
         } 
         
@@ -92,6 +93,8 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
                                 std::stof(commands[5]), std::stof(commands[6])); 
             rec->setID(engine_instance->GetAllObjects()->size()+1);
             engine_instance->addObject(rec);
+            if ( engine_instance->root != nullptr ) engine_instance->root->insert( rec );
+            
         }
           
         std::cout << "Spawned Object\n";

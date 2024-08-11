@@ -12,6 +12,8 @@ Circle::Circle( float rad, float mass, float posX, float posY)
     shape->setOutlineThickness( 1.0f );
     shape->setFillColor( *color );
     shape->setOutlineColor( sf::Color::Black );
+    setQueryBox( AbstractBox<float>( getCenter()-(getSize()*2) ,  getSize()*4 )) ;
+    
 
 }
 Circle::Circle( ){
@@ -40,6 +42,10 @@ void Circle::setPosition( const Vec2 pos ){
     position_y = pos.y;
     shape->setPosition( sf::Vector2f( position_x, position_y ) );
     
+}
+
+Vec2 Circle::getCenter(){
+  return Vec2{ position_x, position_y };
 }
 
 bool Circle::mouseOnObject( const sf::Vector2f vector ){

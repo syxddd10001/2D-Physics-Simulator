@@ -10,8 +10,8 @@
 bool onCollision( Circle* object1, Circle* object2 );
 void dynamicResponse ( Circle* object1, Circle* object2 );
 
-#define EXPERIMENTAL 0
+#define EXPERIMENTAL 1
 #if EXPERIMENTAL
-  bool onCollision( Circle* object1, Rectangle object2 );
+  bool onCollision( Circle* object1, Rectangle* object2 );
   bool onCollision( Rectangle * object1, Rectangle* object2 ); 
 #endif

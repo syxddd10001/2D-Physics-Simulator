@@ -1,7 +1,10 @@
 #pragma once
 #include <utility>
-#include "Object.hpp"
+#include <cmath>
+#include <iostream>
+
 #include "Vector2.hpp"
+#include <SFML/Graphics.hpp>
 
 using point = std::pair<float, float>;
 using Vec2 = syxd::Vector2<float>;
@@ -15,58 +18,82 @@ public:
   T width;
   T height; 
 
-  constexpr AbstractBox( T Left = 0, T Top = 0, T Width = 0, T Height = 0 ) noexcept :
+  sf::RectangleShape* shape;
+
+  AbstractBox( T Left = 0, T Top = 0, T Width = 0, T Height = 0 ) :
       left(Left), top(Top), width(Width), height(Height) {
 
   }
 
-  constexpr AbstractBox( const Vec2 position, const Vec2 size ) noexcept :
+  AbstractBox( const Vec2 position, const Vec2 size ) :
       left(position.x), top(position.y), width(size.x), height(size.y) {
-
+      shape = new sf::RectangleShape( sf::Vector2f { width, height } );
+      shape->setPosition( sf::Vector2f( position ) );
+      shape->setOutlineThickness ( 1.0f );
+      shape->setOutlineColor( sf::Color::Blue );
+      shape->setFillColor( sf::Color::Transparent );
   }
 
-  constexpr AbstractBox( const point position, const point size ) noexcept :
+  AbstractBox( const point position, const point size )  :
       left(position.first), top(position.second), width(size.first), height(size.second) {
 
   }
+  
+  void setPosition( Vec2 posf, Vec2 size ){
+    left = posf.x;
+    top = posf.y;
+    width = size.x;
+    height = size.y;
+    shape->setPosition( getTopLeft() );
+  }
 
-  constexpr T getRight( ) const noexcept {
+
+  T getRight( ) {
       return left + width;
   }
 
-  constexpr T getBottom( ) const noexcept {
+  T getBottom( ) {
       return top + height;
   }
 
-  constexpr Vec2 getTopLeft( ) const noexcept {
-      return Vec2(left, top);
+  Vec2 getTopLeft( ) {
+    return Vec2(left, top);
+  }
+  
+  Vec2 getBottomRight(){
+    return Vec2(getBottom(), getRight());
+  }
+  Vec2 getCenter( ) {
+      return Vec2(left+(getSize().x / 2), top+(getSize().y / 2)); //
   }
 
-  constexpr Vec2 getCenter( ) const noexcept {
-      return Vec2((left + width) / 2, (top + height) / 2);
-  }
-
-  constexpr Vec2 getSize( ) const noexcept {
+  Vec2 getSize( ) {
       return Vec2( width, height );
   }
 
-  constexpr bool contains( const AbstractBox<T>& box ) const noexcept {
+  bool contains( const AbstractBox<T>& box ) {
     return ( left <= box.left && box.getRight() <= getRight() &&
             top <= box.top && box.getBottom() <= getBottom() );
   }
   
-  bool contains( point& position, point& size ) const noexcept {
-    return ( position.first-size.first >= getTopLeft().x && position.second <= getTopLeft().y
-            && position.second + size.second >= getBottom() && position.first + size.first <= getRight() );
-  }
-  
-  bool contains( Vec2& position, Vec2& size ) const noexcept {
-    return ( position.x-size.x >= getTopLeft().x && position.y <= getTopLeft().y
-            && position.y + size.y >= getBottom() && position.x + size.x <= getRight() );
+  bool contains( Vec2 position, Vec2 size ) {
+    Vec2 nearestPoint;
+    nearestPoint.x = std::max(T(left), std::min(position.x, T(getRight())));
+    nearestPoint.y = std::max(T(top), std::min(position.y, T(getBottom())));
+    Vec2 RayToNearest = nearestPoint - position;
+    T overlap = size.x - RayToNearest.magnitude();
+    
+    if ( std::isnan( overlap ) ) overlap = 0;
+    
+    if ( overlap >= 0 ){
+      return true;
+    } 
+    
+    return false;
   }
 
-  constexpr bool intersects( const AbstractBox<T>& box ) const noexcept {
-      return !( left >= box.getRight() || getRight() <= box.left ||
-              top >= box.getBottom() || getBottom() <= box.top );
+  bool intersects( AbstractBox<T> box ) {
+      return !( left > box.getRight() || getRight() < box.left ||
+              top > box.getBottom() || getBottom() < box.top );
   }
 };

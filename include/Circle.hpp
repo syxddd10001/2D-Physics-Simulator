@@ -23,7 +23,9 @@ public:
   void setPosition( const Vec2 pos ) override;
   bool mouseOnObject( const sf::Vector2f vector ) override;
   Vec2 getSize( ) override;
+  Vec2 getCenter( ) override;
   AbstractBox<float> getBoundingBox( );
+  
   
   ObjectType getType() override {
     return ObjectType::CIRCLE;

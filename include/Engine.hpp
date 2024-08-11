@@ -10,13 +10,14 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "Rectangle.hpp"
+
+#include "Vector2.hpp"
 #include "Object.hpp"
+#include "AbstractBox.hpp"
+#include "Rectangle.hpp"
 #include "PhysicsMath.hpp"
 #include "Physics.hpp"
 #include "Quadtree.hpp"
-#include "AbstractBox.hpp"
-#include "Vector2.hpp"
 
 #define WINDOW_SIZE_X 1000
 #define WINDOW_SIZE_Y 1000
@@ -26,7 +27,7 @@ using Vec2 = syxd::Vector2<float>;
 
 class Engine{
 protected:
-  const float CREATION_INTERVAL = 0.2f;
+  const float CREATION_INTERVAL = 0.05f;
   const float INTERRUPT_INTERVAL = 0.01f; 
   const float ZOOM_AMOUNT = 1.1f;
   float MOVE_SENSITIVITY = 1.f;
@@ -51,8 +52,12 @@ public:
   bool select_mode = false; // multi select mode
   bool command_mode = false;
   const float default_friction = -0.7f;
+  bool gizmos_mode = false;
 
   float friction;
+
+  std::unique_ptr<Quadtree> root;
+  
 
   Engine( );
   ~Engine();
@@ -73,6 +78,6 @@ public:
   void moveAll( std::vector<Object*>* objects, const sf::Vector2f delta ); // move all objects that are selected
   void deleteObject( Object* object_to_delete, std::vector<Object*>& all_objects ); // delete a selected object
   void deleteSelectedObjects( std::vector<Object*>& all_objects ); // deleted all objects that are selected
-
+  void displayGizmos( );
 };
 

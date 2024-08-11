@@ -44,6 +44,8 @@ Vec2 calculateVelocity( Object* object, const float delta_time, const Vec2 accel
   object->setPosition( Vec2( position_0.x + (object->getVelocity().x * delta_time ), 
                               position_0.y + (object->getVelocity().y * delta_time ) ) );
 
+  object->setQueryBox( AbstractBox<float>( object->getCenter()-(object->getSize()*2), Vec2{ object->getSize().x*4, object->getSize().y*4 } ) );
+  
   return object->getPosition();
 }
 

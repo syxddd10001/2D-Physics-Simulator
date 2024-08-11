@@ -35,7 +35,7 @@ sf::Vector2f Center = sf::Vector2f( 0.0f, 0.0f );
 sf::Vector2f HalfSize;
 
 std::string spawn_type;
-float spawn_size = 50.0f;
+float spawn_size = 5.0f;
 
 
 sf::Vector2i original_mouse_position;
@@ -58,7 +58,7 @@ bool focus = false;
 
 sf::Vector2i originalCoordinates;
 
-volatile int32_t object_count = 0;
+volatile uint32_t object_count = 0;
 
 //UI 
 // command mode blink cursor position
@@ -76,7 +76,9 @@ std::string input_previous = "";
 // Singleton Recevier that receives and executes commands
 Receiver* receiver;
 
+AbstractBox<float> box;
 
+AbstractBox<float> mouseQueryBox;
 
 Engine::Engine( ){
   WINDOW = std::make_shared<sf::RenderWindow>( sf::VideoMode( WINDOW_SIZE_X, WINDOW_SIZE_Y ), WINDOW_NAME );
@@ -100,7 +102,7 @@ Engine::Engine( ){
   
   originalCoordinates = WINDOW->mapCoordsToPixel(sf::Vector2f{ ((float)(HalfSize.x)), ((float)(HalfSize.y))});
   
-  //
+  // 
   
   cursor.setSize( sf::Vector2f { 5.0f, 20.0f } );
   cursor.setFillColor( sf::Color::White );
@@ -118,12 +120,18 @@ Engine::Engine( ){
   sf::Vector2f move_amount { -HalfSize.x, -HalfSize.y } ;
   mainView.move( move_amount );
   
+  box = AbstractBox<float>( Vec2( -HalfSize.x, -HalfSize.y ), Vec2( WINDOW->getSize() ) );
+  std::cout<< "Left " << box.left << "\n";
+  
+  root = std::make_unique<Quadtree>(box, 4, 8);
+  
   WINDOW->setFramerateLimit( FRAME_RATE );
   WINDOW->setView( mainView );
-  
-  
+
   print << std::setprecision(13);
   DEBUG_PRINT("%dx%d window spawned \n", WINDOW_SIZE_X, WINDOW_SIZE_Y);
+  gizmos_mode = true;
+  
 }
 
 Engine::~Engine( ){
@@ -150,9 +158,9 @@ void Engine::EventManager( ){
           
         if ( !input_lock && command_mode ) {
           if ( std::isprint(evnt.text.unicode) ){
-              char ch = static_cast<char>(evnt.text.unicode);
-              input_text.insert(cursor_position, 1, ch);
-              cursor_position++;
+            char ch = static_cast<char>(evnt.text.unicode);
+            input_text.insert(cursor_position, 1, ch);
+            cursor_position++;
           }
         }
   
@@ -164,7 +172,8 @@ void Engine::EventManager( ){
         if ( evnt.mouseButton.button ==  sf::Mouse::Right ) {
             
           if ( !p_selected_object && !select_mode ) { 
-            for ( auto& selected : objects ) {
+            auto potential_selection = root->query( mouseQueryBox );
+            for ( auto& selected : potential_selection ) {
               if ( selected->mouseOnObject( mousePosf ) ) 
               {
                   p_selected_object = selected;                             
@@ -177,7 +186,8 @@ void Engine::EventManager( ){
         if ( evnt.mouseButton.button == sf::Mouse::Left && !select_mode ) {
             
           if ( !p_selected_object ) {
-            for ( auto& selected : objects )
+            auto potential_selection = root->query( mouseQueryBox );
+            for ( auto& selected : potential_selection )
             {
               if ( selected->mouseOnObject( mousePosf ) )
               {
@@ -347,15 +357,17 @@ void Engine::EventManager( ){
             obj = new Circle( spawn_size, t_mass, mousePosf.x, mousePosf.y );
             obj->setID( objects.size() );
             std::cout << obj << std::endl; 
-            addObject( obj );   
           }
           else if (spawn_type == "rec") {
             float t_mass = spawn_size*10.0f;
             obj = new Rectangle( t_mass, mousePosf.x,  mousePosf.y, spawn_size, spawn_size );
             obj->setID( objects.size() );
-            std::cout << obj << std::endl;    
+            std::cout << obj << std::endl;
           }
-          if ( obj != nullptr ) addObject( obj );
+          if ( obj != nullptr ) {
+            addObject( obj );
+            root->insert( obj );
+          };
         }
   
       break;
@@ -453,15 +465,15 @@ void Engine::moveSelection( const sf::Vector2f delta ) {
 Checks if any object from an area is selected
 */
 void Engine::checkObjectsSelected( ) {
-for ( Object* selected : selected_objects )
-{
-  mouseonobj = false;
-  if ( selected->mouseOnObject( mousePosf ) ) {
-    mouseonobj = true;
-    objects_selected = true;
-    break;
+  for ( Object* selected : selected_objects )
+  {
+    mouseonobj = false;
+    if ( selected->mouseOnObject( mousePosf ) ) {
+      mouseonobj = true;
+      objects_selected = true;
+      break;
+    }
   }
-}
 
 }
 /*
@@ -480,7 +492,7 @@ for ( auto obj : *objects ){
 Turns selected objects into their default configuration
 */
 void Engine::objectDefault( ) {
-  for ( auto* obj : objects ){
+  for ( auto* obj : selected_objects ){
     obj->getShape()->setOutlineColor(sf::Color::Black);
   }
   selection_lock = false;
@@ -513,7 +525,7 @@ void Engine::DragRectangle( ) {
     sf::Vector2f rect_size( mousePosf.x - mouseOnClickStart.x, mousePosf.y - mouseOnClickStart.y );
     mouseDrawnBox.setPosition( mouseOnClickStart.x, mouseOnClickStart.y );
     mouseDrawnBox.setOutlineColor( sf::Color::White );
-    mouseDrawnBox.setOutlineThickness(1.0f);
+    mouseDrawnBox.setOutlineThickness( 1.0f );
     mouseDrawnBox.setSize( rect_size );
     GetObjectsInArea( Vec2( mouseOnClickStart.x, mouseOnClickStart.y ), Vec2( rect_size.x,rect_size.y ) );
     WINDOW->draw( mouseDrawnBox );
@@ -540,10 +552,17 @@ void Engine::DragRectangle( ) {
 Updates objects (position, shape and velocity) and draws it on the screen
 */
 void Engine::Update( const float* delta_time ) {
+  mouseQueryBox = AbstractBox<float>( Vec2(mousePosf)-(Vec2{50.0f, 50.0f}), Vec2{50.0f, 50.0f} * 2 );
+  //box = AbstractBox<float>( Vec2(  ) , Vec2( WINDOW->getSize() ) );
+  root = std::make_unique<Quadtree>( box, 4, 8 );
   
   for ( int i = 0; i < objects.size(); i++ ) {
     calculateVelocity( objects[i], *delta_time, Vec2( friction, friction ) );
     sf::Shape* sh = objects[i]->getShape();
+    root->insert( objects[i] );
+    
+    if ( gizmos_mode ) WINDOW->draw(*(objects[i]->getQueryBox().shape) );
+    
     WINDOW->draw( *sh );
   }
 }
@@ -561,17 +580,29 @@ Checks if any collision has occured and provides a response to that collision
 void Engine::collisionCheck( ) {
   for ( auto& current : objects )
   {
-    for ( auto& other : objects )
+    auto obj_in_range = root->query( current->getQueryBox() );
+    
+    for ( auto& other : obj_in_range )
     {
       if ( current != other && ( typeid( *current ) == typeid( Circle ) && typeid( *other ) == typeid( Circle ) ) )
       {
         if ( onCollision( dynamic_cast<Circle*>( current ), dynamic_cast<Circle*>( other ) ) )
         {
           dynamicResponse( dynamic_cast<Circle*>( current ), dynamic_cast<Circle*>( other ) );
-        }
+        }    
       }
+      
+      else if ( ( typeid( *current ) == typeid( Circle ) && typeid( *other ) == typeid( Rectangle ) )){
+        onCollision( dynamic_cast<Circle*>( current ), dynamic_cast<Rectangle*>( other ) ); 
+      }
+      
+      else if ( ( typeid( *current ) == typeid( Rectangle ) && typeid( *other ) == typeid( Circle ) )){
+        onCollision( dynamic_cast<Circle*>( other ), dynamic_cast<Rectangle*>( current ) ); 
+      }
+      
     }
   }
+ 
 }
 /*
 Returns the Frames Per Second of the window 
@@ -590,6 +621,8 @@ void Engine::displayFramesPerSecond( std::chrono::high_resolution_clock::time_po
   fps_text.setString( "FPS: " +  std::to_string( fps ) );
   fps_text.setCharacterSize( h2_char_size );
   fps_text.setPosition( sf::Vector2f { (float) WINDOW->getSize().x - 120.0f, (float) WINDOW->getSize().y - 60.0f } );
+  
+  
   WINDOW->draw( fps_text );
   
 }
@@ -647,10 +680,17 @@ void Engine::UI( ) {
   
   if ( cursor_show && command_mode ) WINDOW->draw( cursor );
   
+  sf::Text num_objects;
+  num_objects.setFont( default_font );
+  num_objects.setString( "Objects: " +  std::to_string( object_count ) );
+  num_objects.setCharacterSize( h2_char_size );
+  num_objects.setPosition( sf::Vector2f { 0, command_mode_text.getPosition().y + 30 } );
+
   WINDOW->draw( command_indicator );
   WINDOW->draw( inputBox );
   WINDOW->draw( select_mode_text );
   WINDOW->draw( command_mode_text );
+  WINDOW->draw( num_objects ); 
   WINDOW->draw( spawn_size_text );
 }
 /*
@@ -694,8 +734,8 @@ void Engine::Render( ) {
         focus = false;
     }
   }
-  
   DragRectangle( );
+  displayGizmos( );
 
 }
 /*
@@ -709,4 +749,11 @@ void Engine::zoomViewAt( sf::Vector2i pixel, float zoom ) {
 	const sf::Vector2f offsetCoords{ beforeCoord - afterCoord };
 	mainView.move( offsetCoords );
 	WINDOW->setView( mainView );
+}
+
+void Engine::displayGizmos( ){
+  if (!gizmos_mode) return; 
+  
+  root->drawBox( WINDOW );
+  WINDOW->draw(*(mouseQueryBox.shape));
 }

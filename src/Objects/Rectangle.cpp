@@ -8,6 +8,8 @@ Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float di
   shape->setOutlineThickness(1.0f);
   shape->setOutlineColor(sf::Color::Black);
   shape->setFillColor(*color);
+  setQueryBox( AbstractBox<float>( getCenter()-(getSize()*2) , getSize()*4 ) ) ;
+  
 }
 
 Rectangle::Rectangle( ){
@@ -29,6 +31,10 @@ void Rectangle::setDimension( const Vec2 dim ){
 
 sf::Shape* Rectangle::getShape(){
   return this->shape;
+}
+
+Vec2 Rectangle::getCenter( ){
+  return Vec2{ position_x+(dimensions.x/2), position_y+(dimensions.y/2) };
 }
 
 void Rectangle::setPosition( const Vec2 pos ){
