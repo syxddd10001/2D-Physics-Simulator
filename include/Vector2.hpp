@@ -40,13 +40,13 @@ namespace syxd {
     
     explicit Vector2(const sf::Vector2f other) : x(static_cast<T>(other.x)), y(static_cast<T>(other.y)) {}
     explicit Vector2(const sf::Vector2u other) : x(static_cast<T>(other.x)), y(static_cast<T>(other.y)) {}
-    
-  
-    T magnitude( ) {
+    explicit Vector2(const sf::Vector2i other) : x(static_cast<T>(other.x)), y(static_cast<T>(other.y)) {}
+
+    T magnitude( ) const {
       return (T) std::sqrt(x*x+y*y);
     }
     
-    Vector2<T> normalize( ) {
+    Vector2<T> normalize( ) const {
       float mag = magnitude();
       return ( (mag != 0) ? Vector2<T>( x / mag, y / mag ) : Vector2<T>( 0, 0 ) );
     }

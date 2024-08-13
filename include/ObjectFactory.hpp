@@ -1,4 +1,5 @@
 #include <string>
+#include <memory>
 #include "Object.hpp"
 #include "Circle.hpp"
 #include "Rectangle.hpp"
@@ -16,5 +17,5 @@ public:
 
   static ObjectFactory* GetInstance();
     
-  Object* createObject( Object::ObjectType object_type, const float mass, float dim_x, float dim_y, float pos_x, float pos_y  );
+  std::shared_ptr<Object> createObject( Object::ObjectType object_type, const float mass, float dim_x, float dim_y, float pos_x, float pos_y  );
 };

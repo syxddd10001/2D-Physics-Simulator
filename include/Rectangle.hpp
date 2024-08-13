@@ -24,12 +24,12 @@ public:
 
   bool inBounds( const sf::Vector2f vector );
 
-  bool mouseOnObject( const sf::Vector2f vector ) override;
+  bool mouseOnObject( const Vec2 vector) override;
   
-  Vec2 getSize( ) override;
-  Vec2 getCenter( ) override;
+  Vec2 getSize( ) const override;
+  Vec2 getCenter( ) const override;
   
-  AbstractBox<float> getBoundingBox( );
+  AbstractBox<float> getBoundingBox( ) const;
   
   ObjectType getType() override {
     return ObjectType::RECTANGLE;

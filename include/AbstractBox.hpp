@@ -48,35 +48,35 @@ public:
   }
 
 
-  T getRight( ) {
+  T getRight( ) const noexcept {
       return left + width;
   }
 
-  T getBottom( ) {
+  T getBottom( ) const noexcept {
       return top + height;
   }
 
-  Vec2 getTopLeft( ) {
+  Vec2 getTopLeft( ) const noexcept {
     return Vec2(left, top);
   }
   
-  Vec2 getBottomRight(){
+  Vec2 getBottomRight() const noexcept {
     return Vec2(getBottom(), getRight());
   }
-  Vec2 getCenter( ) {
+  Vec2 getCenter( ) const noexcept {
       return Vec2(left+(getSize().x / 2), top+(getSize().y / 2)); //
   }
 
-  Vec2 getSize( ) {
+  Vec2 getSize( ) const noexcept {
       return Vec2( width, height );
   }
 
-  bool contains( const AbstractBox<T>& box ) {
+  bool contains( const AbstractBox<T>& box ) const {
     return ( left <= box.left && box.getRight() <= getRight() &&
             top <= box.top && box.getBottom() <= getBottom() );
   }
   
-  bool contains( Vec2 position, Vec2 size ) {
+  bool contains( const Vec2 position, const Vec2 size ) const {
     Vec2 nearestPoint;
     nearestPoint.x = std::max(T(left), std::min(position.x, T(getRight())));
     nearestPoint.y = std::max(T(top), std::min(position.y, T(getBottom())));
@@ -92,7 +92,7 @@ public:
     return false;
   }
 
-  bool intersects( AbstractBox<T> box ) {
+  bool intersects( const AbstractBox<T> box ) const {
       return !( left > box.getRight() || getRight() < box.left ||
               top > box.getBottom() || getBottom() < box.top );
   }

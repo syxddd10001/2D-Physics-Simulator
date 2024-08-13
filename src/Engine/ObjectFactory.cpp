@@ -14,7 +14,7 @@ ObjectFactory* ObjectFactory::GetInstance(){
 }
 
 // Creates an object
-Object* ObjectFactory::createObject( Object::ObjectType object_type, 
+std::shared_ptr<Object> ObjectFactory::createObject( Object::ObjectType object_type, 
                                     const float mass, 
                                     float dim_x, float dim_y, 
                                     float pos_x, float pos_y ) {
@@ -22,15 +22,12 @@ Object* ObjectFactory::createObject( Object::ObjectType object_type,
   switch ( object_type )
   {
     case Object::CIRCLE:
-      return new Circle( dim_x, mass, pos_x, pos_y );
+      return std::make_shared<Circle>( dim_x, mass, pos_x, pos_y );
     break;
   
     case Object::RECTANGLE:
-      return new Rectangle( mass, pos_x, pos_y, dim_x, dim_y );
+      return std::make_shared<Rectangle>( mass, pos_x, pos_y, dim_x, dim_y );
     break;
-  
-    default:
-      return nullptr;
-    break;
+
   }
 }

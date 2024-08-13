@@ -1,7 +1,7 @@
 #include "Physics.hpp"
 
 // Detect circle vs. circle collisions
-bool onCollision( Circle* object1, Circle* object2 ) {
+bool onCollision( std::shared_ptr<Circle> object1, std::shared_ptr<Circle> object2 ) {
     
   float distance = calculateDistance( object1->getPosition(), object2->getPosition() );
   float push_distance;
@@ -33,7 +33,7 @@ bool onCollision( Circle* object1, Circle* object2 ) {
 }
 
 // Response to circle vs. circle collisions
-void dynamicResponse( Circle* object1, Circle* object2 ) {
+void dynamicResponse( std::shared_ptr<Circle> object1, std::shared_ptr<Circle> object2 ) {
   Vec2 position1 ( object1->getPosition( ) );
   Vec2 position2 ( object2->getPosition( ) );
   Vec2 velocity1 ( object1->getVelocity( ) );
@@ -69,7 +69,7 @@ void dynamicResponse( Circle* object1, Circle* object2 ) {
 }
 
 
-bool onCollision( Circle* object1, Rectangle* object2 ) {
+bool onCollision( std::shared_ptr<Circle> object1, std::shared_ptr<Rectangle> object2 ) {
   Vec2 nearestPoint;
   Vec2 circ_pos = object1->getPosition();
   Vec2 rect_pos = object2->getPosition();

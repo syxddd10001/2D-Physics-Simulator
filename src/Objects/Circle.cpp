@@ -24,7 +24,7 @@ sf::Shape* Circle::getShape( ){
     return this->shape;
 }
 
-Vec2 Circle::getSize( ){
+Vec2 Circle::getSize( ) const {
   return Vec2( radius, radius );
 }
 
@@ -44,15 +44,15 @@ void Circle::setPosition( const Vec2 pos ){
     
 }
 
-Vec2 Circle::getCenter(){
+Vec2 Circle::getCenter() const {
   return Vec2{ position_x, position_y };
 }
 
-bool Circle::mouseOnObject( const sf::Vector2f vector ){
+bool Circle::mouseOnObject( const Vec2 vector ){
   return calculateDistance( getPosition(), Vec2 ( vector.x, vector.y ) ) < getRadius( );
 }
 
-AbstractBox<float> Circle::getBoundingBox( ) {
+AbstractBox<float> Circle::getBoundingBox( ) const {
   float left = this->position_x - this->radius;
   float top = this->position_y - this->radius;
   float width = this->radius * 2;

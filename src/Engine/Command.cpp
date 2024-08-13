@@ -8,7 +8,7 @@
 #define DEBUG_PRINT(format, ...) // Do nothing //
 #endif
 
-Receiver* Receiver::p_instance = nullptr;
+Receiver* Receiver::p_instance;
 ObjectFactory* factory = ObjectFactory::GetInstance();
 
 //Receiver is a singleton
@@ -79,19 +79,19 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
             if ( commands.size() < 8 ) num_objects = 1;
             else num_objects = std::stoi(commands[7]);
             for (int i = 0; i < num_objects; i++){
-                Object* cir = factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
-                                   std::stof(commands[5])+(((std::stof(commands[3])*2)) * (i+1)), std::stof(commands[6]) );
+                std::shared_ptr<Circle> cir = std::dynamic_pointer_cast<Circle>(factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
+                                   std::stof(commands[5])+(((std::stof(commands[3])*2)) * (i+1)), std::stof(commands[6]) ));
               
-                cir->setID(engine_instance->GetAllObjects()->size()+1);
+                cir->setID(engine_instance->GetAllObjects().size()+1);
                 engine_instance->addObject(cir);
                 if ( engine_instance->root != nullptr ) engine_instance->root->insert( cir );
               }
         } 
         
         else if ( commands[1] == "rectangle" ){
-            Object* rec = factory->createObject( Object::RECTANGLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
-                                std::stof(commands[5]), std::stof(commands[6])); 
-            rec->setID(engine_instance->GetAllObjects()->size()+1);
+            std::shared_ptr<Rectangle>  rec = std::dynamic_pointer_cast<Rectangle>(factory->createObject( Object::RECTANGLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
+                                std::stof(commands[5]), std::stof(commands[6]))); 
+            rec->setID(engine_instance->GetAllObjects().size()+1);
             engine_instance->addObject(rec);
             if ( engine_instance->root != nullptr ) engine_instance->root->insert( rec );
             
@@ -118,22 +118,22 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
         }
       break;
   
-      case FRICTION:
+      case DRAG:
         if ( commands.size() < 2 )
         {
           std::cout << "Enter atleast 2 arguments\n";
           break;
         }
         if ( commands[1] == "off" ){
-          engine_instance->friction = 0.00000000001f;
+          engine_instance->drag = 0.00000000001f;
         }
   
         else if ( commands[1] == "on" ){
-          engine_instance->friction = engine_instance->default_friction;
+          engine_instance->drag = engine_instance->default_drag;
         }
   
         else{
-          engine_instance->friction = stof(commands[1]);
+          engine_instance->drag = stof(commands[1]);
         }
       break;
       

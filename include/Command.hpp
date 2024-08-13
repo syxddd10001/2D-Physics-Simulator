@@ -15,12 +15,13 @@ class Receiver{
 private:
   static Receiver * p_instance;
   Receiver() {};
-  enum CommandType { SPAWN, MODE, EXIT, FRICTION, MANUAL };
+  enum CommandType { SPAWN, MODE, EXIT, DRAG, MANUAL };
   std::map <std::string, CommandType> commandMap = { 
       { "spawn", SPAWN }, 
       { "mode", MODE }, 
       { "exit", EXIT }, 
-      { "friction", FRICTION },
+      { "friction", DRAG },
+      { "drag", DRAG },
       { "man", MANUAL },
       { "manual", MANUAL },
       { "help", MANUAL }

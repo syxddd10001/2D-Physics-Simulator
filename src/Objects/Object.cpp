@@ -13,7 +13,6 @@ Object::Object( )
 }
 
 Object::~Object( ){
-  std::cout << "Object destroyed\n";
 
 }
 
@@ -41,15 +40,15 @@ void Object::setMass( const float mass ){
   this->mass = mass;
 }
 
-Vec2 Object::getPosition(){
+Vec2 Object::getPosition() const {
   return Vec2 ( position_x, position_y );
 }
 
-Vec2 Object::getVelocity(){
+Vec2 Object::getVelocity() const {
   return Vec2 ( velocity_x, velocity_y );
 }
 
-Vec2 Object::getCenter() {
+Vec2 Object::getCenter() const {
   return Vec2 { 0.f, 0.f}; 
 }
 
@@ -69,7 +68,7 @@ void Object::setAcceleration( const Vec2 acc ){
   acceleration_y = acc.y;
 }
 
-Vec2 Object::getAcceleration(){
+Vec2 Object::getAcceleration() const {
   return Vec2 ( acceleration_x, acceleration_y );
 }
 
@@ -83,7 +82,7 @@ void Object::setID( int id ){
   this->object_id = id;
 }
 
-Vec2 Object::getSize(){
+Vec2 Object::getSize() const {
   return Vec2 ( 0.0f, 0.0f );
 }
 
@@ -95,11 +94,11 @@ void Object::setQueryBox( AbstractBox<float> refbox ){
   this->queryBox = refbox;
 }
 
-AbstractBox<float> Object::getQueryBox(){
+AbstractBox<float> Object::getQueryBox() const {
   return this->queryBox;
 }
 
-bool Object::mouseOnObject( const sf::Vector2f vector ){
+bool Object::mouseOnObject( const Vec2 vector ){
   return false;
 }
 

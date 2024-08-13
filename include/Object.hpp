@@ -29,7 +29,7 @@ public:
   Object( );
   virtual ~Object( );
   
-  Vec2 getPosition();
+  Vec2 getPosition() const;
 
   virtual void setPosition( const Vec2 pos );
 
@@ -38,23 +38,23 @@ public:
   float getMass( );
   void setMass( const float mass );
   
-  Vec2 getVelocity( );
+  Vec2 getVelocity( ) const ;
   Vec2 setVelocity( const float vel_x, const float vel_y );
   void setVelocity( const Vec2 vel );
   
-  Vec2 getAcceleration( );
+  Vec2 getAcceleration( ) const;
   Vec2 setAcceleration( const float acc_x, const float acc_y );
   void setAcceleration( const Vec2 acc );
   
-  virtual Vec2 getSize();
-  virtual Vec2 getCenter();
+  virtual Vec2 getSize() const;
+  virtual Vec2 getCenter() const;
   
   
   void setID( int id );
   int getID( );
   
   
-  virtual bool mouseOnObject( const sf::Vector2f vector );
+  virtual bool mouseOnObject( const Vec2 vector );
 
   bool operator==( Object& other ) const {
     return ((std::abs(this->position_x - other.position_x) < EPSILON && std::abs(this->position_y - other.position_y) < EPSILON )) && 
@@ -68,7 +68,7 @@ public:
   
   void setQueryBox( AbstractBox<float> refbox );
   
-  AbstractBox<float> getQueryBox( );
+  AbstractBox<float> getQueryBox( ) const;
 
   enum ObjectType {
       CIRCLE,

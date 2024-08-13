@@ -21,10 +21,10 @@ public:
   sf::Shape* getShape( ) override;
   float setRadius( const float rad );
   void setPosition( const Vec2 pos ) override;
-  bool mouseOnObject( const sf::Vector2f vector ) override;
-  Vec2 getSize( ) override;
-  Vec2 getCenter( ) override;
-  AbstractBox<float> getBoundingBox( );
+  bool mouseOnObject( const Vec2 vector ) override;
+  Vec2 getSize( ) const override;
+  Vec2 getCenter( ) const override;
+  AbstractBox<float> getBoundingBox( ) const;
   
   
   ObjectType getType() override {

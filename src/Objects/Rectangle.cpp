@@ -16,7 +16,7 @@ Rectangle::Rectangle( ){
 
 }
 
-Vec2 Rectangle::getSize( ){
+Vec2 Rectangle::getSize( ) const {
   return Vec2( dimensions.x, dimensions.y );
 }
 
@@ -33,7 +33,7 @@ sf::Shape* Rectangle::getShape(){
   return this->shape;
 }
 
-Vec2 Rectangle::getCenter( ){
+Vec2 Rectangle::getCenter( ) const {
   return Vec2{ position_x+(dimensions.x/2), position_y+(dimensions.y/2) };
 }
 
@@ -48,11 +48,11 @@ bool Rectangle::inBounds( const sf::Vector2f mousepos ) {
           ( mousepos.y >= position_y && mousepos.y <= position_y + dimensions.y ) );
 }
 
-bool Rectangle::mouseOnObject( const sf::Vector2f vector ){
+bool Rectangle::mouseOnObject( const Vec2 vector ){
   return inBounds( vector );
 }
 
-AbstractBox<float> Rectangle::getBoundingBox() {
+AbstractBox<float> Rectangle::getBoundingBox() const {
   float left = this->position_x;
   float top = this->position_y;
   float width = dimensions.x;
