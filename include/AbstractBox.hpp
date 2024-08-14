@@ -2,7 +2,7 @@
 #include <utility>
 #include <cmath>
 #include <iostream>
-
+#include <memory>
 #include "Vector2.hpp"
 #include <SFML/Graphics.hpp>
 
@@ -18,7 +18,7 @@ public:
   T width;
   T height; 
 
-  sf::RectangleShape* shape;
+  std::shared_ptr<sf::RectangleShape> shape;
 
   AbstractBox( T Left = 0, T Top = 0, T Width = 0, T Height = 0 ) :
       left(Left), top(Top), width(Width), height(Height) {
@@ -27,7 +27,7 @@ public:
 
   AbstractBox( const Vec2 position, const Vec2 size ) :
       left(position.x), top(position.y), width(size.x), height(size.y) {
-      shape = new sf::RectangleShape( sf::Vector2f { width, height } );
+      shape = std::make_shared<sf::RectangleShape> ( sf::Vector2f { width, height } );
       shape->setPosition( sf::Vector2f( position ) );
       shape->setOutlineThickness ( 1.0f );
       shape->setOutlineColor( sf::Color::Blue );

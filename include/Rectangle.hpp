@@ -16,6 +16,7 @@ private:
 public:
   Rectangle( float mass, float pos_x, float pos_y, float dim_x, float dim_y );
   Rectangle( );
+  ~Rectangle() override {};
 
   Vec2 getDimension( );
   std::shared_ptr<sf::Shape> getShape( ) override;

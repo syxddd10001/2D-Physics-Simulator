@@ -15,6 +15,7 @@ private:
 
 public:
   Circle( float rad, float mass, float pos_x, float pos_y );
+  ~Circle() override {};
   Circle( );
   float getRadius( );
   std::shared_ptr<sf::Shape> getShape( ) override;
