@@ -8,13 +8,13 @@
 #define DEBUG_PRINT(format, ...) // Do nothing //
 #endif
 
-Receiver* Receiver::p_instance;
-ObjectFactory* factory = ObjectFactory::GetInstance();
+std::shared_ptr<Receiver> Receiver::p_instance;
+std::shared_ptr<ObjectFactory> factory = ObjectFactory::GetInstance();
 
 //Receiver is a singleton
-Receiver* Receiver::GetInstance(){
-  if (p_instance == nullptr){
-    p_instance = new Receiver();
+std::shared_ptr<Receiver> Receiver::GetInstance(){
+  if ( p_instance == nullptr ){
+    p_instance = std::make_shared<Receiver>();
   }
 
   return p_instance;

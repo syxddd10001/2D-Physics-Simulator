@@ -2,6 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include <utility>
 #include <iostream>
+#include <memory>
 
 #include "Vector2.hpp"
 #include "AbstractBox.hpp"
@@ -20,8 +21,8 @@ protected:
   float force_x, force_y;
   float mass;
   int object_id;
-  sf::Shape* shape;
-  sf::Color* color;
+  std::shared_ptr<sf::Shape> shape;
+  std::shared_ptr<sf::Color> color;
   AbstractBox<float> queryBox;
 
 public:    
@@ -34,7 +35,7 @@ public:
   virtual void setPosition( const Vec2 pos );
 
   void print_info( );
-  virtual sf::Shape* getShape();
+  virtual std::shared_ptr<sf::Shape> getShape();
   float getMass( );
   void setMass( const float mass );
   

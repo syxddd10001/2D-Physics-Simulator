@@ -4,20 +4,21 @@
 #include <PhysicsMath.hpp>
 #include <SFML/Graphics.hpp>
 #include <iostream>
+#include <memory>
 #include "AbstractBox.hpp"
 #include "Vector2.hpp"
 
 class Rectangle : public Object {
 private:  
   Vec2 dimensions;
-  sf::RectangleShape* shape;
+  std::shared_ptr<sf::RectangleShape> shape;
 
 public:
   Rectangle( float mass, float pos_x, float pos_y, float dim_x, float dim_y );
   Rectangle( );
 
   Vec2 getDimension( );
-  sf::Shape* getShape( ) override;
+  std::shared_ptr<sf::Shape> getShape( ) override;
 
   void setDimension( const Vec2 dim );
   void setPosition( const Vec2 pos ); 

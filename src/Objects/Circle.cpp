@@ -4,10 +4,9 @@
 Circle::Circle( float rad, float mass, float posX, float posY)
 : Object( mass, posX, posY ), radius( rad )
 { 
-    shape = new sf::CircleShape( radius );
+    shape = std::make_shared<sf::CircleShape>( radius );
     sf::Vector2f circleCenter( rad, rad );
-    
-    color = new sf::Color(sf::Color::White);
+    color = std::make_shared<sf::Color>(sf::Color::White);
     shape->setOrigin( circleCenter );
     shape->setOutlineThickness( 1.0f );
     shape->setFillColor( *color );
@@ -20,7 +19,7 @@ Circle::Circle( ){
 
 }
 
-sf::Shape* Circle::getShape( ){
+std::shared_ptr<sf::Shape> Circle::getShape( ){
     return this->shape;
 }
 

@@ -60,7 +60,7 @@ sf::Text command_indicator;
 std::string input_previous = "";
 
 // Singleton Recevier that receives and executes commands
-Receiver* receiver;
+std::shared_ptr<Receiver> receiver;
 
 
 AbstractBox<float> box;
@@ -106,13 +106,13 @@ Engine::Engine( ){
   command_indicator.setCharacterSize( ui_settings.h2_size );
   command_indicator.setString("> "); 
   
-  sf::Vector2f move_amount { -HalfSize.x, -HalfSize.y } ; // move camera s.t the center screen is 0,0
+  sf::Vector2f move_amount { -HalfSize.x, -HalfSize.y } ; // move camera s.t the screen center is 0,0
   mainView.move( move_amount );
   
   WINDOW->setFramerateLimit( window_settings.MAX_FRAME_RATE );
   WINDOW->setView( mainView );
-
   print << std::setprecision(13);
+
   DEBUG_PRINT( "%dx%d window spawned \n", window_settings.DEFAULT_WINDOW_SIZE_X, window_settings.DEFAULT_WINDOW_SIZE_Y );
   
 }
@@ -200,7 +200,7 @@ void Engine::EventManager( ){
             float velocity_y = launch_speed * ( position.y - mousePosf.y );
             p_selected_object->setVelocity( Vec2( velocity_x, velocity_y ) );
             
-            sf::Shape* sh = p_selected_object->getShape();
+            std::shared_ptr<sf::Shape> sh = p_selected_object->getShape();
             sh->setOutlineColor(sf::Color::Black);
   
             p_selected_object = nullptr;
@@ -219,7 +219,7 @@ void Engine::EventManager( ){
   
         if ( evnt.mouseButton.button == sf::Mouse::Left ){     
           if ( p_selected_object && !deleted){
-            sf::Shape* sh = p_selected_object->getShape();
+            std::shared_ptr<sf::Shape> sh = p_selected_object->getShape();
             sh->setOutlineColor( sf::Color::Black );
     
             p_selected_object = nullptr;
@@ -402,7 +402,8 @@ void Engine::EventManager( ){
     sf::Vector2f delta = mousePosf - mousePos_prev_all;
     moveSelection( delta );
     mousePos_prev_all = mousePosf;
-               
+
+    
 }
 /*
 Adds a new object to the world
@@ -413,7 +414,7 @@ std::vector<shared_ptr_obj>& Engine::GetAllObjects() {
 /*
 Deletes an object from the world
 */
-void Engine::deleteObject( shared_ptr_obj object_to_delete, std::vector<shared_ptr_obj>& all_objects ) {
+void Engine::deleteObject( const shared_ptr_obj object_to_delete, std::vector<shared_ptr_obj>& all_objects ) {
   auto it = std::find( all_objects.begin( ), all_objects.end( ), object_to_delete );
   if ( it != all_objects.end( ) ){
     all_objects.erase( it );
@@ -540,7 +541,7 @@ void Engine::Update( const float* delta_time ) {
   
   for ( size_t i = 0; i < objects.size(); i++ ) {
     verletIntegration( objects[i], *delta_time, Vec2{ drag,drag } );
-    sf::Shape* sh = objects[i]->getShape();
+    std::shared_ptr<sf::Shape> sh = objects[i]->getShape();
     root->insert( objects[i] );
     
     if ( gizmos_mode ) WINDOW->draw(*(objects[i]->getQueryBox().shape) );
@@ -552,7 +553,7 @@ void Engine::Update( const float* delta_time ) {
 /*
 Add an object to the world
 */
-void Engine::addObject( shared_ptr_obj object ) {
+void Engine::addObject( const shared_ptr_obj object ) {
   objects.push_back( object );
   object_count++;
 }
@@ -595,7 +596,7 @@ void Engine::collisionCheck( ) {
 /*
 Returns the Frames Per Second of the window 
 */
-void Engine::displayFramesPerSecond( std::chrono::high_resolution_clock::time_point start ) {
+void Engine::displayFramesPerSecond( const std::chrono::high_resolution_clock::time_point& start ) {
   
   std::chrono::high_resolution_clock::time_point end;
   float fps;
@@ -706,7 +707,7 @@ void Engine::Render( ) {
   }
   
   if ( p_selected_object && sf::Mouse::isButtonPressed( sf::Mouse::Left )) {
-    sf::Shape* sh = p_selected_object->getShape( );
+    std::shared_ptr<sf::Shape> sh = p_selected_object->getShape( );
     sh->setOutlineColor( sf::Color::Red );
     WINDOW->draw( *sh );
   }
@@ -728,7 +729,7 @@ void Engine::Render( ) {
 /*
 Zoom
 */ 
-void Engine::zoomViewAt( sf::Vector2i pixel, float zoom ) {
+void Engine::zoomViewAt( const sf::Vector2i& pixel, const float& zoom ) {
 	const sf::Vector2f beforeCoord{ WINDOW->mapPixelToCoords( pixel ) };
 	mainView.zoom( zoom );
 	WINDOW->setView( mainView );

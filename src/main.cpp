@@ -20,10 +20,10 @@ int main(){
 
   while ( Instance.WINDOW->isOpen() ) { // program loop
     start = std::chrono::high_resolution_clock::now();
-    
+
     Instance.WINDOW->clear( );
 
-    Instance.mousePosf = Instance.WINDOW->mapPixelToCoords(sf::Mouse::getPosition( *(Instance.WINDOW) ) ); // current mouse pos in float
+    Instance.mousePosf = Instance.WINDOW->mapPixelToCoords( sf::Mouse::getPosition( *(Instance.WINDOW) ) ); // current mouse pos in float
     Instance.mousePos = { static_cast<int>( Instance.mousePosf.x ), static_cast<int>( Instance.mousePosf.y ) };  // current mouse pos in int
     
     

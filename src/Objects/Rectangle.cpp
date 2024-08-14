@@ -3,8 +3,8 @@
 Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float dimY )
 : Object( mass, pos_x, pos_y ), dimensions( dimX, dimY )
 {
-  shape = new sf::RectangleShape(sf::Vector2f(dimX, dimY));
-  color = new sf::Color(sf::Color::White);
+  shape = std::make_shared<sf::RectangleShape>(sf::Vector2f(dimX, dimY));
+  color = std::make_shared<sf::Color>(sf::Color::White);
   shape->setOutlineThickness(1.0f);
   shape->setOutlineColor(sf::Color::Black);
   shape->setFillColor(*color);
@@ -29,7 +29,7 @@ void Rectangle::setDimension( const Vec2 dim ){
   this->dimensions.y = dim.y;
 }
 
-sf::Shape* Rectangle::getShape(){
+std::shared_ptr<sf::Shape> Rectangle::getShape(){
   return this->shape;
 }
 

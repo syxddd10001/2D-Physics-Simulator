@@ -1,8 +1,7 @@
 #pragma once
 #include <utility>
 #include <iostream>
-#include <utility>
-
+#include <memory>
 #include <SFML/Graphics.hpp>
 #include "Object.hpp"
 #include "PhysicsMath.hpp"
@@ -12,13 +11,13 @@
 class Circle : public Object{
 private: 
   float radius;
-  sf::CircleShape* shape;
+  std::shared_ptr<sf::CircleShape> shape;
 
 public:
   Circle( float rad, float mass, float pos_x, float pos_y );
   Circle( );
   float getRadius( );
-  sf::Shape* getShape( ) override;
+  std::shared_ptr<sf::Shape> getShape( ) override;
   float setRadius( const float rad );
   void setPosition( const Vec2 pos ) override;
   bool mouseOnObject( const Vec2 vector ) override;

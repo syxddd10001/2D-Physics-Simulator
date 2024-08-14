@@ -26,7 +26,7 @@ float Object::getMass( ){
   return mass;
 } 
 
-sf::Shape* Object::getShape( ){
+std::shared_ptr<sf::Shape> Object::getShape( ){
   return shape;
 }
 

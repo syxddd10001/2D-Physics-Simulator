@@ -86,12 +86,12 @@ public:
   ~Engine();
   void Update( const float* delta_time ); // updates objects and draws it on the screen
   void EventManager( ); // event and input manager
-  void addObject( shared_ptr_obj object ); // adds a new object to the world
+  void addObject( const shared_ptr_obj object ); // adds a new object to the world
   std::vector<shared_ptr_obj>& GetAllObjects(); // returns all objects in the world
-  void zoomViewAt( sf::Vector2i pixel, float zoom ); // zoom
+  void zoomViewAt( const sf::Vector2i& pixel, const float& zoom ); // zoom
   void collisionCheck( ); // checks if any collision has occured and provides a response to that collision 
   void Render( ); // render any non-ui and non-world elements
-  void displayFramesPerSecond( std::chrono::high_resolution_clock::time_point start ); // returns window frames per second
+  void displayFramesPerSecond( const std::chrono::high_resolution_clock::time_point& start ); // returns window frames per second
   void UI( ); // UI
   void GetObjectsInArea( const Vec2 start, const Vec2 rect_size ); // returns all objects in a selected area
   void DragRectangle( ); // draws a rectangle to select objects in an area
@@ -99,7 +99,7 @@ public:
   void moveSelection( const sf::Vector2f delta ); // moves selected objects
   void checkObjectsSelected( ); // check if an object is selected from a specified area
   void moveAll( std::vector<shared_ptr_obj> objects, const sf::Vector2f delta ); // move all objects that are selected
-  void deleteObject( std::shared_ptr<Object> object_to_delete, std::vector<std::shared_ptr<Object>>& all_objects ); // delete a selected object
+  void deleteObject( const shared_ptr_obj object_to_delete, std::vector<std::shared_ptr<Object>>& all_objects ); // delete a selected object
   void deleteSelectedObjects( std::vector<std::shared_ptr<Object>>& all_objects ); // deleted all objects that are selected
   void displayGizmos( );
 };

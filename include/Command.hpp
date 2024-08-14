@@ -13,8 +13,7 @@
 
 class Receiver{
 private:
-  static Receiver * p_instance;
-  Receiver() {};
+  static std::shared_ptr<Receiver> p_instance;
   enum CommandType { SPAWN, MODE, EXIT, DRAG, MANUAL };
   std::map <std::string, CommandType> commandMap = { 
       { "spawn", SPAWN }, 
@@ -32,12 +31,14 @@ private:
   
 
 public:
-  Receiver(Receiver& other) = delete;
-  ~Receiver();
+  Receiver() {};
+
+  Receiver( Receiver& other ) = delete;
+  ~Receiver() {};
 
   void operator=( const Receiver& ) = delete;
 
-  static Receiver* GetInstance(); 
+  static std::shared_ptr<Receiver> GetInstance(); 
 
   bool Receive( const std::string command, Engine* engine_instance ); // Receives commands 
   
