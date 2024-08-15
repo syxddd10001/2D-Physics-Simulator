@@ -15,15 +15,14 @@ using Vec2 = syxd::Vector2<float>;
 class Object {
 protected: 
   // Object State
-  float position_x, position_y; // position of the center of the object
-  float velocity_x, velocity_y;
-  float acceleration_x, acceleration_y;
-  float force_x, force_y;
-  float mass;
-  int object_id;
-  std::shared_ptr<sf::Shape> shape;
-  std::shared_ptr<sf::Color> color;
-  AbstractBox<float> queryBox;
+  float m_position_x, m_position_y; // position of the center of the object
+  float m_velocity_x, m_velocity_y;
+  float m_acceleration_x, m_acceleration_y;
+  float m_mass;
+  int m_object_id;
+  std::shared_ptr<sf::Shape> m_shape;
+  std::shared_ptr<sf::Color> m_color;
+  AbstractBox<float> m_queryBox;
 
 public:    
   Object( float mass, float pos_x, float pos_y );
@@ -58,13 +57,13 @@ public:
   virtual bool mouseOnObject( const Vec2& vector );
 
   bool operator==( Object& other ) const {
-    return ((std::abs(this->position_x - other.position_x) < EPSILON && std::abs(this->position_y - other.position_y) < EPSILON )) && 
-    (this->object_id == other.getID());
+    return ((std::abs(this->m_position_x - other.m_position_x) < EPSILON && std::abs(this->m_position_y - other.m_position_y) < EPSILON )) && 
+    (this->m_object_id == other.getID());
   };
   
   bool operator!=( Object& other ) const {
-    return ((std::abs(this->position_x - other.position_x) >= EPSILON || std::abs(this->position_y - other.position_y) >= EPSILON )) || 
-    (this->object_id != other.getID());
+    return ((std::abs(this->m_position_x - other.m_position_x) >= EPSILON || std::abs(this->m_position_y - other.m_position_y) >= EPSILON )) || 
+    (this->m_object_id != other.getID());
   };
   
   void setQueryBox( AbstractBox<float> refbox );
@@ -80,7 +79,7 @@ public:
   virtual ObjectType getType();
   
   const bool operator= ( Object& other ) noexcept {
-    return (getID() == other.getID());
+    return ( getID() == other.getID()) ;
   }
 
 };

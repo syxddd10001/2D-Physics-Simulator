@@ -15,7 +15,7 @@ class Receiver{
 private:
   static std::shared_ptr<Receiver> p_instance;
   enum CommandType { SPAWN, MODE, EXIT, DRAG, MANUAL };
-  std::map <std::string, CommandType> commandMap = { 
+  std::map <std::string, CommandType> m_command_map = { 
       { "spawn", SPAWN }, 
       { "mode", MODE }, 
       { "exit", EXIT }, 

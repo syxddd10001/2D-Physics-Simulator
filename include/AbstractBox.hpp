@@ -3,8 +3,9 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
-#include "Vector2.hpp"
+
 #include <SFML/Graphics.hpp>
+#include "Vector2.hpp"
 
 using point = std::pair<float, float>;
 using Vec2 = syxd::Vector2<float>;
@@ -24,7 +25,7 @@ public:
       left(Left), top(Top), width(Width), height(Height) {
 
   }
-
+  
   AbstractBox( const Vec2 position, const Vec2 size ) :
       left(position.x), top(position.y), width(size.x), height(size.y) {
       shape = std::make_shared<sf::RectangleShape> ( sf::Vector2f { width, height } );
@@ -71,12 +72,12 @@ public:
       return Vec2( width, height );
   }
 
-  bool contains( const AbstractBox<T>& box ) const {
+  bool contains( const AbstractBox<T>& box ) const noexcept {
     return ( left <= box.left && box.getRight() <= getRight() &&
             top <= box.top && box.getBottom() <= getBottom() );
   }
   
-  bool contains( const Vec2& position, const Vec2& size ) const {
+  bool contains( const Vec2& position, const Vec2& size ) const noexcept {
     Vec2 nearestPoint;
     nearestPoint.x = std::max(T(left), std::min(position.x, T(getRight())));
     nearestPoint.y = std::max(T(top), std::min(position.y, T(getBottom())));
@@ -92,7 +93,7 @@ public:
     return false;
   }
 
-  bool intersects( const AbstractBox<T>& box ) {
+  bool intersects( const AbstractBox<T>& box ) const noexcept {
     return !( left > box.getRight() || 
               getRight() < box.left ||
               top > box.getBottom() || 

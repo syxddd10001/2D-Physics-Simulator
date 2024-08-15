@@ -1,6 +1,5 @@
 #include "Command.hpp"
 
-
 #define DEBUG 1
 #if DEBUG == 1
 #define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
@@ -9,7 +8,7 @@
 #endif
 
 std::shared_ptr<Receiver> Receiver::p_instance;
-std::shared_ptr<ObjectFactory> factory = ObjectFactory::GetInstance();
+std::shared_ptr<ObjectFactory> p_factory = ObjectFactory::GetInstance();
 
 //Receiver is a singleton
 std::shared_ptr<Receiver> Receiver::GetInstance() {
@@ -59,7 +58,7 @@ bool Receiver::Receive( const std::string command, Engine* engine_instance ) {
 
 // Calls a command and executes the appropriate function
 bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_instance ) {
-  CommandType command = StringToCommand( commandMap, commands[0] );
+  CommandType command = StringToCommand( m_command_map, commands[0] );
   try
   { 
     switch ( command ){
@@ -70,27 +69,27 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           break;
         }
         
-        if ( commands[1] == "circle" ){
+        if ( commands[1] == "circle" || commands[1] == "cir" ){
           int num_objects;
           if ( commands.size() < 8 ) num_objects = 1;
           else num_objects = std::stoi(commands[7]);
           for (int i = 0; i < num_objects; i++){
-              std::shared_ptr<Circle> cir = std::dynamic_pointer_cast<Circle>(factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
+              std::shared_ptr<Circle> cir = std::dynamic_pointer_cast<Circle>(p_factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
                                  std::stof(commands[5])+(((std::stof(commands[3])*2)) * (i+1)), std::stof(commands[6]) ));
               assert ( cir != nullptr );
               cir->setID(engine_instance->getAllObjects().size()+1);
               engine_instance->addObject(cir);
-              if ( engine_instance->root != nullptr ) engine_instance->root->insert( cir );
+              if ( engine_instance->m_root != nullptr ) engine_instance->m_root->insert( cir );
             }
         } 
         
-        else if ( commands[1] == "rectangle" ){
-          std::shared_ptr<Rectangle>  rec = std::dynamic_pointer_cast<Rectangle>(factory->createObject( Object::RECTANGLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
+        else if ( commands[1] == "rectangle" || commands[1] == "rec" ){
+          std::shared_ptr<Rectangle>  rec = std::dynamic_pointer_cast<Rectangle>(p_factory->createObject( Object::RECTANGLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
                               std::stof(commands[5]), std::stof(commands[6]))); 
           assert ( rec != nullptr );
           rec->setID(engine_instance->getAllObjects().size()+1);
           engine_instance->addObject(rec);
-          if ( engine_instance->root != nullptr ) engine_instance->root->insert( rec );
+          if ( engine_instance->m_root != nullptr ) engine_instance->m_root->insert( rec );
             
         }
           
@@ -104,12 +103,12 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
         }
         
         if ( commands[1] == "single" ) {
-          engine_instance->select_mode = false;
+          engine_instance->m_select_mode = false;
           engine_instance->objectDefault();
         }
   
         else if ( commands[1] == "multi" ) {
-          engine_instance->select_mode = true;
+          engine_instance->m_select_mode = true;
           engine_instance->objectDefault();
         }
       break;
@@ -121,15 +120,15 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           break;
         }
         if ( commands[1] == "off" ){
-          engine_instance->drag = 0.00000000001f;
+          engine_instance->m_drag = 0.00000000001f;
         }
   
         else if ( commands[1] == "on" ){
-          engine_instance->drag = engine_instance->default_drag;
+          engine_instance->m_drag = engine_instance->m_default_drag;
         }
   
         else{
-          engine_instance->drag = stof(commands[1]);
+          engine_instance->m_drag = stof(commands[1]);
         }
       break;
       

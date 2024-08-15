@@ -15,6 +15,8 @@
 #include "PhysicsMath.hpp"
 #include "Physics.hpp"
 #include "Quadtree.hpp"
+#include <SFML/Graphics.hpp>
+#include <SFML/Window/Clipboard.hpp>
 
 using Vec2 = syxd::Vector2<float>;
 using std::cout;
@@ -44,43 +46,43 @@ struct UI_SETTINGS {
 };
 
 
-class Engine{
+class Engine {
 private:
   const float CREATION_INTERVAL = 0.1f;
   const float INTERRUPT_INTERVAL = 0.01f; 
   const float ZOOM_AMOUNT = 1.1f;
   
-  float MOVE_SENSITIVITY = 1.f;
-  float INPUT_INTERVAL = 0.1f;
-  float CURSOR_BLINK_INTERVAL = 0.50f;
+  float _MOVE_SENSITIVITY = 1.f;
+  float _INPUT_INTERVAL = 0.1f;
+  float _CURSOR_BLINK_INTERVAL = 0.50f;
   
 
 public:
   shared_ptr<sf::RenderWindow> WINDOW; // Main render window that displays stuff
   sf::Clock clock; // to keep track of time between frames
-  sf::View main_view; // main view of the world
-  sf::View ui_view; // ui has a seperate view so that zooming/moving through the world doesn't affect the ui
-  sf::Font default_font;
+  sf::View m_main_view; // main view of the world
+  sf::View m_ui_view; // ui has a seperate view so that zooming/moving through the world doesn't affect the ui
+  sf::Font m_default_font;
     
-  sf::Vector2i mouse_pos_i;
-  sf::Vector2f mouse_pos_f;
+  sf::Vector2i m_mouse_pos_i;
+  sf::Vector2f m_mouse_pos_f;
   
-  float elapsed_time_spawn = CREATION_INTERVAL;
-  float elapsed_time_move = INTERRUPT_INTERVAL;
-  float elapsed_time_input = INPUT_INTERVAL;
-  float elapsed_time_cursor_blink = CURSOR_BLINK_INTERVAL;
+  float m_elapsed_time_spawn = CREATION_INTERVAL;
+  float m_elapsed_time_move = INTERRUPT_INTERVAL;
+  float m_elapsed_time_input = _INPUT_INTERVAL;
+  float m_elapsed_time_cursor_blink = _CURSOR_BLINK_INTERVAL;
 
-  bool select_mode = false; // multi select mode
-  bool command_mode = false;
-  const float default_drag = -0.7f;
-  bool gizmos_mode = false;
+  bool m_select_mode = false; // multi select mode
+  bool m_command_mode = false;
+  const float m_default_drag = -0.7f;
+  bool m_gizmos_mode = false;
 
-  float drag;
+  float m_drag;
 
-  std::unique_ptr<Quadtree> root;
+  std::unique_ptr<Quadtree> m_root;
   
-  WINDOW_SETTINGS window_settings;
-  UI_SETTINGS ui_settings; 
+  WINDOW_SETTINGS m_window_settings;
+  UI_SETTINGS m_ui_settings; 
 
   Engine( );
   ~Engine();

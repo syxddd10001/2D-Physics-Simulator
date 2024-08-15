@@ -10,8 +10,8 @@
 
 class Circle : public Object{
 private: 
-  float radius;
-  std::shared_ptr<sf::CircleShape> shape;
+  float m_radius;
+  std::shared_ptr<sf::CircleShape> m_shape;
 
 public:
   Circle( float rad, float mass, float pos_x, float pos_y );

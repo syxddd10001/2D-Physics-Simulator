@@ -13,21 +13,21 @@
 class Quadtree {
 public:
   
-  int threshold;
-  int depth;
-  bool divided = false;
-  AbstractBox<float> bounds;
-  std::vector<std::shared_ptr<Object>> objects;
+  int m_threshold;
+  int m_depth;
+  bool m_divided = false;
+  AbstractBox<float> m_bounds;
+  std::vector<std::shared_ptr<Object>> m_objects;
   
-  std::shared_ptr<Quadtree> top_left{};
-  std::shared_ptr<Quadtree> top_right{};
-  std::shared_ptr<Quadtree> bottom_left{};
-  std::shared_ptr<Quadtree> bottom_right{};
+  std::shared_ptr<Quadtree> m_top_left{};
+  std::shared_ptr<Quadtree> m_top_right{};
+  std::shared_ptr<Quadtree> m_bottom_left{};
+  std::shared_ptr<Quadtree> m_bottom_right{};
   
   Quadtree( AbstractBox<float> mbox, int maxThreshold, int maxDepth ) : 
-    bounds(mbox), 
-    threshold(maxThreshold),
-    depth(maxDepth) { }
+    m_bounds(mbox), 
+    m_threshold(maxThreshold),
+    m_divided(maxDepth) { }
     
   Quadtree( ) { }
   

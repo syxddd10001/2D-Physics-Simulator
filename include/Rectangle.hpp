@@ -10,8 +10,8 @@
 
 class Rectangle : public Object {
 private:  
-  Vec2 dimensions;
-  std::shared_ptr<sf::RectangleShape> shape;
+  Vec2 m_dimensions;
+  std::shared_ptr<sf::RectangleShape> m_shape;
 
 public:
   Rectangle( float mass, float pos_x, float pos_y, float dim_x, float dim_y );
