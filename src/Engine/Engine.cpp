@@ -4,7 +4,7 @@
 
 
 #define EXPERIMENTAL_1 1
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG == 1
 #define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
 #else
@@ -32,7 +32,7 @@ volatile uint32_t object_count = 0;
 
 sf::Vector2i original_mouse_position;
 sf::Vector2f mouse_on_click_start;
-sf::RectangleShape mouseDrawnBox; // for object selection
+sf::RectangleShape mouse_drawn_box; // for object selection
 
 bool clicked = false;
 bool dragging = false;
@@ -94,7 +94,7 @@ Engine::Engine( ) {
         print << "Silver.tff font not found\n";
     }
   #else
-    if ( !default_font.loadFromFile( "static/fonts/Silver.ttf" ) ){
+    if ( !m_default_font.loadFromFile( "static/fonts/Silver.ttf" ) ){
         print << "Silver.tff font not found\n";
     }
   #endif
@@ -212,7 +212,7 @@ void Engine::EventManager( ) {
   
           if ( m_select_mode ) {
             clicked = false;
-            mouseDrawnBox.setSize( sf::Vector2f( { 0.0f, 0.0f } ) );
+            mouse_drawn_box.setSize( sf::Vector2f( { 0.0f, 0.0f } ) );
           }
   
           if ( m_select_mode && objects_selected ) {
@@ -547,12 +547,12 @@ void Engine::dragRectangle( ) {
   sf::Mouse::isButtonPressed( sf::Mouse::Right ) &&
   clicked && !p_selected_object ) { 
     sf::Vector2f rect_size( m_mouse_pos_f.x - mouse_on_click_start.x, m_mouse_pos_f.y - mouse_on_click_start.y );
-    mouseDrawnBox.setPosition( mouse_on_click_start.x, mouse_on_click_start.y );
-    mouseDrawnBox.setOutlineColor( sf::Color::White );
-    mouseDrawnBox.setOutlineThickness( 1.0f );
-    mouseDrawnBox.setSize( rect_size );
+    mouse_drawn_box.setPosition( mouse_on_click_start.x, mouse_on_click_start.y );
+    mouse_drawn_box.setOutlineColor( sf::Color::White );
+    mouse_drawn_box.setOutlineThickness( 1.0f );
+    mouse_drawn_box.setSize( rect_size );
     getObjectsInArea( AbstractBox<float> {mouse_on_click_start.x, mouse_on_click_start.y, rect_size.x,rect_size.y } );
-    WINDOW->draw( mouseDrawnBox );
+    WINDOW->draw( mouse_drawn_box );
   }
 
 
@@ -565,8 +565,8 @@ void Engine::dragRectangle( ) {
     }
   
     if ( clicked ) {
-      mouseDrawnBox.setFillColor( sf::Color( 0, 200, 0, 80 ) );
-      WINDOW->draw( mouseDrawnBox );
+      mouse_drawn_box.setFillColor( sf::Color( 0, 200, 0, 80 ) );
+      WINDOW->draw( mouse_drawn_box );
     }
   }
 }
@@ -620,7 +620,7 @@ void Engine::CollisionCheck( ) {
         }    
       }
       
-      else if ( ( typeid( *current ) == typeid( Circle ) && typeid( *other ) == typeid( Rectangle ) )) {
+      else if ( ( typeid( *current ) == typeid( Circle ) && typeid( *other ) == typeid( Rectangle ) ) ) {
         auto current_ref = std::dynamic_pointer_cast<Circle>( current );
         auto other_ref = std::dynamic_pointer_cast<Rectangle>( other );
         if (onCollision( current_ref, other_ref ) ) {
@@ -628,7 +628,7 @@ void Engine::CollisionCheck( ) {
         }
       }
       
-      else if ( ( typeid( *current ) == typeid( Rectangle ) && typeid( *other ) == typeid( Circle ) )) {
+      else if ( ( typeid( *current ) == typeid( Rectangle ) && typeid( *other ) == typeid( Circle ) ) ) {
         auto current_ref = std::dynamic_pointer_cast<Rectangle>( current );
         auto other_ref = std::dynamic_pointer_cast<Circle>( other );
         if (onCollision( other_ref, current_ref ) ) {
