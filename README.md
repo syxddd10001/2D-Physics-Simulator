@@ -6,8 +6,4 @@ add more complex objects like polygons and n-gons.
 
 Preview:
 
-https://github.com/user-attachments/assets/42eede7c-7130-4e16-81aa-cee28c88fa78
-
-
-
-
+https://github.com/user-attachments/assets/e9c424e2-0f68-4abb-b18e-4dc70ec300d0
