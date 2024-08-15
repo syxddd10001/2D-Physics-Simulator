@@ -44,6 +44,6 @@ objects/AbstractBox.o: src/Math/AbstractBox.cpp include/AbstractBox.hpp objects/
 
 objects/Vector2.o: src/Math/Vector2.cpp include/Vector2.hpp
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
-	
+
 clean:
 	rm -rf build/test/main.exe objects/*.o

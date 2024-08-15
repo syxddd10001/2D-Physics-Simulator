@@ -12,7 +12,7 @@ std::shared_ptr<Receiver> Receiver::p_instance;
 std::shared_ptr<ObjectFactory> factory = ObjectFactory::GetInstance();
 
 //Receiver is a singleton
-std::shared_ptr<Receiver> Receiver::GetInstance(){
+std::shared_ptr<Receiver> Receiver::GetInstance() {
   if ( p_instance == nullptr ){
     p_instance = std::make_shared<Receiver>();
   }
@@ -21,7 +21,7 @@ std::shared_ptr<Receiver> Receiver::GetInstance(){
 }
 
 // Breaks down string into words (i.e deconstructs command)
-std::vector<std::string> Receiver::DeconstructCommand( const std::string& str ){
+std::vector<std::string> Receiver::DeconstructCommand( const std::string& str ) {
   std::vector<std::string> words;
 
   size_t start = 0, end = str.find(' ');
@@ -39,30 +39,26 @@ std::vector<std::string> Receiver::DeconstructCommand( const std::string& str ){
 }
 
 // converts elements in a string vector to lower case
-void Receiver::NormalizeString( std::vector<std::string>& string_vector ){
+void Receiver::NormalizeString( std::vector<std::string>& string_vector ) {
   for ( std::string& elem : string_vector ){
     std::transform(elem.begin(), elem.end(), elem.begin(), [](char c) { return std::tolower(c); });
   }
 }
 
 // Receives commands 
-bool Receiver::Receive( const std::string command, Engine* engine_instance ){
-    
+bool Receiver::Receive( const std::string command, Engine* engine_instance ) {  
   std::vector<std::string> commands = DeconstructCommand( command );
   if (commands.size() < 1) {
     DEBUG_PRINT("Enter a valid command!", " ");
     return false;
   }
   NormalizeString( commands ); 
-  
   // commands are being recieved properly
-
   return CallCommand( commands, engine_instance );
-
 }
 
 // Calls a command and executes the appropriate function
-bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_instance ){
+bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_instance ) {
   CommandType command = StringToCommand( commandMap, commands[0] );
   try
   { 
@@ -70,30 +66,31 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
       case SPAWN:   
         if (commands.size() < 7)
         {
-            std::cout << "Enter atleast 7 arguments\n";
-            break;
+          std::cout << "Enter atleast 7 arguments\n";
+          break;
         }
         
         if ( commands[1] == "circle" ){
-            int num_objects;
-            if ( commands.size() < 8 ) num_objects = 1;
-            else num_objects = std::stoi(commands[7]);
-            for (int i = 0; i < num_objects; i++){
-                std::shared_ptr<Circle> cir = std::dynamic_pointer_cast<Circle>(factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
-                                   std::stof(commands[5])+(((std::stof(commands[3])*2)) * (i+1)), std::stof(commands[6]) ));
-              
-                cir->setID(engine_instance->GetAllObjects().size()+1);
-                engine_instance->addObject(cir);
-                if ( engine_instance->root != nullptr ) engine_instance->root->insert( cir );
-              }
+          int num_objects;
+          if ( commands.size() < 8 ) num_objects = 1;
+          else num_objects = std::stoi(commands[7]);
+          for (int i = 0; i < num_objects; i++){
+              std::shared_ptr<Circle> cir = std::dynamic_pointer_cast<Circle>(factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
+                                 std::stof(commands[5])+(((std::stof(commands[3])*2)) * (i+1)), std::stof(commands[6]) ));
+              assert ( cir != nullptr );
+              cir->setID(engine_instance->getAllObjects().size()+1);
+              engine_instance->addObject(cir);
+              if ( engine_instance->root != nullptr ) engine_instance->root->insert( cir );
+            }
         } 
         
         else if ( commands[1] == "rectangle" ){
-            std::shared_ptr<Rectangle>  rec = std::dynamic_pointer_cast<Rectangle>(factory->createObject( Object::RECTANGLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
-                                std::stof(commands[5]), std::stof(commands[6]))); 
-            rec->setID(engine_instance->GetAllObjects().size()+1);
-            engine_instance->addObject(rec);
-            if ( engine_instance->root != nullptr ) engine_instance->root->insert( rec );
+          std::shared_ptr<Rectangle>  rec = std::dynamic_pointer_cast<Rectangle>(factory->createObject( Object::RECTANGLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
+                              std::stof(commands[5]), std::stof(commands[6]))); 
+          assert ( rec != nullptr );
+          rec->setID(engine_instance->getAllObjects().size()+1);
+          engine_instance->addObject(rec);
+          if ( engine_instance->root != nullptr ) engine_instance->root->insert( rec );
             
         }
           
@@ -101,18 +98,17 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
       break;
   
       case MODE:
-        if (commands.size() < 2) 
-        {
+        if (commands.size() < 2) {
           std::cout << "Enter atleast 2 arguments\n";
           break;
         }
         
-        if ( commands[1] == "single" ){
+        if ( commands[1] == "single" ) {
           engine_instance->select_mode = false;
           engine_instance->objectDefault();
         }
   
-        else if ( commands[1] == "multi" ){
+        else if ( commands[1] == "multi" ) {
           engine_instance->select_mode = true;
           engine_instance->objectDefault();
         }
@@ -146,7 +142,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           std::cout << "exit \n"; 
         }
         
-        else if ( commands.size() >= 2 ){
+        else if ( commands.size() >= 2 ) {
           
         }
       
@@ -157,8 +153,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
         engine_instance->WINDOW->close();
       break;
     }
-  } catch(const std::exception& e)
-  {
+  } catch(const std::exception& e) {
     std::cerr << e.what() << '\n';
     return false;
   }

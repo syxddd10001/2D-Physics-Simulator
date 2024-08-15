@@ -13,7 +13,7 @@ bool onCollision( std::shared_ptr<Circle> object1, std::shared_ptr<Circle> objec
     object1->getPosition().y - object2->getPosition().y 
   );
 
-  if ( distance < ( radius1 + radius2 ) ){
+  if ( distance < ( radius1 + radius2 ) ) {
     push_distance = 1.0f * ( distance - radius1 - radius2 ); 
     Vec2 position1 ( 
       object1->getPosition().x - ( push_distance * delta.x/distance ), 
@@ -68,7 +68,7 @@ void dynamicResponse( std::shared_ptr<Circle> object1, std::shared_ptr<Circle> o
   object2->setVelocity(velocity2);  
 }
 
-
+// Detect Circle v Rectangle collision
 bool onCollision( std::shared_ptr<Circle> object1, std::shared_ptr<Rectangle> object2 ) {
   Vec2 nearestPoint;
   Vec2 circ_pos = object1->getPosition();
@@ -86,4 +86,8 @@ bool onCollision( std::shared_ptr<Circle> object1, std::shared_ptr<Rectangle> ob
   } 
   
   return false;
+}
+// Response for Circle v Rectangle collision response
+void dynamicResponse( std::shared_ptr<Circle> object1, std::shared_ptr<Rectangle> object2 ) {
+  
 }

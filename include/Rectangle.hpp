@@ -26,7 +26,7 @@ public:
 
   bool inBounds( const sf::Vector2f vector );
 
-  bool mouseOnObject( const Vec2 vector) override;
+  bool mouseOnObject( const Vec2& vector ) override;
   
   Vec2 getSize( ) const override;
   Vec2 getCenter( ) const override;

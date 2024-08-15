@@ -39,7 +39,7 @@ public:
 
   }
   
-  void setPosition( Vec2 posf, Vec2 size ){
+  void setPosition( Vec2 posf, Vec2 size ) {
     left = posf.x;
     top = posf.y;
     width = size.x;
@@ -76,7 +76,7 @@ public:
             top <= box.top && box.getBottom() <= getBottom() );
   }
   
-  bool contains( const Vec2 position, const Vec2 size ) const {
+  bool contains( const Vec2& position, const Vec2& size ) const {
     Vec2 nearestPoint;
     nearestPoint.x = std::max(T(left), std::min(position.x, T(getRight())));
     nearestPoint.y = std::max(T(top), std::min(position.y, T(getBottom())));
@@ -92,8 +92,10 @@ public:
     return false;
   }
 
-  bool intersects( const AbstractBox<T> box ) const {
-      return !( left > box.getRight() || getRight() < box.left ||
-              top > box.getBottom() || getBottom() < box.top );
+  bool intersects( const AbstractBox<T>& box ) {
+    return !( left > box.getRight() || 
+              getRight() < box.left ||
+              top > box.getBottom() || 
+              getBottom() < box.top ) ;
   }
 };

@@ -8,24 +8,24 @@
 #endif
 
 
-point pairAdd( point pair1, point pair2 ) {
+point pairAdd( const point& pair1, const point& pair2 ) {
   return point( pair1.first+pair2.first, pair1.second+pair2.second );
 }    
 
-point pairSubtract( point pair1, point pair2 ) {
+point pairSubtract( const point& pair1, const point& pair2 ) {
   return point( pair1.first-pair2.first, pair1.second-pair2.second );
 }
 
-point pairMultiply( point pair1, point pair2 ) {
+point pairMultiply( const point& pair1, const point& pair2 ) {
   return point( pair1.first*pair2.first, pair1.second*pair2.second );
 }
 
-float calculateDistance( Vec2 pos1, Vec2 pos2 ){
+float calculateDistance( const Vec2& pos1, const Vec2& pos2 ) {
   Vec2 difference = pos1 - pos2;
   return std::sqrt( difference.x * difference.x + difference.y * difference.y );
 }
 
-float dotProduct( point vectorA, point vectorB ) {
+float dotProduct( const point& vectorA, const point& vectorB ) {
   return vectorA.first*vectorB.first + vectorA.second*vectorB.second;
 }
 
@@ -36,14 +36,12 @@ Vec2 verletIntegration( std::shared_ptr<Object> object, const float delta_time, 
   if ( std::sqrt( velocity_0.x*velocity_0.x + velocity_0.y * velocity_0.y ) < 0.01f ) 
   velocity_0 = Vec2( 0.0f, 0.0f );
   
-  
   object->setAcceleration( calculateAcceleration( object, delta_time, velocity_0 ) );
   Vec2 acc = object->getAcceleration();
   
   object->setVelocity( Vec2( velocity_0.x + ( velocity_0.x * acceleration.x) * delta_time , 
                               velocity_0.y + ( velocity_0.y * +acceleration.y) * delta_time));
 
-  
   object->setPosition( Vec2( position_0.x + (object->getVelocity().x * delta_time ), 
                               position_0.y + (object->getVelocity().y * delta_time ) ) );
 
@@ -53,10 +51,7 @@ Vec2 verletIntegration( std::shared_ptr<Object> object, const float delta_time, 
 }
 
 Vec2 applyForce( std::shared_ptr<Object> object ) {
-  
-  
   return Vec2{};
-
 }
 
 Vec2 calculateAcceleration( std::shared_ptr<Object> object, const float delta_time, const Vec2 velocity ) {
@@ -70,11 +65,11 @@ Vec2 normalizeVector( const Vec2 p ) {
   return ( (magnitude != 0) ? Vec2( p.x / magnitude, p.y / magnitude ) : Vec2( 0, 0 ) );
 }
 
-Vec2 applyForce( std::shared_ptr<Object> this_object, std::shared_ptr<Object>other_object, const float delta_time ){
+Vec2 applyForce( std::shared_ptr<Object> this_object, std::shared_ptr<Object>other_object, const float delta_time ) {
   float distance = calculateDistance( this_object->getPosition( ), other_object->getPosition( ) );
   float force_mag = ( ( GRAVITATIONAL_CONSTANT * this_object->getMass( ) * other_object->getMass( ) ) / ( distance * distance ) );
-  Vec2 forceDirection = normalizeVector( other_object->getPosition( ) - this_object->getPosition( ) );
-  Vec2 force ( forceDirection.x * force_mag / other_object->getMass(), forceDirection.y * force_mag / other_object->getMass());
+  Vec2 force_direction = normalizeVector( other_object->getPosition( ) - this_object->getPosition( ) );
+  Vec2 force ( force_direction.x * force_mag / other_object->getMass(), force_direction.y * force_mag / other_object->getMass());
 
   std::cout << force.x << ", " << force.y << '\n';
   return force;

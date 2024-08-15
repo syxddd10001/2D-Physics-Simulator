@@ -8,7 +8,7 @@ Circle::Circle( float rad, float mass, float posX, float posY)
     sf::Vector2f circleCenter( rad, rad );
     color = std::make_shared<sf::Color>(sf::Color::White);
     shape->setOrigin( circleCenter );
-    shape->setOutlineThickness( 1.0f );
+    shape->setOutlineThickness( 0.5f );
     shape->setFillColor( *color );
     shape->setOutlineColor( sf::Color::Black );
     setQueryBox( AbstractBox<float>( getCenter()-(getSize()*2) ,  getSize()*4 )) ;
@@ -47,8 +47,8 @@ Vec2 Circle::getCenter() const {
   return Vec2{ position_x, position_y };
 }
 
-bool Circle::mouseOnObject( const Vec2 vector ){
-  return calculateDistance( getPosition(), Vec2 ( vector.x, vector.y ) ) < getRadius( );
+bool Circle::mouseOnObject( const Vec2& vector ){
+  return calculateDistance( getPosition(), vector ) < getRadius( );
 }
 
 AbstractBox<float> Circle::getBoundingBox( ) const {

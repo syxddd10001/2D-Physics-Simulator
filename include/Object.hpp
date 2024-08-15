@@ -27,8 +27,8 @@ protected:
 
 public:    
   Object( float mass, float pos_x, float pos_y );
-  Object( );
-  virtual ~Object( );
+  Object( ) { };
+  virtual ~Object( ) { };
   
   Vec2 getPosition() const;
 
@@ -55,7 +55,7 @@ public:
   int getID( );
   
   
-  virtual bool mouseOnObject( const Vec2 vector );
+  virtual bool mouseOnObject( const Vec2& vector );
 
   bool operator==( Object& other ) const {
     return ((std::abs(this->position_x - other.position_x) < EPSILON && std::abs(this->position_y - other.position_y) < EPSILON )) && 
@@ -78,5 +78,9 @@ public:
   };
   
   virtual ObjectType getType();
+  
+  const bool operator= ( Object& other ) noexcept {
+    return (getID() == other.getID());
+  }
 
 };

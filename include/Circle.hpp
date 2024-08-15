@@ -21,7 +21,7 @@ public:
   std::shared_ptr<sf::Shape> getShape( ) override;
   float setRadius( const float rad );
   void setPosition( const Vec2 pos ) override;
-  bool mouseOnObject( const Vec2 vector ) override;
+  bool mouseOnObject( const Vec2& vector ) override;
   Vec2 getSize( ) const override;
   Vec2 getCenter( ) const override;
   AbstractBox<float> getBoundingBox( ) const;

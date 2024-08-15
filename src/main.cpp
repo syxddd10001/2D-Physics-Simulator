@@ -11,21 +11,19 @@
 #include <Circle.hpp>
 #include <PhysicsMath.hpp>
 #include <Engine.hpp>
+//
 
-
-int main(){
+int main() {
   Engine Instance; // stack allocation for Engine Instance 
 
   std::chrono::high_resolution_clock::time_point start;
 
   while ( Instance.WINDOW->isOpen() ) { // program loop
     start = std::chrono::high_resolution_clock::now();
-
-    Instance.WINDOW->clear( );
-
-    Instance.mousePosf = Instance.WINDOW->mapPixelToCoords( sf::Mouse::getPosition( *(Instance.WINDOW) ) ); // current mouse pos in float
-    Instance.mousePos = { static_cast<int>( Instance.mousePosf.x ), static_cast<int>( Instance.mousePosf.y ) };  // current mouse pos in int
     
+    Instance.WINDOW->clear( );
+    Instance.mouse_pos_f = Instance.WINDOW->mapPixelToCoords( sf::Mouse::getPosition( *(Instance.WINDOW) ) ); // current mouse pos in float
+    Instance.mouse_pos_i = { static_cast<int>( Instance.mouse_pos_f.x ), static_cast<int>( Instance.mouse_pos_f.y ) };  // current mouse pos in int
     
     float delta_time = Instance.clock.restart().asSeconds(); // getting deltaTime
     Instance.elapsed_time_spawn += delta_time;
@@ -34,19 +32,15 @@ int main(){
     Instance.elapsed_time_cursor_blink += delta_time;
 
     Instance.EventManager( ); // calling event manager ie input
-    
-    Instance.collisionCheck( ); // calling collision checker
-
+    Instance.CollisionCheck( ); // calling collision checker
     Instance.Update( &delta_time ); // updating and rerendering the positions of objects
-
     Instance.Render( ); // rerendering any non-UI and non-world elements
 
-    Instance.WINDOW->setView( Instance.UIView ); // setting view for UI, so that UI does not change size when moving / zooming in world
+    Instance.WINDOW->setView( Instance.ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
     Instance.UI( ); // rendering UI
     Instance.displayFramesPerSecond( start );
-    Instance.WINDOW->setView( Instance.mainView ); // resetting view to main 
+    Instance.WINDOW->setView( Instance.main_view ); // resetting view to main 
     Instance.WINDOW->display( ); // displaying everything
-
   }
 
   std::cout<<"exited\n";
