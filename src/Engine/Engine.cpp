@@ -2,9 +2,8 @@
 #include <Command.hpp>
 #include <Quadtree.hpp>
 
-
 #define EXPERIMENTAL_1 1
-#define DEBUG 0
+#define DEBUG 1
 #if DEBUG == 1
 #define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
 #else
@@ -43,6 +42,7 @@ bool deleted = false;
 bool input_lock = true;
 bool cursor_show = true;
 bool focus = false;
+bool show_diagnostic = true;
 
 sf::Vector2i original_coordinates; // where the camera originally is
 
@@ -59,7 +59,7 @@ sf::Text command_indicator;
 string input_previous = "";
 
 // Singleton Recevier that receives and executes commands
-shared_ptr<Receiver> receiver;
+shared_ptr<Receiver> p_receiver;
 
 AbstractBox<float> box;
 AbstractBox<float> mouse_query_box;
@@ -75,7 +75,7 @@ Engine::Engine( ) {
   
   m_main_view = sf::View( sf::FloatRect( 0, 0, WINDOW->getSize().x, WINDOW->getSize().y ) );
   half_size = sf::Vector2f( WINDOW->getSize().x/2, WINDOW->getSize().y/2 ); // half length of the screen
-  receiver = Receiver::GetInstance(); // receives and executes commands
+  p_receiver = Receiver::GetInstance(); // receives and executes commands
   original_coordinates = WINDOW->mapCoordsToPixel(sf::Vector2f{ ((float)(half_size.x)), ((float)(half_size.y))}); 
   
   //box for quadtree
@@ -131,7 +131,7 @@ Engine::~Engine( ) {
 */
 void Engine::EventManager( ) {
   if( WINDOW->pollEvent( e_event ) ) {
-    switch( e_event.type ){
+    switch( e_event.type ) {
       case sf::Event::Closed:
           WINDOW->close();
       break;
@@ -144,7 +144,7 @@ void Engine::EventManager( ) {
       case sf::Event::TextEntered:
           
         if ( !input_lock && m_command_mode ) {
-          if ( std::isprint(e_event.text.unicode) ){
+          if ( std::isprint(e_event.text.unicode) ) {
             char ch = static_cast<char>(e_event.text.unicode);
             s_input_text.insert(cursor_position, 1, ch);
             cursor_position++;
@@ -157,28 +157,21 @@ void Engine::EventManager( ) {
         if ( e_event.mouseButton.button == sf::Mouse::Middle ) dragging = true;
   
         if ( e_event.mouseButton.button ==  sf::Mouse::Right ) {
-            
           if ( !p_selected_object && !m_select_mode ) { 
-
             for ( auto& selected : potential_selection ) {
-              if ( selected->mouseOnObject( Vec2(m_mouse_pos_f) ) ) 
-              {
-                  p_selected_object = selected;                             
-                  break;
+              if ( selected->mouseOnObject( Vec2(m_mouse_pos_f) ) ) {
+                p_selected_object = selected;                             
+                break;
               }
             }
           }
         }
   
-        if ( e_event.mouseButton.button == sf::Mouse::Left && !m_select_mode ) {
-            
+        if ( e_event.mouseButton.button == sf::Mouse::Left && !m_select_mode ) {  
           if ( !p_selected_object ) {
-
-            for ( const auto& selected : potential_selection )
-            {
+            for ( const auto& selected : potential_selection ) {
               print << selected->getID() << '\n';
-              if ( selected->mouseOnObject( Vec2(m_mouse_pos_f)) )
-              {
+              if ( selected->mouseOnObject( Vec2(m_mouse_pos_f)) ) {
                 p_selected_object = selected;
                 break;
               }
@@ -194,8 +187,7 @@ void Engine::EventManager( ) {
   
       case sf::Event::MouseButtonReleased:
         if ( e_event.mouseButton.button == sf::Mouse::Right ) {
-          if ( p_selected_object != nullptr )
-          {     
+          if ( p_selected_object != nullptr ) {     
             float launch_speed = 3.5f;
             Vec2 position ( p_selected_object->getPosition() ); 
             float velocity_x = launch_speed * ( position.x - m_mouse_pos_f.x );
@@ -209,12 +201,10 @@ void Engine::EventManager( ) {
   
             p_selected_object = nullptr;
           }
-  
           if ( m_select_mode ) {
             clicked = false;
             mouse_drawn_box.setSize( sf::Vector2f( { 0.0f, 0.0f } ) );
           }
-  
           if ( m_select_mode && objects_selected ) {
             objects_selected = false;
           }
@@ -222,7 +212,7 @@ void Engine::EventManager( ) {
         }
   
         if ( e_event.mouseButton.button == sf::Mouse::Left ) {     
-          if ( p_selected_object && !deleted){
+          if ( p_selected_object && !deleted) {
             shared_ptr<sf::Shape> sh = p_selected_object->getShape();
             sh->setOutlineColor( sf::Color::Black );
     
@@ -240,43 +230,32 @@ void Engine::EventManager( ) {
         if ( e_event.key.code == sf::Keyboard::G ) {
           m_gizmos_mode = !m_gizmos_mode;
           print << "gizmos toggled" << std::endl; 
-        }
-        
+        }     
         if ( input_lock && m_command_mode && e_event.key.code == sf::Keyboard::P ) {
           s_input_text = input_previous;
-        } 
-        
+        }  
         if ( e_event.key.code == sf::Keyboard::Enter && m_command_mode ) {
-          receiver->Receive( s_input_text, this );
+          p_receiver->Receive( s_input_text, this );
 
           if ( !s_input_text.empty() && cursor_position > 0) {
             input_previous = s_input_text;
             s_input_text.clear();
             cursor_position = 0;
           }
-          if (p_objects.size() > 0) 
-            print << "object id: " << p_objects[p_objects.size()-1]->getID() << 
-            " mass: " << p_objects[p_objects.size()-1]->getMass() << 
-            " position: " << p_objects[p_objects.size()-1]->getPosition().x << ", " 
-            << p_objects[p_objects.size()-1]->getPosition().y << "\n";
         }
-  
         if ( e_event.key.code == sf::Keyboard::LControl && m_command_mode ) {
           DEBUG_PRINT("%s\n", "released");
           input_lock = false;
-        }
-          
+        }   
         if ( e_event.key.code == sf::Keyboard::F && m_elapsed_time_spawn >= INTERRUPT_INTERVAL && !m_command_mode ) {
           m_elapsed_time_spawn = 0.0f;  
           focus = true;
-        }
-        
+        }    
         if ( e_event.key.code == sf::Keyboard::Tab && m_elapsed_time_spawn >= INTERRUPT_INTERVAL ) {
           m_elapsed_time_spawn = 0.0f;
           spawn_type = ( spawn_type == "cir" ) ? "rec" : "cir";
           print << spawn_type << '\n';
         }
-  
         if ( e_event.key.code == sf::Keyboard::T && m_elapsed_time_spawn >= CREATION_INTERVAL && !m_command_mode ) {
           m_elapsed_time_spawn = 0.0f;   
           spawn_size += 10.0f;
@@ -302,7 +281,6 @@ void Engine::EventManager( ) {
           }
           objectDefault( );
         }
-  
         if ( e_event.key.code == sf::Keyboard::Delete && p_selected_object != nullptr ) {   
           deleteObject( p_selected_object, p_objects );
           p_selected_object = nullptr;
@@ -310,7 +288,6 @@ void Engine::EventManager( ) {
           (object_count > 0) ? object_count -- : object_count = 0;
          
         }
-        
         if ( e_event.key.code == sf::Keyboard::Delete && p_selected_objects.size()>0 ) {   
           deleteSelectedObjects( p_selected_objects );
           p_selected_objects.clear();
@@ -321,12 +298,23 @@ void Engine::EventManager( ) {
       break;
   
       case sf::Event::KeyPressed:
-        if ( e_event.key.control && e_event.key.code == sf::Keyboard::V && m_command_mode ){
+        if ( e_event.key.control &&
+        e_event.key.code == sf::Keyboard::LShift &&
+        e_event.key.code == sf::Keyboard::D && m_elapsed_diagnostic >= TOGGLE_INTERVAL ){
+          m_elapsed_diagnostic = 0.0f;
+          show_diagnostic = !show_diagnostic;
+        }
+        
+        if ( e_event.key.control &&
+        e_event.key.code == sf::Keyboard::V &&
+        m_command_mode ) {
           s_input_text = sf::Clipboard::getString();
           cursor_position = s_input_text.length();
         }
         
-        if ( e_event.key.control && e_event.key.code == sf::Keyboard::C && m_command_mode ){
+        if ( e_event.key.control &&
+        e_event.key.code == sf::Keyboard::C &&
+        m_command_mode ) {
            sf::Clipboard::setString( s_input_text );
         }
         
@@ -398,13 +386,11 @@ void Engine::EventManager( ) {
         const sf::Vector2i mouse_position {
             e_event.mouseMove.x, e_event.mouseMove.y
         };
-
         if (dragging) {
           const auto delta = WINDOW->mapPixelToCoords(mouse_position) - WINDOW->mapPixelToCoords(original_mouse_position);
-          m_main_view.move(-delta);
-          WINDOW->setView(m_main_view);
+          m_main_view.move( -delta );
+          WINDOW->setView( m_main_view );
         }
-
         original_mouse_position = mouse_position;
       break;
      }
@@ -413,9 +399,9 @@ void Engine::EventManager( ) {
       mouse_pos_prev = WINDOW->mapPixelToCoords( sf::Mouse::getPosition( *WINDOW )  );    
     }
     
-    if ( sf::Keyboard::isKeyPressed(sf::Keyboard::LControl ) && 
-    sf::Keyboard::isKeyPressed( sf::Keyboard::I ) && 
-    m_elapsed_time_input >= CREATION_INTERVAL ) {
+    if ( sf::Keyboard::isKeyPressed( sf::Keyboard::LControl ) && 
+    sf::Keyboard::isKeyPressed( sf::Keyboard::I ) &&
+    m_elapsed_time_input >= TOGGLE_INTERVAL ) {
       m_elapsed_time_input = 0.0f;
       m_command_mode = !m_command_mode;
       input_lock = false;
@@ -448,22 +434,23 @@ Deletes an object from the world
 bool Engine::deleteObject( shared_ptr_obj object_to_delete, vector<shared_ptr_obj>& all_objects ) {
   deleted = false;
   auto it = std::find( all_objects.begin( ), all_objects.end( ), object_to_delete );
-  if ( it != all_objects.end( ) ){
+  if ( it != all_objects.end( ) ) {
     all_objects.erase( it );
     deleted = true;
   }
+  deleted ? object_count -- : object_count = 0;
+  
   return deleted;
 }
 
 #if EXPERIMENTAL_1
 /*
-Deletes multiple p_objects from the world
+Deletes multiple objects from the world
 */
 void Engine::deleteSelectedObjects( vector<shared_ptr_obj>& objects_to_delete ) {
   for ( auto obj : objects_to_delete ) {
-    if (deleteObject( obj, p_objects )) (object_count > 0) ? object_count -- : object_count = 0 ;
+    deleteObject( obj, p_objects );
   }
-  objects_to_delete.clear();
   deleted = true;
 }
 #endif
@@ -493,19 +480,16 @@ void Engine::checkObjectsSelected( ) {
       break;
     }
   }
-
 }
 /*
 Moves all p_objects in a selected area
 */
-void Engine::moveAll( vector<shared_ptr_obj> p_objects, const sf::Vector2f delta ) { 
-  for ( auto obj : p_objects ) {  
+void Engine::moveAll( vector<shared_ptr_obj> objects, const sf::Vector2f delta ) { 
+  for ( auto obj : objects ) {  
     assert(obj != nullptr);
-    
     obj->setVelocity( Vec2 ( 0.0f, 0.0f ) );
-    obj->setPosition( Vec2 { obj->getPosition().x + ((delta.x * _MOVE_SENSITIVITY * 0.2f)), 
-                             obj->getPosition().y + ((delta.y * _MOVE_SENSITIVITY * 0.2f)) } ) ;
-                      // the 0.2f in delta * MOVE_SENSITIVITY * 0.2f is arbitrary
+    obj->setPosition( Vec2 { obj->getPosition().x + ((delta.x * _MOVE_SENSITIVITY)), 
+                             obj->getPosition().y + ((delta.y * _MOVE_SENSITIVITY)) } ) ;                  
   }
 
 }
@@ -515,12 +499,10 @@ Turns selected p_objects into their default configuration
 void Engine::objectDefault( ) {
   for ( auto obj : p_selected_objects ) {
     obj->getShape()->setOutlineColor(sf::Color::Black);
-    obj->getShape()->setOutlineThickness( 0.5f );
-    
+    obj->getShape()->setOutlineThickness( 0.5f );   
   }
   selection_lock = false;
   p_selected_objects.clear( );
-  p_selected_objects.shrink_to_fit( );
   p_selected_objects.reserve(50);
 }
 
@@ -528,15 +510,14 @@ void Engine::objectDefault( ) {
 Gets all p_objects in a selected area
 */
 void Engine::getObjectsInArea( const AbstractBox<float>& rect_size ) {
-  for ( auto& obj : p_objects ) {
-    if ( rect_size.contains( obj->getCenter(), obj->getSize() )) {
-      p_selected_objects.push_back( obj );
-      obj->getShape()->setOutlineColor( sf::Color::Red );
-    }
+  print << "left/top: " << rect_size.getTopLeft().x << ", " << rect_size.getTopLeft().y << '\n';
+  print << "right/bottom: " << rect_size.getBottomRight().x << ", " << rect_size.getBottomRight().y << '\n';
+  
+  p_selected_objects = m_root->query( rect_size );
+  for ( auto& obj : p_selected_objects ) {
+    obj->getShape()->setOutlineColor( sf::Color::Red );  
   }
-  p_selected_objects.shrink_to_fit();
 }
-
 /*
 Draws a temporary rectangle to select p_objects
 */
@@ -547,31 +528,38 @@ void Engine::dragRectangle( ) {
   sf::Mouse::isButtonPressed( sf::Mouse::Right ) &&
   clicked && !p_selected_object ) { 
     sf::Vector2f rect_size( m_mouse_pos_f.x - mouse_on_click_start.x, m_mouse_pos_f.y - mouse_on_click_start.y );
+
     mouse_drawn_box.setPosition( mouse_on_click_start.x, mouse_on_click_start.y );
     mouse_drawn_box.setOutlineColor( sf::Color::White );
     mouse_drawn_box.setOutlineThickness( 1.0f );
     mouse_drawn_box.setSize( rect_size );
-    getObjectsInArea( AbstractBox<float> {mouse_on_click_start.x, mouse_on_click_start.y, rect_size.x,rect_size.y } );
+    
+    AbstractBox<float> range;
+    
+    if ( rect_size.x < 0 && rect_size.y < 0 ) 
+      range = AbstractBox<float>{ Vec2 { m_mouse_pos_f.x, m_mouse_pos_f.y } , Vec2 { abs(rect_size.x), abs(rect_size.y) } };
+    else if ( rect_size.x < 0 && rect_size.y > 0 ) 
+      range = AbstractBox<float>{ Vec2 { m_mouse_pos_f.x, mouse_on_click_start.y }, Vec2{ abs(rect_size.x), rect_size.y }};
+    else if ( rect_size.x > 0 && rect_size.y < 0)
+      range = AbstractBox<float>{ Vec2 { mouse_on_click_start.x, m_mouse_pos_f.y }, Vec2{ rect_size.x, abs(rect_size.y) }};
+    else 
+      range = AbstractBox<float>{ Vec2 { mouse_on_click_start.x, mouse_on_click_start.y }, Vec2{ rect_size.x, rect_size.y }};
+    
+    getObjectsInArea( range );
     WINDOW->draw( mouse_drawn_box );
   }
-
-
   if ( sf::Mouse::isButtonPressed( sf::Mouse::Right ) ) {
-    
     if ( !p_selected_object && !clicked && !selection_lock ){
       clicked = true;
       objectDefault();
       mouse_on_click_start = m_mouse_pos_f;
     }
-  
     if ( clicked ) {
       mouse_drawn_box.setFillColor( sf::Color( 0, 200, 0, 80 ) );
       WINDOW->draw( mouse_drawn_box );
     }
   }
 }
-
-
 /*
 Updates p_objects (position, shape and velocity) and draws it on the screen
 */
@@ -579,18 +567,14 @@ void Engine::Update( const float* delta_time ) {
   mouse_query_box = AbstractBox<float>( Vec2(m_mouse_pos_f)-(Vec2{50.0f, 50.0f}), Vec2{50.0f, 50.0f} *2 );
   // !! bug when querying p_objects that are larger than the mouse_query_box !! //
   potential_selection = m_root->query( mouse_query_box );
-
   box = AbstractBox<float>( Vec2( WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  m_main_view.getSize() ) );
   m_root = std::make_unique<Quadtree>( box, 4, 8 );
-  
   for ( size_t i = 0; i < p_objects.size(); i++ ) {
     assert(p_objects[i] != nullptr);
     verletIntegration( p_objects[i], *delta_time, Vec2{ m_drag,m_drag } );
     shared_ptr<sf::Shape> sh = p_objects[i]->getShape();
     m_root->insert( p_objects[i] );
-    
     if ( m_gizmos_mode ) WINDOW->draw(*(p_objects[i]->getQueryBox().shape) );
-    
     WINDOW->draw( *sh );
   }
 }
@@ -641,7 +625,10 @@ void Engine::CollisionCheck( ) {
 /*
 Returns the Frames Per Second of the window 
 */
-void Engine::displayFramesPerSecond( const std::chrono::high_resolution_clock::time_point& start ) {
+void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::time_point& start,
+                                    const uint64_t& cpu_usage, 
+                                    const uint64_t& memory_available,
+                                    const uint64_t& memory_used) {
   std::chrono::high_resolution_clock::time_point end;
   float fps;
     // window.draw, etc.
@@ -649,13 +636,48 @@ void Engine::displayFramesPerSecond( const std::chrono::high_resolution_clock::t
 
   fps = ((float)1e9/(float)std::chrono::duration_cast<std::chrono::nanoseconds>( end - start ).count());
   fps = round( fps * 100.0 ) / 100.0;
+  
+  float x_offset = 200.0f;
+  float y_offset;
+  
+  sf::Text gizmos_text;
+  gizmos_text.setFont( m_default_font );
+  gizmos_text.setString( (m_gizmos_mode) ? "Gizmos: ON " : "Gizmos: OFF " );
+  gizmos_text.setCharacterSize( m_ui_settings.h3_size );
+  gizmos_text.setPosition( sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 180.0f } );
+  
+  
+  sf::Text cpu_text;
+  cpu_text.setFont( m_default_font );
+  cpu_text.setString( "CPU Used: " +  std::to_string( cpu_usage ) + "%" );
+  cpu_text.setCharacterSize( m_ui_settings.h3_size );
+  cpu_text.setPosition( sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 150.0f } );
+  
+  sf::Text mem_avail_text;
+  mem_avail_text.setFont( m_default_font );
+  mem_avail_text.setString( "Available Memory: " +  std::to_string( memory_available ) + " MB" );
+  mem_avail_text.setCharacterSize( m_ui_settings.h3_size );
+  mem_avail_text.setPosition( sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 120.0f } );
+  
+  sf::Text mem_used_text;
+  mem_used_text.setFont( m_default_font );
+  mem_used_text.setString( "Memory Used: " +  std::to_string( memory_used ) + " MB" );
+  mem_used_text.setCharacterSize( m_ui_settings.h3_size );
+  mem_used_text.setPosition( sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 90.0f } );
+  
+  
   sf::Text fps_text;
   fps_text.setFont( m_default_font );
   fps_text.setString( "FPS: " +  std::to_string( fps ) );
-  fps_text.setCharacterSize( m_ui_settings.h2_size );
-  fps_text.setPosition( sf::Vector2f { (float) WINDOW->getSize().x - 120.0f, (float) WINDOW->getSize().y - 60.0f } );
-
+  fps_text.setCharacterSize( m_ui_settings.h3_size );
+  fps_text.setPosition( sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 60.0f } );
+  
+  WINDOW->draw( gizmos_text );
+  WINDOW->draw( cpu_text );
+  WINDOW->draw( mem_avail_text );
+  WINDOW->draw( mem_used_text );
   WINDOW->draw( fps_text );
+  
 }
 
 /*
@@ -671,7 +693,7 @@ void Engine::UI( ) {
   select_mode_text.setFont( m_default_font );
   select_mode_text.setString( 
       ( m_select_mode ) ? 
-      "Multi Select Mode - Right click and Drag to select multiple p_objects and Left Click an Object to move all p_objects" : 
+      "Multi Select Mode - Right click and Drag to select multiple Objects and Left Click an Object to move all Objects" : 
       "Single Select Mode - Left Click Object to move and Right click and m_drag to launch object" );
   select_mode_text.setCharacterSize( m_ui_settings.h2_size );
   select_mode_text.setPosition(0,30);
@@ -742,9 +764,9 @@ void Engine::Render( ) {
     sf::VertexArray line( sf::Lines, 10 );
     
     line[0].position = sf::Vector2f( position.x, position.y );
-    line[0].color = sf::Color::Green;
+    line[0].color = sf::Color::White;
     line[1].position = m_mouse_pos_f;
-    line[1].color = sf::Color::Green;
+    line[1].color = sf::Color::White;
     WINDOW->draw( line );
   
   }
@@ -790,6 +812,5 @@ void Engine::displayGizmos( ) {
 }
 
 void Engine::InitializeSetup( ) {
-
 
 }

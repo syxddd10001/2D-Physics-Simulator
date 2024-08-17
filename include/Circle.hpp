@@ -2,6 +2,8 @@
 #include <utility>
 #include <iostream>
 #include <memory>
+#include <cstdlib>
+
 #include <SFML/Graphics.hpp>
 #include "Object.hpp"
 #include "PhysicsMath.hpp"
@@ -14,7 +16,7 @@ private:
   std::shared_ptr<sf::CircleShape> m_shape;
 
 public:
-  Circle( float rad, float mass, float pos_x, float pos_y );
+  Circle( float rad, float mass, float pos_x, float pos_y ) noexcept;
   ~Circle() override {};
   Circle( );
   float getRadius( );

@@ -1,23 +1,19 @@
 #include "Circle.hpp"
 
 
-Circle::Circle( float rad, float mass, float posX, float posY)
+Circle::Circle( float rad, float mass, float posX, float posY) noexcept
 : Object( mass, posX, posY ), m_radius( rad )
 { 
     m_shape = std::make_shared<sf::CircleShape>( m_radius );
     sf::Vector2f circleCenter( rad, rad );
-    m_color = std::make_shared<sf::Color>(sf::Color::White);
+    m_color = std::make_shared<sf::Color>( sf::Color{ (uint8_t) rand() % (uint8_t) 255, (uint8_t) rand() % (uint8_t) 255, (uint8_t) rand() % (uint8_t) 255 , 255 } );
     m_shape->setOrigin( circleCenter );
     m_shape->setOutlineThickness( 0.5f );
     m_shape->setFillColor( *m_color );
     m_shape->setOutlineColor( sf::Color::Black );
     setQueryBox( AbstractBox<float>( getCenter()-(getSize()*2) ,  getSize()*4 )) ;
-    
-
 }
-Circle::Circle( ){
-
-}
+Circle::Circle( ) { }
 
 /*
 Returns a pointer to the shape of THIS object

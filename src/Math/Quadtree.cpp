@@ -18,7 +18,7 @@ bool Quadtree::subdivideTree ( ) {
 }
   
 bool Quadtree::insert ( std::shared_ptr<Object> obj ) {
-  if ( !( this->m_bounds.contains( obj->getPosition(), obj->getSize() ) ) ){
+  if ( !( this->m_bounds.contains( obj->getPosition(), obj->getSize() ) ) ) {
     return false;
   }
   
@@ -31,12 +31,12 @@ bool Quadtree::insert ( std::shared_ptr<Object> obj ) {
       subdivideTree( );
     }
     
-    if (m_top_left->insert( obj )) return true;
-    if (m_top_right->insert( obj )) return true;
-    if (m_bottom_left->insert( obj )) return true;
-    if (m_bottom_right->insert( obj )) return true;
-    
+    if ( m_top_left->insert( obj ) ) return true;
+    if ( m_top_right->insert( obj ) ) return true;
+    if ( m_bottom_left->insert( obj ) ) return true;
+    if ( m_bottom_right->insert( obj ) ) return true;    
   }
+  
   return false;
 }
 

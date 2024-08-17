@@ -73,23 +73,40 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           int num_objects;
           if ( commands.size() < 8 ) num_objects = 1;
           else num_objects = std::stoi(commands[7]);
-          for (int i = 0; i < num_objects; i++){
-              std::shared_ptr<Circle> cir = std::dynamic_pointer_cast<Circle>(p_factory->createObject( Object::CIRCLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
-                                 std::stof(commands[5])+(((std::stof(commands[3])*2)) * (i+1)), std::stof(commands[6]) ));
-              assert ( cir != nullptr );
-              cir->setID(engine_instance->getAllObjects().size()+1);
-              engine_instance->addObject(cir);
-              if ( engine_instance->m_root != nullptr ) engine_instance->m_root->insert( cir );
-            }
+          AbstractBox<float> range { Vec2( engine_instance->WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  engine_instance->m_main_view.getSize() )*1.0f } ;
+          for (int i = 0; i < num_objects; i++){  
+            std::shared_ptr<Circle> cir = std::dynamic_pointer_cast<Circle>(
+            p_factory->createObject( Object::CIRCLE, 
+                                     std::stof(commands[2]), // mass
+                                     std::stof(commands[3]),  // dimension.x
+                                     std::stof(commands[4]),  // dimension.y
+                                     rand() % (int) range.getRight()+ (int)range.left, // position.x
+                                     rand() % (int) range.getBottom()+ (int)range.top)); // position.y
+            assert ( cir != nullptr );
+            cir->setID(engine_instance->getAllObjects().size()+1);
+            engine_instance->addObject(cir);
+            if ( engine_instance->m_root != nullptr ) engine_instance->m_root->insert( cir );
+          }
         } 
         
         else if ( commands[1] == "rectangle" || commands[1] == "rec" ){
-          std::shared_ptr<Rectangle>  rec = std::dynamic_pointer_cast<Rectangle>(p_factory->createObject( Object::RECTANGLE, std::stof(commands[2]), std::stof(commands[3]), std::stof(commands[4]), 
-                              std::stof(commands[5]), std::stof(commands[6]))); 
-          assert ( rec != nullptr );
-          rec->setID(engine_instance->getAllObjects().size()+1);
-          engine_instance->addObject(rec);
-          if ( engine_instance->m_root != nullptr ) engine_instance->m_root->insert( rec );
+          int num_objects;
+          if ( commands.size() < 8 ) num_objects = 1;
+          else num_objects = std::stoi(commands[7]);
+          AbstractBox<float> range { Vec2( engine_instance->WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  engine_instance->m_main_view.getSize() )*1.0f } ;
+          for (int i = 0; i < num_objects; i++){  
+            std::shared_ptr<Rectangle> rec = std::dynamic_pointer_cast<Rectangle>(
+            p_factory->createObject( Object::RECTANGLE, 
+                                     std::stof(commands[2]), // mass
+                                     std::stof(commands[3]),  // dimension.x
+                                     std::stof(commands[4]),  // dimension.y
+                                     rand() % (int) range.getRight()+ (int)range.left, // position.x
+                                     rand() % (int) range.getBottom()+ (int)range.top)); // position.y
+            assert ( rec != nullptr );
+            rec->setID(engine_instance->getAllObjects().size()+1);
+            engine_instance->addObject(rec);
+            if ( engine_instance->m_root != nullptr ) engine_instance->m_root->insert( rec );
+          }
             
         }
           

@@ -30,7 +30,7 @@ public:
       left(position.x), top(position.y), width(size.x), height(size.y) {
       shape = std::make_shared<sf::RectangleShape> ( sf::Vector2f { width, height } );
       shape->setPosition( sf::Vector2f( position ) );
-      shape->setOutlineThickness ( 1.0f );
+      shape->setOutlineThickness ( 0.5f );
       shape->setOutlineColor( sf::Color::Blue );
       shape->setFillColor( sf::Color::Transparent );
   }

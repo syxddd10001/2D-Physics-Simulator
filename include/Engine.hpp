@@ -7,6 +7,9 @@
 #include <cmath>
 #include <stdlib.h>
 #include <assert.h>
+#include <time.h>
+#include <future>
+#include <unordered_set>
 
 #include "Vector2.hpp"
 #include "Object.hpp"
@@ -18,6 +21,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Clipboard.hpp>
 
+
 using Vec2 = syxd::Vector2<float>;
 using std::cout;
 using std::endl; 
@@ -26,6 +30,7 @@ using std::shared_ptr;
 using std::unique_ptr; 
 using std::weak_ptr;
 using std::vector;
+
 
 #define shared_ptr_obj shared_ptr<Object>
 #define shared_ptr_rect shared_ptr<Rectangle>
@@ -49,6 +54,7 @@ struct UI_SETTINGS {
 class Engine {
 private:
   const float CREATION_INTERVAL = 0.1f;
+  const float TOGGLE_INTERVAL = 0.3f;
   const float INTERRUPT_INTERVAL = 0.01f; 
   const float ZOOM_AMOUNT = 1.1f;
   
@@ -71,7 +77,8 @@ public:
   float m_elapsed_time_move = INTERRUPT_INTERVAL;
   float m_elapsed_time_input = _INPUT_INTERVAL;
   float m_elapsed_time_cursor_blink = _CURSOR_BLINK_INTERVAL;
-
+  float m_elapsed_diagnostic = TOGGLE_INTERVAL;
+  
   bool m_select_mode = false; // multi select mode
   bool m_command_mode = false;
   const float m_default_drag = -0.7f;
@@ -95,7 +102,6 @@ public:
   void addObject( const shared_ptr_obj object ); // adds a new object to the world
   vector<shared_ptr_obj>& getAllObjects(); // returns all objects in the world
   void zoomViewAt( const sf::Vector2i& pixel, const float& zoom ); // zoom
-  void displayFramesPerSecond( const std::chrono::high_resolution_clock::time_point& start ); // returns window frames per second
   void getObjectsInArea( const AbstractBox<float>& rect_size ); // returns all objects in a selected area
   void dragRectangle( ); // draws a rectangle to select objects in an area
   void objectDefault( ); // returns objects its default configuration
@@ -106,5 +112,9 @@ public:
   void deleteSelectedObjects( vector<shared_ptr_obj>& objects_to_delete ); // deleted all objects that are selected
   void displayGizmos( );
   void InitializeSetup( );
+  void displayDiagnosticInfo( const std::chrono::high_resolution_clock::time_point& start,
+                              const uint64_t& cpu_usage, 
+                              const uint64_t& memory_available,
+                              const uint64_t& memory_used); // returns window frames per second
   
 };

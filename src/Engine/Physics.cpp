@@ -91,3 +91,10 @@ bool onCollision( std::shared_ptr<Circle> object1, std::shared_ptr<Rectangle> ob
 void dynamicResponse( std::shared_ptr<Circle> object1, std::shared_ptr<Rectangle> object2 ) {
   
 }
+
+bool onCollision( std::shared_ptr<Rectangle> object1, std::shared_ptr<Rectangle> object2 ) {
+  if ( !object1->intersects(object2) ) return false;
+  
+  return true;
+
+}

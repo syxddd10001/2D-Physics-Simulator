@@ -7,6 +7,7 @@
 #include <map>
 #include <memory>
 #include <cstring>
+#include <cstdlib>
 #include <ObjectFactory.hpp>
 #include <Object.hpp>
 #include <Engine.hpp>
@@ -50,7 +51,6 @@ public:
     } else{
       return static_cast<T>(-1);  
     }
-  
   };
 
 }; 

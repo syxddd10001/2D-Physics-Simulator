@@ -25,7 +25,7 @@ protected:
   AbstractBox<float> m_queryBox;
 
 public:    
-  Object( float mass, float pos_x, float pos_y );
+  Object( float mass, float pos_x, float pos_y ) noexcept;
   Object( ) { };
   virtual ~Object( ) { };
   

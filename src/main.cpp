@@ -5,19 +5,21 @@
 #include <thread>
 #include <iostream>
 #include <memory>
-
+#include <conio.h>
 // internal and external headers
 #include <SFML/Graphics.hpp>
 #include <Circle.hpp>
 #include <PhysicsMath.hpp>
 #include <Engine.hpp>
 //
+#include <DiagnosticInfo.hpp>
+
 
 int main() {
   Engine Instance; // stack allocation for Engine Instance 
 
   std::chrono::high_resolution_clock::time_point start;
-
+  init();
   while ( Instance.WINDOW->isOpen() ) { // program loop
     start = std::chrono::high_resolution_clock::now();
     
@@ -30,6 +32,8 @@ int main() {
     Instance.m_elapsed_time_move += delta_time; 
     Instance.m_elapsed_time_input += delta_time;
     Instance.m_elapsed_time_cursor_blink += delta_time;
+    Instance.m_elapsed_diagnostic += delta_time;
+    
 
     Instance.EventManager( ); // calling event manager ie input
     Instance.CollisionCheck( ); // calling collision checker
@@ -38,7 +42,10 @@ int main() {
 
     Instance.WINDOW->setView( Instance.m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
     Instance.UI( ); // rendering UI
-    Instance.displayFramesPerSecond( start );
+    const uint64_t cpu_usage = GetCPUUsage();
+    const uint64_t memory_available = GetMemoryUsage().available;
+    const uint64_t memory_used = GetMemoryUsage().used;
+    Instance.displayDiagnosticInfo( start, cpu_usage, memory_available, memory_used );
     Instance.WINDOW->setView( Instance.m_main_view ); // resetting view to main 
     Instance.WINDOW->display( ); // displaying everything
   }

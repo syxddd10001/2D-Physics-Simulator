@@ -2,15 +2,17 @@ CXX := g++
 SFML_INCLUDE := -I libs/SFML/include
 SFML_LIB := -L libs/SFML/lib -lsfml-graphics -lsfml-window -lsfml-system
 
+LIBS:= -lpsapi
+
 INCLUDE := -I include
 
 EXECUTABLE := build/test/main.exe
-OBJECTS := objects/Rectangle.o objects/Circle.o objects/Object.o objects/PhysicsMath.o 
+OBJECTS := objects/DiagnosticInfo.o objects/Rectangle.o objects/Circle.o objects/Object.o objects/PhysicsMath.o 
 OBJECTS += objects/Engine.o objects/Physics.o objects/Vector2.o
 OBJECTS += objects/Command.o objects/ObjectFactory.o objects/AbstractBox.o objects/Quadtree.o
 
 $(EXECUTABLE): src/main.cpp $(OBJECTS)
-	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src $^ -o $@ $(SFML_LIB)
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src $^ -o $@ $(SFML_LIB) $(LIBS)
 
 objects/Engine.o: src/Engine/Engine.cpp include/Engine.hpp objects/Object.o objects/PhysicsMath.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
@@ -43,6 +45,9 @@ objects/AbstractBox.o: src/Math/AbstractBox.cpp include/AbstractBox.hpp objects/
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 objects/Vector2.o: src/Math/Vector2.cpp include/Vector2.hpp
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+objects/DiagnosticInfo.o: src/Engine/DiagnosticInfo.cpp include/DiagnosticInfo.hpp
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 clean:

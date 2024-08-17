@@ -4,6 +4,9 @@
 #include <cassert>
 #include <iostream>
 #include <queue>
+#include <thread>
+#include <mutex>
+
 #include "AbstractBox.hpp"
 #include "Object.hpp"
 #include "Circle.hpp"

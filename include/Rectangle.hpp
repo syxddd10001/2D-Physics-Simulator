@@ -14,7 +14,7 @@ private:
   std::shared_ptr<sf::RectangleShape> m_shape;
 
 public:
-  Rectangle( float mass, float pos_x, float pos_y, float dim_x, float dim_y );
+  Rectangle( float mass, float pos_x, float pos_y, float dim_x, float dim_y ) noexcept;
   Rectangle( );
   ~Rectangle() override {};
 
@@ -36,4 +36,7 @@ public:
   ObjectType getType() override {
     return ObjectType::RECTANGLE;
   }
+  
+  bool intersects( std::shared_ptr<Rectangle> other ) const noexcept;
+  
 };

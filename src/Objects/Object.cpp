@@ -1,7 +1,7 @@
 #include <Object.hpp>
 
 //
-Object::Object( float mass, float pos_x, float pos_y ) 
+Object::Object( float mass, float pos_x, float pos_y ) noexcept
 : m_mass( mass ), m_position_x( pos_x ), m_position_y( pos_y )
 {
   this->setVelocity( Vec2 { 0.f, 0.f } );
