@@ -12,10 +12,10 @@ DiagnosticInfo GetMemoryUsage( ) {
   GlobalMemoryStatusEx(&memInfo);
   PROCESS_MEMORY_COUNTERS_EX pmc;
   GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
-  DWORDLONG physMemUsed = memInfo.ullTotalPhys - memInfo.ullAvailPhys;
+  DWORDLONG physMemAvail = memInfo.ullAvailPhys;
   SIZE_T physMemUsedByMe = pmc.WorkingSetSize;
   
-  return DiagnosticInfo{ physMemUsed /(u_long)(1024.0 * 1024.0), physMemUsedByMe/(u_long)(1024.0 * 1024.0)};
+  return DiagnosticInfo{ physMemAvail /(u_long)(1024.0 * 1024.0), physMemUsedByMe/(u_long)(1024.0 * 1024.0)};
 }
 
 

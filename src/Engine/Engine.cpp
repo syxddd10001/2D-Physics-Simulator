@@ -299,8 +299,8 @@ void Engine::EventManager( ) {
   
       case sf::Event::KeyPressed:
         if ( e_event.key.control &&
-        e_event.key.code == sf::Keyboard::LShift &&
-        e_event.key.code == sf::Keyboard::D && m_elapsed_diagnostic >= TOGGLE_INTERVAL ){
+          e_event.key.code == sf::Keyboard::D && 
+          m_elapsed_diagnostic >= TOGGLE_INTERVAL ){
           m_elapsed_diagnostic = 0.0f;
           show_diagnostic = !show_diagnostic;
         }
@@ -630,6 +630,7 @@ void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::ti
                                     const uint64_t& memory_available,
                                     const uint64_t& memory_used) {
   std::chrono::high_resolution_clock::time_point end;
+  if ( !show_diagnostic ) return;
   float fps;
     // window.draw, etc.
   end = std::chrono::high_resolution_clock::now();
@@ -668,7 +669,7 @@ void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::ti
   
   sf::Text fps_text;
   fps_text.setFont( m_default_font );
-  fps_text.setString( "FPS: " +  std::to_string( fps ) );
+  fps_text.setString( "FPS: " +  std::to_string( floor(fps)) );
   fps_text.setCharacterSize( m_ui_settings.h3_size );
   fps_text.setPosition( sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 60.0f } );
   
