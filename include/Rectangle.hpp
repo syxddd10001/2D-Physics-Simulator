@@ -38,5 +38,5 @@ public:
   }
   
   bool intersects( std::shared_ptr<Rectangle> other ) const noexcept;
-  
+
 };

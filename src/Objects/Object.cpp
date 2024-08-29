@@ -1,15 +1,24 @@
 #include <Object.hpp>
 
 //
+
+const std::map<std::string, Object::ObjectType> Object::m_object_type_map = { 
+      { "circle", CIRCLE }, 
+      { "rectangle", RECTANGLE }, 
+      { "", NONE }, 
+      { "cir", CIRCLE },
+      { "rec", RECTANGLE }
+  };
+
 Object::Object( float mass, float pos_x, float pos_y ) noexcept
-: m_mass( mass ), m_position_x( pos_x ), m_position_y( pos_y )
+: m_mass( mass ), position_current(pos_x, pos_y), position_old(pos_x, pos_y)
 {
   this->setVelocity( Vec2 { 0.f, 0.f } );
 }
 
 void Object::print_info( ) {
-  std::cout << "Mass: " << m_mass << "\nPosition: (" << m_position_x << ", " << m_position_y << ")\n";
-  std::cout << "Velocity: (" << m_velocity_x << ", " << m_velocity_y << ")\n"; 
+  std::cout << "Mass: " << m_mass << "\nPosition: (" << position_current.x << ", " << position_current.y << ")\n";
+  std::cout << "Velocity: (" << velocity.x << ", " << velocity.y << ")\n"; 
  
 }
 
@@ -21,10 +30,12 @@ std::shared_ptr<sf::Shape> Object::getShape( ) {
   return m_shape;
 }
 
+void Object::setOldPosition( ) {
+  position_old = position_current;   
+}
+
 void Object::setPosition( const Vec2 pos ) {
-  m_position_x = pos.x;
-  m_position_y = pos.y;
-    
+  position_current = pos;   
 }
 
 void Object::setMass( const float mass ) {
@@ -32,41 +43,31 @@ void Object::setMass( const float mass ) {
 }
 
 Vec2 Object::getPosition() const {
-  return Vec2 ( m_position_x, m_position_y );
+  return position_current;
+}
+
+Vec2 Object::getOldPosition() const {
+  return position_old;
 }
 
 Vec2 Object::getVelocity() const {
-  return Vec2 ( m_velocity_x, m_velocity_y );
+  return velocity;
 }
 
 Vec2 Object::getCenter() const {
   return Vec2 { 0.f, 0.f}; 
 }
 
-Vec2 Object::setVelocity( const float vel_x, const float vel_y ) {
-  this->m_velocity_x = vel_x; 
-  this->m_velocity_y = vel_y; 
-  return Vec2 ( m_velocity_x, m_velocity_y );
-}
-
 void Object::setVelocity( const Vec2 vel ) {
-  m_velocity_x = vel.x;
-  m_velocity_y = vel.y;
+  velocity = vel;
 }
 
 void Object::setAcceleration( const Vec2 acc ) {
-  m_acceleration_x = acc.x;
-  m_acceleration_y = acc.y;
+  acceleration = acc;
 }
 
 Vec2 Object::getAcceleration() const {
-  return Vec2 ( m_acceleration_x, m_acceleration_y );
-}
-
-Vec2 Object::setAcceleration( const float acc_x, const float acc_y ) {
-  this->m_acceleration_x = acc_x;
-  this->m_acceleration_y = acc_y;
-  return Vec2 ( m_acceleration_x, m_acceleration_y );
+  return acceleration;
 }
 
 void Object::setID( int id ) {
@@ -95,4 +96,41 @@ bool Object::mouseOnObject( const Vec2& vector ) {
 
 Object::ObjectType Object::getType(){
   return Object::NONE;
+}
+
+void Object::VerletIntegration( const float& delta_time ) {
+  if ( velocity.magnitude() < 0.01f ) 
+    velocity = Vec2( 0.0f, 0.0f );
+  
+  setVelocity( Vec2( velocity.x + acceleration.x * delta_time , 
+                    velocity.y + acceleration.y * delta_time));
+  
+  setOldPosition();
+  setPosition( position_old + velocity * delta_time );
+  setAcceleration( Vec2{ 0, 0 });
+  setQueryBox( AbstractBox<float>( getCenter()-(getSize()*2), Vec2{ getSize().x*4, getSize().y*4 } ) );
+}
+
+void Object::Acceleration( const Vec2& acc ) {
+  setAcceleration( acceleration + acc );
+}
+
+void Object::applyForce( std::shared_ptr<Object> object, const Vec2& dir, const float& distance ){ 
+  // m * m * G / d^2 * dir
+  double force_magnitude = (m_mass * object->getMass() * MY_G_CONSTANT ) / (distance * distance);  
+  Vec2 force { force_magnitude * -1.0f * dir.x, force_magnitude * -1.0f * dir.y  };
+  object->Acceleration( force/object->getMass() );
+}
+
+void Object::applyForce( const Vec2& force ){
+  Vec2 acc = force / m_mass;
+  this->Acceleration(acc);
+}
+
+Vec2 Object::getNetForce( ) const {
+  return net_force;
+}
+
+void Object::AddForce( const Vec2 force ){
+  net_force += force;
 }

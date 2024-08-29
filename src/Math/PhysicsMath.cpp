@@ -29,35 +29,27 @@ float dotProduct( const point& vectorA, const point& vectorB ) {
   return vectorA.first*vectorB.first + vectorA.second*vectorB.second;
 }
 
-Vec2 verletIntegration( std::shared_ptr<Object> object, const float delta_time, const Vec2 acceleration ) {
+void verletIntegration( std::shared_ptr<Object> object, const float delta_time, const Vec2 acceleration ) {
   Vec2 velocity_0 = object->getVelocity();
   Vec2 position_0 = object->getPosition();
 
   if ( std::sqrt( velocity_0.x*velocity_0.x + velocity_0.y * velocity_0.y ) < 0.01f ) 
-  velocity_0 = Vec2( 0.0f, 0.0f );
+    velocity_0 = Vec2( 0.0f, 0.0f );
   
-  object->setAcceleration( calculateAcceleration( object, delta_time, velocity_0 ) );
   Vec2 acc = object->getAcceleration();
   
   object->setVelocity( Vec2( velocity_0.x + ( velocity_0.x * acceleration.x) * delta_time , 
                               velocity_0.y + ( velocity_0.y * +acceleration.y) * delta_time));
-
+  std::cout << object->getVelocity().x << ',' << object->getVelocity().y <<'\n';
   object->setPosition( Vec2( position_0.x + (object->getVelocity().x * delta_time ), 
                               position_0.y + (object->getVelocity().y * delta_time ) ) );
 
   object->setQueryBox( AbstractBox<float>( object->getCenter()-(object->getSize()*2), Vec2{ object->getSize().x*4, object->getSize().y*4 } ) );
-  
-  return object->getPosition();
+
 }
 
 Vec2 applyForce( std::shared_ptr<Object> object ) {
   return Vec2{};
-}
-
-Vec2 calculateAcceleration( std::shared_ptr<Object> object, const float delta_time, const Vec2 velocity ) {
-  Vec2 acceleration = velocity - object->getVelocity();
-  acceleration = Vec2( acceleration.x / delta_time, acceleration.y / delta_time );
-  return Vec2( acceleration.x, acceleration.y ); // Assuming equal acceleration in both directions
 }
 
 Vec2 normalizeVector( const Vec2 p ) {
@@ -75,3 +67,20 @@ Vec2 applyForce( std::shared_ptr<Object> this_object, std::shared_ptr<Object>oth
   return force;
 }
 
+std::pair<float, Vec2> calculateCenterOfMass( const std::vector<std::shared_ptr<Object>> objects ) {
+  assert( objects.size() != 0 );
+  float total_mass = 0.0f;
+  float x = 0.0f;
+  float y = 0.0f;
+  for ( const auto& p : objects ){
+    float mass = p->getMass();
+    Vec2 pos = p->getCenter();
+    x += mass * pos.x;
+    y += mass * pos.y;
+    total_mass += mass;
+  }
+  assert ( total_mass > 0.0f );
+  
+  return std::make_pair( total_mass , Vec2 { x/total_mass, y/total_mass } );
+  
+}

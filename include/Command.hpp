@@ -15,21 +15,13 @@
 class Receiver{
 private:
   static std::shared_ptr<Receiver> p_instance;
-  enum CommandType { SPAWN, MODE, EXIT, DRAG, MANUAL };
-  std::map <std::string, CommandType> m_command_map = { 
-      { "spawn", SPAWN }, 
-      { "mode", MODE }, 
-      { "exit", EXIT }, 
-      { "friction", DRAG },
-      { "drag", DRAG },
-      { "man", MANUAL },
-      { "manual", MANUAL },
-      { "help", MANUAL }
-  };
+  enum CommandType { SPAWN, MODE, EXIT, DRAG, MANUAL, GRAVITY };
+  static const std::map <std::string, CommandType> m_command_map;
   bool CallCommand( std::vector<std::string> commands, Engine* engine_instance); //Calls a command and executes the appropriate function
   std::vector<std::string> DeconstructCommand( const std::string& str ); // Breaks down string into words (i.e deconstructs command)
   void NormalizeString( std::vector<std::string>& string_vector ); // converts elements in a string vector to lower case i.e normalizes it
-  
+  void NormalizeString( std::string& string );
+  bool isNumber( const std::string& target );
 
 public:
   Receiver() {};
@@ -52,5 +44,7 @@ public:
       return static_cast<T>(-1);  
     }
   };
+  
+  
 
 }; 

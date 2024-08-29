@@ -7,6 +7,19 @@
 #define DEBUG_PRINT(format, ...) // Do nothing //
 #endif
 
+const std::map <std::string, Receiver::CommandType> Receiver::m_command_map = { 
+      { "spawn", SPAWN }, 
+      { "mode", MODE }, 
+      { "exit", EXIT }, 
+      { "friction", DRAG },
+      { "drag", DRAG },
+      { "man", MANUAL },
+      { "manual", MANUAL },
+      { "help", MANUAL },
+      { "gravity", GRAVITY },
+      
+};
+
 std::shared_ptr<Receiver> Receiver::p_instance;
 std::shared_ptr<ObjectFactory> p_factory = ObjectFactory::GetInstance();
 
@@ -37,10 +50,14 @@ std::vector<std::string> Receiver::DeconstructCommand( const std::string& str ) 
   return words;
 }
 
+void Receiver::NormalizeString( std::string& string ) {
+  std::transform(string.begin(), string.end(), string.begin(), [](char c) { return std::tolower(c); });
+}
+
 // converts elements in a string vector to lower case
 void Receiver::NormalizeString( std::vector<std::string>& string_vector ) {
-  for ( std::string& elem : string_vector ){
-    std::transform(elem.begin(), elem.end(), elem.begin(), [](char c) { return std::tolower(c); });
+  for ( std::string& elem : string_vector ) {
+    std::transform( elem.begin(), elem.end(), elem.begin(), [](char c) { return std::tolower(c); });
   }
 }
 
@@ -69,48 +86,53 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           break;
         }
         
-        if ( commands[1] == "circle" || commands[1] == "cir" ){
+        else{
+ 
           int num_objects;
-          if ( commands.size() < 8 ) num_objects = 1;
-          else num_objects = std::stoi(commands[7]);
-          AbstractBox<float> range { Vec2( engine_instance->WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  engine_instance->m_main_view.getSize() )*1.0f } ;
-          for (int i = 0; i < num_objects; i++){  
-            std::shared_ptr<Circle> cir = std::dynamic_pointer_cast<Circle>(
-            p_factory->createObject( Object::CIRCLE, 
-                                     std::stof(commands[2]), // mass
-                                     std::stof(commands[3]),  // dimension.x
-                                     std::stof(commands[4]),  // dimension.y
-                                     rand() % (int) range.getRight()+ (int)range.left, // position.x
-                                     rand() % (int) range.getBottom()+ (int)range.top)); // position.y
-            assert ( cir != nullptr );
-            cir->setID(engine_instance->getAllObjects().size()+1);
-            engine_instance->addObject(cir);
-            if ( engine_instance->m_root != nullptr ) engine_instance->m_root->insert( cir );
-          }
-        } 
-        
-        else if ( commands[1] == "rectangle" || commands[1] == "rec" ){
-          int num_objects;
-          if ( commands.size() < 8 ) num_objects = 1;
-          else num_objects = std::stoi(commands[7]);
-          AbstractBox<float> range { Vec2( engine_instance->WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  engine_instance->m_main_view.getSize() )*1.0f } ;
-          for (int i = 0; i < num_objects; i++){  
-            std::shared_ptr<Rectangle> rec = std::dynamic_pointer_cast<Rectangle>(
-            p_factory->createObject( Object::RECTANGLE, 
-                                     std::stof(commands[2]), // mass
-                                     std::stof(commands[3]),  // dimension.x
-                                     std::stof(commands[4]),  // dimension.y
-                                     rand() % (int) range.getRight()+ (int)range.left, // position.x
-                                     rand() % (int) range.getBottom()+ (int)range.top)); // position.y
-            assert ( rec != nullptr );
-            rec->setID(engine_instance->getAllObjects().size()+1);
-            engine_instance->addObject(rec);
-            if ( engine_instance->m_root != nullptr ) engine_instance->m_root->insert( rec );
-          }
-            
-        }
+          float centerX, centerY, radius, angleIncrement;
           
-        std::cout << "Spawned Object\n";
+          
+          if ( commands.size() < 8 ) {
+            num_objects = 1;
+          } else {
+            num_objects = (isNumber (commands[7])) ? 
+              std::stoi(commands[7]) : num_objects = 1;
+          }    
+          AbstractBox<float> range { Vec2( engine_instance->WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  engine_instance->m_main_view.getSize() )*1.0f } ;
+          
+          NormalizeString(commands[1]);
+          Object::ObjectType type = StringToCommand( Object::m_object_type_map, commands[1] );
+          centerX = isNumber( commands[5] ) ? std::stof(commands[5]) : engine_instance->m_mouse_pos_f.x;
+          centerY = isNumber( commands[6] ) ? std::stof(commands[6]) : engine_instance->m_mouse_pos_f.y;
+          radius = isNumber( commands[3] ) ? std::stof(commands[3]) : 30.0f;
+          angleIncrement = (2 * MY_PI) / num_objects;
+                    
+          for (int i = 0; i < num_objects; i++){  
+            float posX, posY;
+            if (num_objects > 1){
+              float angle = i * angleIncrement;
+              posX = centerX + radius * cos(angle);
+              posY = centerY + radius * sin(angle);
+            }
+            
+            else{
+              posX = centerX;
+              posY = centerY;
+            }
+            std::shared_ptr<Object> obj = (
+              p_factory->createObject( type, 
+                                     std::stof(commands[2]), // mass
+                                     std::stof(commands[3]),  // dimension.x
+                                     std::stof(commands[4]),  // dimension.y
+                                     ( commands[5] == "random" || commands[5] == "rand" ) ? rand() % (int) range.getRight()+ (int)range.left : posX, // position.x
+                                     ( commands[6] == "random" || commands[6] == "rand" ) ? rand() % (int) range.getBottom()+ (int)range.top : posY)); // position.y
+            assert ( obj != nullptr );
+            
+            obj->setID(engine_instance->getAllObjects().size()+1);
+            engine_instance->addObject(obj);
+            if ( engine_instance->m_quad_root != nullptr ) engine_instance->m_quad_root->insert( obj );
+          }
+        }
       break;
   
       case MODE:
@@ -165,15 +187,28 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
       
       break;
       
+      case GRAVITY:
+        if (commands.size() > 1) {
+          NormalizeString(commands[1]);
+          if ( commands[1] == "on" ) {
+            engine_instance->m_gravity_mode = true;
+          } else if ( commands[1] == "off" ) {
+            engine_instance->m_gravity_mode = false;
+          }   
+        }
+      break;
+      
       case EXIT:
         engine_instance->WINDOW->close();
       break;
     }
-  } catch(const std::exception& e) {
-    std::cerr << e.what() << '\n';
+  } catch( const std::exception& e ) {
+    std::cerr << "ERROR: " << e.what() << '\n';
     return false;
   }
-  
   return true;
 }
 
+bool Receiver::isNumber( const std::string& target ) {
+  return !target.empty() && std::all_of(target.begin(), target.end(), ::isdigit);
+}

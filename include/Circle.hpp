@@ -28,7 +28,6 @@ public:
   Vec2 getCenter( ) const override;
   AbstractBox<float> getBoundingBox( ) const;
   
-  
   ObjectType getType() override {
     return ObjectType::CIRCLE;
   }

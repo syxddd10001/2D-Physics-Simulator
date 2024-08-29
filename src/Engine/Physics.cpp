@@ -65,7 +65,8 @@ void dynamicResponse( std::shared_ptr<Circle> object1, std::shared_ptr<Circle> o
                 Vec2( collision_normal.x * momentum2, collision_normal.y * momentum2 ) ;
   
   object1->setVelocity(velocity1);
-  object2->setVelocity(velocity2);  
+  object2->setVelocity(velocity2);
+
 }
 
 // Detect Circle v Rectangle collision
