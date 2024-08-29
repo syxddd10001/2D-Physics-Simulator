@@ -656,40 +656,22 @@ void Engine::UpdatePhysics( const float& delta_time ) {
     if ( m_gizmos_mode ) WINDOW->draw(*(p_objects[i]->getQueryBox().shape) );
     WINDOW->draw( *sh );
   }
-  
-  if ( m_gravity_mode ) {
-    #define EXPERIMENTAL 1
-    #if EXPERIMENTAL
-    //Barnes Hut -- O(n log n)
-    // gravity simulation
-    for ( auto& obj : p_objects ) {
-      Vec2 force = m_quad_root->calculateForce( obj ); // Use an appropriate theta value
-      obj->applyForce(force);
-    }
-    #else
-    // bottle neck -- O (n^2)
-    // gravity simulation
-    for ( auto& current : p_objects ) {
-      for ( auto& other : p_objects ) {      
-        assert( current != nullptr && other != nullptr );
-        if (current == other) continue;
-        float dist = calculateDistance(current->getPosition(), other->getPosition());
-        Vec2 dir { other->getPosition() - current->getPosition() };
-        current->applyForce( other, dir.normalize(), dist );
-      }
-    }
-    #endif
-  }
 }
 
 /*
   Checks if any collision has occured and provides a response to that collision 
 */
+
 void Engine::CollisionCheck( ) {
   // collision detection and response
   for ( auto& current : p_objects ) {
     auto obj_in_range = m_quad_root->query( current->getQueryBox() ); 
     //checkCollisionWithWorld( current );
+    if ( m_gravity_mode ) {
+    // gravity simulation using Barnes Hut -- O(n log n)
+      Vec2 force = m_quad_root->calculateForce( current ); // Use an appropriate theta value
+      current->applyForce(force);
+    }
     for ( auto& other : obj_in_range ) {
       if ( current == other ) continue;
       

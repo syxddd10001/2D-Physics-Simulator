@@ -31,7 +31,7 @@ int main() {
     Instance.WINDOW->setView( Instance.m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
     Instance.UI( ); // rendering UI
     
-    // diagnostic info
+    // diagnostic info for benchmarking
     const uint64_t cpu_usage = GetCPUUsage();
     const uint64_t memory_available = GetMemoryUsage().available;
     const uint64_t memory_used = GetMemoryUsage().used;
