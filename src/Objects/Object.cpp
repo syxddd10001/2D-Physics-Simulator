@@ -98,7 +98,7 @@ Object::ObjectType Object::getType(){
   return Object::NONE;
 }
 
-void Object::VerletIntegration( const float& delta_time ) {
+void Object::EulerIntegration( const float& delta_time ) {
   if ( velocity.magnitude() < 0.01f ) 
     velocity = Vec2( 0.0f, 0.0f );
   

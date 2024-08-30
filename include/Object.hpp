@@ -96,7 +96,7 @@ public:
     return ( getID() == other.getID()) ;
   }
   
-  void VerletIntegration( const float& delta_time );
+  void EulerIntegration( const float& delta_time );
   void Acceleration( const Vec2& acc );
   
   void applyForce( std::shared_ptr<Object> object, const Vec2& dir, const float& distance );

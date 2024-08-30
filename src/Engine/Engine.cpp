@@ -647,10 +647,10 @@ void Engine::UpdatePhysics( const float& delta_time ) {
   //box = AbstractBox<float>( Vec2( WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  m_main_view.getSize() ) );
   box = AbstractBox<float>(Vec2( -1*current_world_size, -1*current_world_size ), Vec2( current_world_size*2, current_world_size*2 ));
   m_quad_root = std::make_unique<Quadtree>( box, 4, 8 );
-  // apply verlet integration every frame + draw
+  // apply euler integration every frame + draw
   for ( size_t i = 0; i < p_objects.size(); i++ ) {
     assert( p_objects[i] != nullptr );
-    p_objects[i]->VerletIntegration( delta_time );
+    p_objects[i]->EulerIntegration( delta_time );
     m_quad_root->insert( p_objects[i] );
     shared_ptr<sf::Shape> sh = p_objects[i]->getShape();
     if ( m_gizmos_mode ) WINDOW->draw(*(p_objects[i]->getQueryBox().shape) );
