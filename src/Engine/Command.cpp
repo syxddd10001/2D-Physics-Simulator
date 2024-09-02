@@ -1,4 +1,5 @@
-#include "Command.hpp"
+#include <Engine.hpp>
+#include <Command.hpp>
 
 #define DEBUG 1
 #if DEBUG == 1
@@ -98,12 +99,12 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
             num_objects = (isNumber (commands[7])) ? 
               std::stoi(commands[7]) : num_objects = 1;
           }    
-          AbstractBox<float> range { Vec2( engine_instance->WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  engine_instance->m_main_view.getSize() )*1.0f } ;
+          AbstractBox<float> range { Vec2( engine_instance->WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  engine_instance->getMainView().getSize() )*1.0f } ;
           
           NormalizeString(commands[1]);
           Object::ObjectType type = StringToCommand( Object::m_object_type_map, commands[1] );
-          centerX = isNumber( commands[5] ) ? std::stof(commands[5]) : engine_instance->m_mouse_pos_f.x;
-          centerY = isNumber( commands[6] ) ? std::stof(commands[6]) : engine_instance->m_mouse_pos_f.y;
+          centerX = isNumber( commands[5] ) ? std::stof(commands[5]) : engine_instance->getMousePosf().x;
+          centerY = isNumber( commands[6] ) ? std::stof(commands[6]) : engine_instance->getMousePosf().y;
           radius = isNumber( commands[3] ) ? std::stof(commands[3]) : 30.0f;
           angleIncrement = (2 * MY_PI) / num_objects;
                     
@@ -142,12 +143,12 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
         }
         
         if ( commands[1] == "single" ) {
-          engine_instance->m_select_mode = false;
+          engine_instance->setSelectMode(false);
           engine_instance->objectDefault();
         }
   
         else if ( commands[1] == "multi" ) {
-          engine_instance->m_select_mode = true;
+          engine_instance->setSelectMode(true);
           engine_instance->objectDefault();
         }
       break;
@@ -159,15 +160,15 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           break;
         }
         if ( commands[1] == "off" ){
-          engine_instance->m_drag = 0.00000000001f;
+          engine_instance->setDrag(0.00000000001f);
         }
   
         else if ( commands[1] == "on" ){
-          engine_instance->m_drag = engine_instance->m_default_drag;
+          engine_instance->setDrag(engine_instance->getDefaultDrag());
         }
   
         else{
-          engine_instance->m_drag = stof(commands[1]);
+          if (isNumber(commands[1])) engine_instance->setDrag(stof(commands[1]));
         }
       break;
       
@@ -191,9 +192,9 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
         if (commands.size() > 1) {
           NormalizeString(commands[1]);
           if ( commands[1] == "on" ) {
-            engine_instance->m_gravity_mode = true;
+            engine_instance->setGravityMode(true);
           } else if ( commands[1] == "off" ) {
-            engine_instance->m_gravity_mode = false;
+            engine_instance->setGravityMode(false);
           }   
         }
       break;

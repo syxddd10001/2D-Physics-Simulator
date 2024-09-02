@@ -45,38 +45,18 @@ bool Quadtree::insert ( std::shared_ptr<Object> obj ) {
     subdivideTree( ); // and then subdivide tree
   }
     
-    // when subdivided, insert the object to one of the 4 children nodes
-  if ( m_top_left->insert( obj ) ) {
-    // calculate new total mass and center of mass
-    // node_com = (old_com * old node mass + obj mass * obj pos) / new total mass 
-    Vec2 old_com = m_node_center_of_mass;
-    float old_mass = m_node_mass_total;
-    m_node_mass_total = obj->getMass()+old_mass;
-    m_node_center_of_mass = (old_com * old_mass + obj->getPosition() * obj->getMass()) / m_node_mass_total;
-    return true;
-  }
-  if ( m_top_right->insert( obj ) ) {
-    Vec2 old_com = m_node_center_of_mass;
-    float old_mass = m_node_mass_total;
-    m_node_mass_total = obj->getMass()+old_mass;
-    m_node_center_of_mass = (old_com * old_mass + obj->getPosition() * obj->getMass()) / m_node_mass_total;
-    return true;
-  }
-  if ( m_bottom_left->insert( obj ) ) {
-    Vec2 old_com = m_node_center_of_mass;
-    float old_mass = m_node_mass_total;
-    m_node_mass_total = obj->getMass()+old_mass;
-    m_node_center_of_mass = (old_com * old_mass + obj->getPosition() * obj->getMass()) / m_node_mass_total;
-    return true;
-  }
-  if ( m_bottom_right->insert( obj ) ) {
-    Vec2 old_com = m_node_center_of_mass;
-    float old_mass = m_node_mass_total;
-    m_node_mass_total = obj->getMass()+old_mass;
-    m_node_center_of_mass = (old_com * old_mass + obj->getPosition() * obj->getMass()) / m_node_mass_total;
-    return true;
-  }
-  
+  // calculate new total mass and center of mass
+  // node_com = (old_com * old node mass + obj mass * obj pos) / new total mass 
+  Vec2 old_com = m_node_center_of_mass;
+  float old_mass = m_node_mass_total;
+  m_node_mass_total = obj->getMass()+old_mass;
+  m_node_center_of_mass = (old_com * old_mass + obj->getPosition() * obj->getMass()) / m_node_mass_total;  
+    
+  // when subdivided, insert the object to one of the 4 children nodes
+  if ( m_top_left->insert( obj ) ) return true;
+  if ( m_top_right->insert( obj ) ) return true;
+  if ( m_bottom_left->insert( obj ) ) return true;
+  if ( m_bottom_right->insert( obj ) ) return true;
   
   return false;
 }
@@ -126,19 +106,6 @@ void Quadtree::drawBox( std::shared_ptr<sf::RenderWindow> window ) {
   }
 }
 
-// Barnes Hutt
-void Quadtree::calculateMassDistribution() {
-  // external nodes are leaves which contain bodies
-  // if external, mass and center of mass = the bodies present in that node
-  // interal nodes represent groups of bodies, which stores the total mass and center of mass of its child nodes
-  
-  // how to check if internal or external:
-  // if divided = true, its an internal node
-  // else its a leaf
-  
-  // i dont need this method anymore ...?
-  
-}
 /*
   Using Barnes Hutt algorithm to calculate force on obj
 */

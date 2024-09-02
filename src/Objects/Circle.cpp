@@ -1,5 +1,5 @@
 #include "Circle.hpp"
-
+using namespace syxd;
 
 Circle::Circle( float rad, float mass, float posX, float posY) noexcept
 : Object( mass, posX, posY ), m_radius( rad ) { 

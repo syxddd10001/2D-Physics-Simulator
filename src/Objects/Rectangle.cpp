@@ -1,5 +1,7 @@
 #include "Rectangle.hpp"
 
+using namespace syxd;
+
 Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float dimY ) noexcept
 : Object( mass, pos_x, pos_y ), m_dimensions( dimX, dimY )  {
   m_shape = std::make_shared<sf::RectangleShape>(sf::Vector2f(dimX, dimY));

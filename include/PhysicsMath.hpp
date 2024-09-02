@@ -10,6 +10,8 @@
 #include "Object.hpp"
 #include "Vector2.hpp"
 
+using namespace syxd;
+
 using Vec2 = syxd::Vector2<float>;
 
 point pairAdd( const point& pair1, const point& pair2 );
@@ -17,8 +19,6 @@ point pairSubtract( const point& pair1, const point& pair2 );
 point pairMultiply( const point& pair1, const point& pair2 );
 
 float calculateDistance( const Vec2& pos1, const Vec2& pos2 );
-
-void verletIntegration( std::shared_ptr<Object> object, float delta_time, const Vec2 acceleration );
 
 float dotProduct( const point& vectorA, const point& vectorB );
 Vec2 applyForce( std::shared_ptr<Object> this_object );

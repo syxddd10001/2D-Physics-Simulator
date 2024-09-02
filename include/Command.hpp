@@ -12,6 +12,9 @@
 #include <Object.hpp>
 #include <Engine.hpp>
 
+using namespace syxd;
+
+
 class Receiver{
 private:
   static std::shared_ptr<Receiver> p_instance;

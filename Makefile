@@ -15,6 +15,9 @@ OBJECTS += obj/Command.o obj/ObjectFactory.o obj/AbstractBox.o obj/Quadtree.o
 $(EXECUTABLE): src/main.cpp $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(SFML_INCLUDE) $(INCLUDE) -I src $^ -o $@ $(SFML_LIB) $(LIBS)
 
+obj/Command.o: src/Engine/Command.cpp include/Command.hpp obj/ObjectFactory.o obj/Engine.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
 obj/Engine.o: src/Engine/Engine.cpp include/Engine.hpp obj/Object.o obj/PhysicsMath.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
@@ -22,9 +25,6 @@ obj/Physics.o: src/Engine/Physics.cpp include/Physics.hpp obj/Object.o obj/Physi
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/PhysicsMath.o: src/Math/PhysicsMath.cpp include/PhysicsMath.hpp obj/Object.o
-	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
-
-obj/Command.o: src/Engine/Command.cpp include/Command.hpp obj/ObjectFactory.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/ObjectFactory.o: src/Engine/ObjectFactory.cpp include/ObjectFactory.hpp obj/Object.o obj/Circle.o obj/Rectangle.o

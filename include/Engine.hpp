@@ -1,13 +1,15 @@
 #pragma once
-#include <vector>
-#include <memory>
-#include <utility>
-#include <iostream>
+#include <vector> // vector
+#include <memory> // shared ptr, unique ptr, weak ptr
+#include <utility> // 
+#include <iostream> // cout
 #include <cmath>
 #include <stdlib.h>
 #include <assert.h>
 #include <time.h>
 #include <condition_variable>
+#include <stack>
+
 #include "Vector2.hpp"
 #include "Object.hpp"
 #include "AbstractBox.hpp"
@@ -15,14 +17,23 @@
 #include "PhysicsMath.hpp"
 #include "Physics.hpp"
 #include "Quadtree.hpp"
+#include "UserInterface.hpp"
+
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Clipboard.hpp>
-#include <UserInterface.hpp>
-#include <stack>
 
-#define shptr_obj shared_ptr<Object>
-#define shptr_rect shared_ptr<Rectangle>
-#define shptr_circ shared_ptr<Circle>
+using namespace syxd;
+
+#define DEBUG 1
+#if DEBUG == 1
+  #define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
+#else
+  #define DEBUG_PRINT(format, ...) // Do nothing //
+#endif
+
+#define shptr_obj shared_ptr<syxd::Object>
+#define shptr_rect shared_ptr<syxd::Rectangle>
+#define shptr_circ shared_ptr<syxd::Circle>
 
 using Vec2 = syxd::Vector2<float>;
 using std::cout;
@@ -32,12 +43,13 @@ using std::shared_ptr;
 using std::unique_ptr; 
 using std::weak_ptr;
 using std::vector;
+using std::dynamic_pointer_cast;
 
 struct WINDOW_SETTINGS {
-  float MAX_FRAME_RATE;
-  uint16_t DEFAULT_WINDOW_SIZE_X;
+  float MAX_FRAME_RATE; // max frame rate of this window
+  uint16_t DEFAULT_WINDOW_SIZE_X; // 
   uint16_t DEFAULT_WINDOW_SIZE_Y;
-  float WORLD_SIZE; // always square
+  uint16_t WORLD_SIZE; // always square
   std::string WINDOW_NAME;
 };
 
@@ -47,7 +59,6 @@ struct UI_SETTINGS {
   uint16_t h3_size; // 25
   uint16_t p1_size; // 20
 };
-
 
 class Engine {
 private:
@@ -60,40 +71,47 @@ private:
   float _INPUT_INTERVAL = 0.1f;
   float _CURSOR_BLINK_INTERVAL = 0.50f;
   
-
-public:
-  shared_ptr<sf::RenderWindow> WINDOW; // Main render window that displays stuff
+  std::chrono::high_resolution_clock::time_point start;
   sf::Clock clock; // to keep track of time between frames
   sf::View m_main_view; // main view of the world
   sf::View m_ui_view; // ui has a seperate view so that zooming/moving through the world doesn't affect the ui
   sf::Font m_default_font;
-  
-  sf::Vector2i m_mouse_pos_i;
-  sf::Vector2f m_mouse_pos_f;
-  
+   
+  sf::Vector2i m_mouse_pos_i; // latest mouse position as int
+  sf::Vector2f m_mouse_pos_f; // latest mouse position as float
+    
   float m_elapsed_time_spawn = CREATION_INTERVAL;
   float m_elapsed_time_move = INTERRUPT_INTERVAL;
   float m_elapsed_time_input = _INPUT_INTERVAL;
   float m_elapsed_time_cursor_blink = _CURSOR_BLINK_INTERVAL;
   float m_elapsed_diagnostic = TOGGLE_INTERVAL;
   float m_elapsed_time_increase = CREATION_INTERVAL;
-  
+
   bool m_select_mode = false; // multi select mode
-  bool m_command_mode = false;
+  bool m_command_mode = false; // input/command mode
   const float m_default_drag = -0.7f;
   bool m_gizmos_mode = false;
   bool m_gravity_mode = true;
   float m_drag;
-  bool isRunning;
+  bool is_running;
   int num_objects_to_spawn = 1;
-  
-  std::unique_ptr<Quadtree> m_quad_root;
-  
-  WINDOW_SETTINGS m_window_settings;
-  UI_SETTINGS m_ui_settings; 
+  bool is_paused = false;
 
-  UserInterface m_user_interface;
+public:
+  shared_ptr<sf::RenderWindow> WINDOW; // Main render window that displays stuff
+  std::unique_ptr<Quadtree> m_quad_root; // Root of the quadtree of this world
   
+  WINDOW_SETTINGS m_window_settings; // window/world settings
+  UI_SETTINGS m_ui_settings; // ui settings
+
+  UserInterface m_user_interface; // this engine's user interface
+
+  sf::Event e_event;
+
+  vector<shptr_obj> p_objects; // all objects
+  vector<shptr_obj> p_selected_objects; // selected objects
+  shptr_obj p_selected_object = nullptr;
+
   Engine( const uint16_t world_size );
   ~Engine();
 
@@ -102,6 +120,8 @@ public:
   void UpdatePhysics( const float& delta_time ); // updates object data
   void Render( ); // render any non-ui and non-world elements
   void UI( ); // UI
+  
+  void MainLoop(); // main engine loop
   
   void addObject( const shptr_obj object ); // adds a new object to the world
   vector<shptr_obj>& getAllObjects(); // returns all objects in the world
@@ -114,15 +134,31 @@ public:
   void moveAll( vector<shptr_obj> objects, const sf::Vector2f delta ); // move all objects that are selected
   bool deleteObject( const shptr_obj object_to_delete, vector<shared_ptr<Object>>& all_objects ); // delete a selected object
   void deleteSelectedObjects( vector<shptr_obj>& objects_to_delete ); // deleted all objects that are selected
+  void InitializeWorld( ); // initialize the world with objects
+  void displayDiagnosticInfo( const std::chrono::high_resolution_clock::time_point& start ); // returns window frames per second
+  void InitializeUI( ); // initialize the ui with elements
+  void setZoomLimits( const sf::Vector2f& worldSize, const sf::Vector2f& windowSize ); // zoom limits of the world
+  
   void displayGizmos( );
-  void InitializeWorld( );
-  void displayDiagnosticInfo( const std::chrono::high_resolution_clock::time_point& start,
-                              const uint64_t& cpu_usage, 
-                              const uint64_t& memory_available,
-                              const uint64_t& memory_used); // returns window frames per second
-  void InitializeUI( );
-  void setZoomLimits( const sf::Vector2f& worldSize, const sf::Vector2f& windowSize );
   
   void checkCollisionWithWorld( const shptr_obj object ) const noexcept;
   void drawEdges( );
+  
+  bool isRunning(); // is this engine running?
+  bool isGizmosMode();
+  void setGizmosMode( const bool& b );
+  bool isCommandMode();
+  void setCommandMode( const bool& b );
+  bool isSelectMode();
+  void setSelectMode( const bool& b );
+  float getDrag();
+  void setDrag( const float& drag );
+  const float getDefaultDrag();
+  bool isGravityMode();
+  void setGravityMode( const bool& b );
+  
+  sf::Vector2f& getMousePosf();
+  sf::Vector2i& getMousePosi();
+  
+  sf::View& getMainView();
 };

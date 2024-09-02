@@ -1,6 +1,6 @@
 #include <Object.hpp>
 
-//
+using namespace syxd;
 
 const std::map<std::string, Object::ObjectType> Object::m_object_type_map = { 
       { "circle", CIRCLE }, 
@@ -32,6 +32,10 @@ std::shared_ptr<sf::Shape> Object::getShape( ) {
 
 void Object::setOldPosition( ) {
   position_old = position_current;   
+}
+
+void Object::setOldPosition( const Vec2& pos ) {
+  position_old = pos;
 }
 
 void Object::setPosition( const Vec2 pos ) {
@@ -97,7 +101,9 @@ bool Object::mouseOnObject( const Vec2& vector ) {
 Object::ObjectType Object::getType(){
   return Object::NONE;
 }
-
+/* 
+  Explicit Euler Integration to calculate the objects current velocity and position
+*/
 void Object::EulerIntegration( const float& delta_time ) {
   if ( velocity.magnitude() < 0.01f ) 
     velocity = Vec2( 0.0f, 0.0f );
@@ -109,6 +115,14 @@ void Object::EulerIntegration( const float& delta_time ) {
   setPosition( position_old + velocity * delta_time );
   setAcceleration( Vec2{ 0, 0 });
   setQueryBox( AbstractBox<float>( getCenter()-(getSize()*2), Vec2{ getSize().x*4, getSize().y*4 } ) );
+}
+
+void Object::VerletIntegration(const float& delta_time) {
+  // bugs
+  Vec2 prevPos = position_current;
+  position_current = ((position_current * 2) - prevPos + acceleration * delta_time * delta_time);
+  setAcceleration(Vec2{ 0, 0 });
+  setQueryBox(AbstractBox<float>(getCenter() - (getSize() * 2), Vec2{ getSize().x * 4, getSize().y * 4 }));
 }
 
 void Object::Acceleration( const Vec2& acc ) {

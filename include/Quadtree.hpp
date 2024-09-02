@@ -13,6 +13,8 @@
 #include "Rectangle.hpp"
 #include <SFML/Graphics.hpp>
 
+using namespace syxd;
+
 class Quadtree {
 public:
   int m_threshold;
@@ -47,9 +49,7 @@ public:
   std::vector<std::shared_ptr<Object>> query( AbstractBox<float> range );
   
   void drawBox( std::shared_ptr<sf::RenderWindow> window );
-  
-  void calculateMassDistribution( );
-  Vec2 calculateForce( );
+
   Vec2 calculateForce( std::shared_ptr<Object> obj );
    
 };

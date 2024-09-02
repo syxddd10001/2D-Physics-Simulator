@@ -7,6 +7,7 @@
 #include <SFML/Graphics.hpp>
 #include "Vector2.hpp"
 
+using namespace syxd;
 using point = std::pair<float, float>;
 using Vec2 = syxd::Vector2<float>;
 

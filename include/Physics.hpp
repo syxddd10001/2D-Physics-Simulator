@@ -7,6 +7,9 @@
 #include "Circle.hpp"
 #include "Rectangle.hpp"
 
+using namespace syxd;
+
+
 bool onCollision( std::shared_ptr<Circle> object1, std::shared_ptr<Circle> object2 );
 void dynamicResponse ( std::shared_ptr<Circle> object1, std::shared_ptr<Circle> object2 );
 

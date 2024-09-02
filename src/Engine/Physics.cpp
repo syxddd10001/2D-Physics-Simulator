@@ -1,4 +1,4 @@
-#include "Physics.hpp"
+#include <Physics.hpp>
 
 // Detect circle vs. circle collisions
 bool onCollision( std::shared_ptr<Circle> object1, std::shared_ptr<Circle> object2 ) {
@@ -95,7 +95,6 @@ void dynamicResponse( std::shared_ptr<Circle> object1, std::shared_ptr<Rectangle
 
 bool onCollision( std::shared_ptr<Rectangle> object1, std::shared_ptr<Rectangle> object2 ) {
   if ( !object1->intersects(object2) ) return false;
-  
-  return true;
 
+  return true;
 }

@@ -1,13 +1,15 @@
 #include <Engine.hpp>
 #include <Command.hpp>
 #include <Quadtree.hpp>
-
+#include "DiagnosticInfo.hpp"
 #define DEBUG 1
 #if DEBUG == 1
   #define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
 #else
   #define DEBUG_PRINT(format, ...) // Do nothing //
 #endif
+
+using namespace syxd;
 
 // Engine Instance local variables
 sf::Event e_event;
@@ -123,11 +125,11 @@ Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 9
 
   InitializeWorld();
   InitializeUI();
-  
+  init();
   cout << std::setprecision(13);
 
   DEBUG_PRINT( "%dx%d window spawned \n", m_window_settings.DEFAULT_WINDOW_SIZE_X, m_window_settings.DEFAULT_WINDOW_SIZE_Y );
-  isRunning = true;
+  is_running = true;
 }
 
 Engine::~Engine( ) {
@@ -149,7 +151,7 @@ void Engine::EventManager( const float& delta_time ) {
   if( WINDOW->pollEvent( e_event ) ) {
     switch( e_event.type ) {
       case sf::Event::Closed:
-        isRunning = false;
+        is_running = false;
         WINDOW->close();
         
       break;
@@ -241,10 +243,10 @@ void Engine::EventManager( const float& delta_time ) {
       break;
   
       case sf::Event::KeyReleased:
-        if ( e_event.key.code == sf::Keyboard::G ) {
-          m_gizmos_mode = !m_gizmos_mode;
-          DEBUG_PRINT("%s\n", "gizmos toggled"); 
-        }     
+        if ( e_event.key.code == sf::Keyboard::Pause ){
+          is_paused = !is_paused;
+        }
+
         if ( input_lock && m_command_mode && e_event.key.code == sf::Keyboard::P ) {
           s_input_text = input_previous;
         }  
@@ -296,6 +298,10 @@ void Engine::EventManager( const float& delta_time ) {
               s_input_text.clear();
               cursor_position = 0;
             }
+            
+            if ( s_input_text.empty() ){
+              m_command_mode = false;
+            }
           }
           objectDefault( );
         }
@@ -316,6 +322,14 @@ void Engine::EventManager( const float& delta_time ) {
       break;
   
       case sf::Event::KeyPressed:
+        if ( e_event.key.control && 
+          e_event.key.code == sf::Keyboard::G &&
+          m_elapsed_diagnostic >= TOGGLE_INTERVAL ) {
+          m_elapsed_diagnostic = 0.0f;
+          m_gizmos_mode = !m_gizmos_mode;
+          DEBUG_PRINT("%s\n", "gizmos toggled"); 
+        }   
+        
         if ( e_event.key.control &&
           e_event.key.code == sf::Keyboard::Z && 
           m_elapsed_diagnostic >= TOGGLE_INTERVAL &&
@@ -332,6 +346,7 @@ void Engine::EventManager( const float& delta_time ) {
           m_elapsed_diagnostic >= TOGGLE_INTERVAL ){
           m_elapsed_diagnostic = 0.0f;
           show_diagnostic = !show_diagnostic;
+          DEBUG_PRINT("%s\n", "Diagnostic toggled"); 
         }
 
         if ( e_event.key.control &&
@@ -469,10 +484,7 @@ void Engine::EventManager( const float& delta_time ) {
       Vec2 curr_pos { p_selected_object->getPosition().x+delta.x, p_selected_object->getPosition().y+delta.y };
       p_selected_object->setPosition( curr_pos );
       p_selected_object->setVelocity( Vec2 {0, 0} );
-      /*
-      verletIntegration( p_selected_object, delta_time );
-      p_selected_object->setVelocity( Vec2  );
-      */
+
       mouse_pos_prev = m_mouse_pos_f;
       
     }
@@ -650,7 +662,7 @@ void Engine::UpdatePhysics( const float& delta_time ) {
   // apply euler integration every frame + draw
   for ( size_t i = 0; i < p_objects.size(); i++ ) {
     assert( p_objects[i] != nullptr );
-    p_objects[i]->EulerIntegration( delta_time );
+    if ( !is_paused ) p_objects[i]->EulerIntegration( delta_time );
     m_quad_root->insert( p_objects[i] );
     shared_ptr<sf::Shape> sh = p_objects[i]->getShape();
     if ( m_gizmos_mode ) WINDOW->draw(*(p_objects[i]->getQueryBox().shape) );
@@ -661,13 +673,12 @@ void Engine::UpdatePhysics( const float& delta_time ) {
 /*
   Checks if any collision has occured and provides a response to that collision 
 */
-
 void Engine::CollisionCheck( ) {
   // collision detection and response
   for ( auto& current : p_objects ) {
     auto obj_in_range = m_quad_root->query( current->getQueryBox() ); 
     //checkCollisionWithWorld( current );
-    if ( m_gravity_mode ) {
+    if ( m_gravity_mode && !is_paused ) {
     // gravity simulation using Barnes Hut -- O(n log n)
       Vec2 force = m_quad_root->calculateForce( current ); // Use an appropriate theta value
       current->applyForce(force);
@@ -675,24 +686,24 @@ void Engine::CollisionCheck( ) {
     for ( auto& other : obj_in_range ) {
       if ( current == other ) continue;
       
-      if ( ( typeid( *current ) == typeid( Circle )
-         && typeid( *other ) == typeid( Circle ) ) ) {
-        auto current_ref = std::dynamic_pointer_cast<Circle>( current );
-        auto other_ref = std::dynamic_pointer_cast<Circle>( other );
+      if ( ( typeid( *current ) == typeid( syxd::Circle )
+         && typeid( *other ) == typeid( syxd::Circle ) ) ) {
+        auto current_ref = dynamic_pointer_cast<syxd::Circle>( current );
+        auto other_ref = dynamic_pointer_cast<syxd::Circle>( other );
         if ( onCollision( current_ref, other_ref ) ) {
           dynamicResponse( current_ref, other_ref );
         }    
       }
-      else if ( ( typeid( *current ) == typeid( Circle ) && typeid( *other ) == typeid( Rectangle ) ) ) {
-        auto current_ref = std::dynamic_pointer_cast<Circle>( current );
-        auto other_ref = std::dynamic_pointer_cast<Rectangle>( other );
+      else if ( ( typeid( *current ) == typeid( syxd::Circle ) && typeid( *other ) == typeid( syxd::Rectangle ) ) ) {
+        auto current_ref = dynamic_pointer_cast<syxd::Circle>( current );
+        auto other_ref = dynamic_pointer_cast<syxd::Rectangle>( other );
         if (onCollision( current_ref, other_ref ) ) {
           dynamicResponse( current_ref, other_ref );
         }
       }
-      else if ( ( typeid( *current ) == typeid( Rectangle ) && typeid( *other ) == typeid( Circle ) ) ) {
-        auto current_ref = std::dynamic_pointer_cast<Rectangle>( current );
-        auto other_ref = std::dynamic_pointer_cast<Circle>( other );
+      else if ( ( typeid( *current ) == typeid( syxd::Rectangle ) && typeid( *other ) == typeid( syxd::Circle ) ) ) {
+        auto current_ref = dynamic_pointer_cast<syxd::Rectangle>( current );
+        auto other_ref = dynamic_pointer_cast<syxd::Circle>( other );
         if (onCollision( other_ref, current_ref ) ) {
           dynamicResponse( other_ref, current_ref );
         }
@@ -734,13 +745,12 @@ void Engine::checkCollisionWithWorld( const shptr_obj object ) const noexcept {
 /*
   Returns the Frames Per Second of the window 
 */
-void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::time_point& start,
-                                    const uint64_t& cpu_usage, 
-                                    const uint64_t& memory_available,
-                                    const uint64_t& memory_used ) {
+void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::time_point& start ) {
   std::chrono::high_resolution_clock::time_point end;
-  if ( !show_diagnostic ) return;
   float fps;
+  const uint64_t cpu_usage = GetCPUUsage();
+  const uint64_t memory_available = GetMemoryUsage().available;
+  const uint64_t memory_used = GetMemoryUsage().used;
     // window.draw, etc.
   end = std::chrono::high_resolution_clock::now();
 
@@ -926,7 +936,7 @@ void Engine::zoomViewAt(const sf::Vector2i& pixel, const float& zoom) {
 void Engine::displayGizmos( ) {
   if ( !m_gizmos_mode ) return; 
   m_quad_root->drawBox( WINDOW );
-  WINDOW->draw(*(mouse_query_box.shape));
+  WINDOW->draw( *(mouse_query_box.shape) );
 }
 
 void Engine::InitializeWorld( ) {
@@ -1002,4 +1012,76 @@ void Engine::InitializeUI(){
                               "FPS: " +  std::to_string( floor(0) ),
                               m_ui_settings.h3_size,
                               sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 50.0f } );
+}
+
+bool Engine::isRunning(){
+  return is_running;
+}
+
+sf::View& Engine::getMainView(){
+  return m_main_view;
+}
+
+bool Engine::isGizmosMode(){
+  return m_gizmos_mode;
+}
+bool Engine::isCommandMode(){
+  return m_command_mode;
+}
+bool Engine::isSelectMode(){
+  return m_select_mode;
+}
+float Engine::getDrag(){
+  return m_drag;
+}
+void Engine::setDrag( const float& drag ){
+  m_drag = drag;
+}
+const float Engine::getDefaultDrag(){
+  return m_default_drag;
+}
+
+void Engine::setGizmosMode( const bool& b ){
+  m_gizmos_mode = b;
+}
+
+void Engine::setCommandMode( const bool& b ){
+  m_command_mode = b;
+}
+
+void Engine::setSelectMode( const bool& b ){
+  m_select_mode = b;
+}
+
+bool Engine::isGravityMode(){
+  return m_gravity_mode;
+}
+void Engine::setGravityMode( const bool& b ){
+  m_gravity_mode = b;
+}
+
+sf::Vector2f& Engine::getMousePosf(){
+  return m_mouse_pos_f;
+}
+sf::Vector2i& Engine::getMousePosi(){
+  return m_mouse_pos_i;
+}
+
+void Engine::MainLoop(){
+  while ( isRunning() ) {
+    start = std::chrono::high_resolution_clock::now(); // for benchmarking
+    WINDOW->clear( );
+    m_mouse_pos_f = WINDOW->mapPixelToCoords( sf::Mouse::getPosition( *(WINDOW) ) ); // current mouse pos in float
+    m_mouse_pos_i = { static_cast<int>( m_mouse_pos_f.x ), static_cast<int>( m_mouse_pos_f.y ) };  // current mouse pos in int
+    float delta_time = clock.restart().asSeconds(); // getting deltaTime
+    EventManager( delta_time ); // calling event manager to handle inputs
+    CollisionCheck( ); // calling collision checker
+    UpdatePhysics( delta_time ); // updating and rerendering the positions of objects
+    Render( ); // rendering any non-UI and non-world elements
+    WINDOW->setView( m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
+    UI( ); // rendering UI 
+    displayDiagnosticInfo( start );  // diagnostic info for benchmarking
+    WINDOW->setView( m_main_view ); // resetting view to main 
+    WINDOW->display();
+  }
 }

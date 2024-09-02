@@ -4,6 +4,7 @@
 #include <string>
 #include <cassert>
 
+
 struct UI_Element {
   std::string identifier;
   sf::Text text;

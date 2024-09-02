@@ -29,25 +29,6 @@ float dotProduct( const point& vectorA, const point& vectorB ) {
   return vectorA.first*vectorB.first + vectorA.second*vectorB.second;
 }
 
-void verletIntegration( std::shared_ptr<Object> object, const float delta_time, const Vec2 acceleration ) {
-  Vec2 velocity_0 = object->getVelocity();
-  Vec2 position_0 = object->getPosition();
-
-  if ( std::sqrt( velocity_0.x*velocity_0.x + velocity_0.y * velocity_0.y ) < 0.01f ) 
-    velocity_0 = Vec2( 0.0f, 0.0f );
-  
-  Vec2 acc = object->getAcceleration();
-  
-  object->setVelocity( Vec2( velocity_0.x + ( velocity_0.x * acceleration.x) * delta_time , 
-                              velocity_0.y + ( velocity_0.y * +acceleration.y) * delta_time));
-  std::cout << object->getVelocity().x << ',' << object->getVelocity().y <<'\n';
-  object->setPosition( Vec2( position_0.x + (object->getVelocity().x * delta_time ), 
-                              position_0.y + (object->getVelocity().y * delta_time ) ) );
-
-  object->setQueryBox( AbstractBox<float>( object->getCenter()-(object->getSize()*2), Vec2{ object->getSize().x*4, object->getSize().y*4 } ) );
-
-}
-
 Vec2 applyForce( std::shared_ptr<Object> object ) {
   return Vec2{};
 }

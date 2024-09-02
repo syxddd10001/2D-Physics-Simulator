@@ -5,6 +5,8 @@
 #include "Circle.hpp"
 #include "Rectangle.hpp"
 
+using namespace syxd;
+
 // Where objects get created depending on the input
 class ObjectFactory {
 private:
