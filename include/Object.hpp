@@ -29,7 +29,7 @@ namespace syxd{
     Vec2 net_force;
     
     std::shared_ptr<sf::Shape> m_shape;
-    std::shared_ptr<sf::Color> m_color;
+    std::unique_ptr<sf::Color> m_color;
     AbstractBox<float> m_queryBox;
   
   public:    

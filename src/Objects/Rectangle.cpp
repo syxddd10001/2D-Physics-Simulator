@@ -5,7 +5,7 @@ using namespace syxd;
 Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float dimY ) noexcept
 : Object( mass, pos_x, pos_y ), m_dimensions( dimX, dimY )  {
   m_shape = std::make_shared<sf::RectangleShape>(sf::Vector2f(dimX, dimY));
-  m_color = std::make_shared<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
+  m_color = std::make_unique<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
   m_shape->setOutlineThickness(1.0f);
   m_shape->setOutlineColor(sf::Color::Black);
   m_shape->setFillColor(*m_color);

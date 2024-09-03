@@ -16,7 +16,9 @@
 using namespace syxd;
 
 class Quadtree {
-public:
+private:
+  const float THETA = 2.0f;
+  
   int m_threshold;
   int m_depth;
   bool m_divided = false;
@@ -25,7 +27,6 @@ public:
   float m_node_mass_total = 0.0f;
   float m_node_net_force = 0.f;
   
-  const float THETA = 1.5f;
   
   AbstractBox<float> m_bounds;
   std::vector<std::shared_ptr<Object>> m_objects;
@@ -34,7 +35,9 @@ public:
   std::shared_ptr<Quadtree> m_top_right{};
   std::shared_ptr<Quadtree> m_bottom_left{};
   std::shared_ptr<Quadtree> m_bottom_right{};
-  
+
+public:
+
   Quadtree( AbstractBox<float> mbox, int maxThreshold, int maxDepth ) : 
     m_bounds(mbox), 
     m_threshold(maxThreshold),

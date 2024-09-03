@@ -5,7 +5,7 @@ Circle::Circle( float rad, float mass, float posX, float posY) noexcept
 : Object( mass, posX, posY ), m_radius( rad ) { 
   m_shape = std::make_shared<sf::CircleShape>( m_radius );
   sf::Vector2f circleCenter( rad, rad );
-  m_color = std::make_shared<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
+  m_color = std::make_unique<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
   m_shape->setOrigin( circleCenter );
   m_shape->setOutlineThickness( 0.5f );
   m_shape->setFillColor( *m_color );

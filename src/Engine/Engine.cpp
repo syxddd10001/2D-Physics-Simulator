@@ -658,7 +658,7 @@ void Engine::UpdatePhysics( const float& delta_time ) {
   potential_selection = m_quad_root->query( mouse_query_box );
   //box = AbstractBox<float>( Vec2( WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  m_main_view.getSize() ) );
   box = AbstractBox<float>(Vec2( -1*current_world_size, -1*current_world_size ), Vec2( current_world_size*2, current_world_size*2 ));
-  m_quad_root = std::make_unique<Quadtree>( box, 4, 8 );
+  m_quad_root = std::make_unique<Quadtree>( box, 1, 8 );
   // apply euler integration every frame + draw
   for ( size_t i = 0; i < p_objects.size(); i++ ) {
     assert( p_objects[i] != nullptr );
