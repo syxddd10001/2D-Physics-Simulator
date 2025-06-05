@@ -44,6 +44,8 @@ bool cursor_show = true;
 bool focus = false;
 bool show_diagnostic = true;
 bool set_zoom_limit = false;
+bool ui_elements_hidden = false;
+
 sf::Vector2i original_coordinates; // where the camera originally is
 
 // command mode blink cursor position
@@ -71,6 +73,7 @@ float m_max_zoom = 2.0f;
 
 uint16_t current_world_size;
 
+
 Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 900, world_size, "2D Physics Simulator" } { 
   m_ui_settings = { 30, 20, 15, 12 }; // h1, h2, h3, p font sizes
   current_world_size = world_size;
@@ -97,9 +100,10 @@ Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 9
   p_selected_objects.reserve(50);
   
   #if DEBUG
-    if ( !m_default_font.loadFromFile( "static/fonts/cairo.ttf" ) ){
+    if ( !m_default_font.loadFromFile( fonts[0] ) ){
         DEBUG_PRINT("Font not found\n");
     }
+    
   #else
     if ( !m_default_font.loadFromFile( "static/fonts/cairo.ttf" ) ){
         DEBUG_PRINT("Font not found\n");
@@ -112,8 +116,12 @@ Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 9
   cursor.setSize( sf::Vector2f { 5.0f, 20.0f } ); // cursor for text input
   cursor.setFillColor( sf::Color::White );
 
-  m_user_interface.SetFont( m_default_font );
+  m_user_interface.SetWindow( WINDOW );
+  m_help_interface.SetWindow( HELP_WINDOW );
   
+  m_user_interface.SetFont( m_default_font );
+  m_help_interface.SetFont( m_default_font );
+
   WINDOW->setFramerateLimit( m_window_settings.MAX_FRAME_RATE );
   WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_X), 
                                                                   static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_Y) ) ));
@@ -148,6 +156,19 @@ void Engine::EventManager( const float& delta_time ) {
   ( m_elapsed_diagnostic < TOGGLE_INTERVAL ) ? m_elapsed_diagnostic += delta_time : m_elapsed_diagnostic = TOGGLE_INTERVAL;
   ( m_elapsed_time_increase < CREATION_INTERVAL ) ? m_elapsed_time_increase += delta_time : m_elapsed_time_increase = CREATION_INTERVAL;
   
+  if( HELP_WINDOW != nullptr && HELP_WINDOW->pollEvent( e_event ) ) {
+    switch( e_event.type ) {
+      case sf::Event::Closed:
+        HELP_WINDOW->close();
+      break;
+
+      case sf::Event::Resized:
+        //setZoomLimits ( sf::Vector2f {m_window_settings.WORLD_SIZE, m_window_settings.WORLD_SIZE}, sf::Vector2f(WINDOW->getSize()));
+        HELP_WINDOW->setView( m_help_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
+      break;
+    }
+  }
+
   if( WINDOW->pollEvent( e_event ) ) {
     switch( e_event.type ) {
       case sf::Event::Closed:
@@ -328,6 +349,13 @@ void Engine::EventManager( const float& delta_time ) {
           m_elapsed_diagnostic = 0.0f;
           m_gizmos_mode = !m_gizmos_mode;
           DEBUG_PRINT("%s\n", "gizmos toggled"); 
+        }
+        
+        if ( e_event.key.control && 
+          e_event.key.code == sf::Keyboard::O &&
+          m_elapsed_diagnostic >= TOGGLE_INTERVAL ) {
+          if (sim_speed < 8) sim_speed*=2;
+          else if (sim_speed == 8) sim_speed = 1;
         }   
         
         if ( e_event.key.control &&
@@ -343,9 +371,25 @@ void Engine::EventManager( const float& delta_time ) {
 
         if ( e_event.key.control &&
           e_event.key.code == sf::Keyboard::D && 
-          m_elapsed_diagnostic >= TOGGLE_INTERVAL ){
+          m_elapsed_diagnostic >= TOGGLE_INTERVAL ) {
+          
           m_elapsed_diagnostic = 0.0f;
           show_diagnostic = !show_diagnostic;
+          /*
+          if (!show_diagnostic){
+            m_user_interface.HideElement(m_user_interface.FindElement("gizmos text"));
+            m_user_interface.HideElement(m_user_interface.FindElement("cpu text"));
+            m_user_interface.HideElement(m_user_interface.FindElement("memory available text"));
+            m_user_interface.HideElement(m_user_interface.FindElement("memory used text"));
+            m_user_interface.HideElement(m_user_interface.FindElement("fps text"));
+          } else {
+            m_user_interface.ShowElement(m_user_interface.FindElement("gizmos text"));
+            m_user_interface.ShowElement(m_user_interface.FindElement("cpu text"));
+            m_user_interface.ShowElement(m_user_interface.FindElement("memory available text"));
+            m_user_interface.ShowElement(m_user_interface.FindElement("memory used text"));
+            m_user_interface.ShowElement(m_user_interface.FindElement("fps text"));
+          }
+          */
           DEBUG_PRINT("%s\n", "Diagnostic toggled"); 
         }
 
@@ -360,6 +404,17 @@ void Engine::EventManager( const float& delta_time ) {
         if ( e_event.key.control &&
           e_event.key.code == sf::Keyboard::A ) {
           getObjectsInArea( box );
+        }
+
+        if ( e_event.key.control &&
+          e_event.key.code == sf::Keyboard::U ) {
+          ui_elements_hidden = !ui_elements_hidden;
+          
+          if (ui_elements_hidden){
+            m_user_interface.HideAllElements();
+          } else {
+            m_user_interface.ShowAllElements();
+          }
         }
 
         if ( e_event.key.control &&
@@ -420,7 +475,7 @@ void Engine::EventManager( const float& delta_time ) {
           shptr_obj obj;
 
           if ( spawn_type == "cir" ) {
-            float t_mass = spawn_size*100.0f;
+            float t_mass = spawn_size*200.0f;
             string command = "";
             command.append("spawn circle ");
             command.append(std::to_string(t_mass) + " ");
@@ -615,6 +670,7 @@ void Engine::dragRectangle( ) {
   if ( sf::Event::MouseMoved &&
       sf::Mouse::isButtonPressed( sf::Mouse::Right ) &&
       clicked && !p_selected_object ) { 
+    
     sf::Vector2f rect_size( m_mouse_pos_f.x - mouse_on_click_start.x, m_mouse_pos_f.y - mouse_on_click_start.y );
 
     mouse_drawn_box.setPosition( mouse_on_click_start.x, mouse_on_click_start.y );
@@ -662,7 +718,7 @@ void Engine::UpdatePhysics( const float& delta_time ) {
   // apply euler integration every frame + draw
   for ( size_t i = 0; i < p_objects.size(); i++ ) {
     assert( p_objects[i] != nullptr );
-    if ( !is_paused ) p_objects[i]->EulerIntegration( delta_time );
+    if ( !is_paused ) p_objects[i]->EulerIntegration( delta_time * sim_speed  );
     m_quad_root->insert( p_objects[i] );
     shared_ptr<sf::Shape> sh = p_objects[i]->getShape();
     if ( m_gizmos_mode ) WINDOW->draw(*(p_objects[i]->getQueryBox().shape) );
@@ -681,7 +737,7 @@ void Engine::CollisionCheck( ) {
     if ( m_gravity_mode && !is_paused ) {
     // gravity simulation using Barnes Hut -- O(n log n)
       Vec2 force = m_quad_root->calculateForce( current ); // Use an appropriate theta value
-      current->applyForce(force);
+      current->applyForce( force );
     }
     for ( auto& other : obj_in_range ) {
       if ( current == other ) continue;
@@ -751,7 +807,7 @@ void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::ti
   const uint64_t cpu_usage = GetCPUUsage();
   const uint64_t memory_available = GetMemoryUsage().available;
   const uint64_t memory_used = GetMemoryUsage().used;
-    // window.draw, etc.
+
   end = std::chrono::high_resolution_clock::now();
 
   fps = ((float)1e9/(float)std::chrono::duration_cast<std::chrono::nanoseconds>( end - start ).count());
@@ -773,9 +829,9 @@ void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::ti
 }
 
 /*
-  User Interface elements
+  Update User Interface elements
 */
-void Engine::UI( ) {
+void Engine::Update_UI( ) {
   
   m_user_interface.UpdateElementText(m_user_interface.FindElement("spawn size"), 
                                     "Spawn Size: " + std::to_string((int)spawn_size));
@@ -798,8 +854,18 @@ void Engine::UI( ) {
   m_user_interface.UpdateElementText( m_user_interface.FindElement("num objects" ), 
                                     "Objects: " + std::to_string(object_count));
 
+  std::stringstream str_sim_speed;
+  str_sim_speed << std::fixed << std::setprecision(1) << sim_speed;
+
+  m_user_interface.UpdateElementText( m_user_interface.FindElement("simulation speed"), 
+    "Simulation Speed: " +  str_sim_speed.str() + "x\nCtrl + O to change speed");
+
   m_user_interface.UpdateElementPosition( m_user_interface.FindElement("command indicator"), sf::Vector2f { 0, (float)WINDOW->getSize().y - 90.0f } );
   
+  m_user_interface.UpdateElementText( m_user_interface.FindElement("command mode"),
+                                    (!m_command_mode) ? "Ctrl + I for Command Mode" : "Ctrl + I to Exit Command Mode");
+
+
   inputBox.setPosition( sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90 } );
   inputBox.setString( s_input_text );
   cursor.setPosition( sf::Vector2f { inputBox.findCharacterPos(cursor_position).x, inputBox.findCharacterPos(cursor_position).y+4.f } );
@@ -819,7 +885,16 @@ void Engine::UI( ) {
   if ( cursor_show && m_command_mode ) WINDOW->draw( cursor );
   
   WINDOW->draw( inputBox );
-  m_user_interface.RenderUI( WINDOW );
+  m_user_interface.RenderUI( );
+
+  
+  if ( HELP_WINDOW != nullptr ) {
+    m_help_interface.UpdateElementText(m_help_interface.FindElement("title"), 
+                                    "MANUAL PAGE");
+
+    m_help_interface.RenderUI( ); 
+  }
+
 }
 
 /*
@@ -945,44 +1020,63 @@ void Engine::InitializeWorld( ) {
 /*
   Initialize UI elements
 */
+
 void Engine::InitializeUI(){
+
   m_user_interface.InitElement( "spawn size", 
                                 "Spawn Size: " +  std::to_string((int) spawn_size), 
                                 m_ui_settings.h3_size, 
-                                sf::Vector2f{0,0} );
+                                sf::Vector2f{0,0},
+                                TEXT_COLOR);
   
+
   m_user_interface.InitElement( "select mode", ( m_select_mode ) ? 
       "Multi Select Mode - Right click and Drag to select multiple Objects and Left Click an Object to move all Objects" : 
       "Single Select Mode - Left Click Object to move and Right click and m_drag to launch object", 
-      m_ui_settings.h3_size, sf::Vector2f{0,25});
+      m_ui_settings.h3_size,
+      sf::Vector2f{0,25},
+      TEXT_COLOR);
   
   m_user_interface.InitElement( "spawn object", 
                                 "Tab to change object type, SpaceBar to spawn an Object", 
                                 m_ui_settings.h3_size, 
-                                sf::Vector2f{0,50});
+                                sf::Vector2f{0,50},
+                                TEXT_COLOR);
   
   
   m_user_interface.InitElement( "num objects",
                                 "Objects: " + std::to_string(object_count),
                                 m_ui_settings.h3_size,
-                                sf::Vector2f{0,75});
+                                sf::Vector2f{0,75},
+                                TEXT_COLOR);
                                 
   m_user_interface.InitElement( "gravity",
                                 "Gravity: " + std::to_string( m_gravity_mode ),
                                 m_ui_settings.h3_size,
-                                sf::Vector2f{0,100});                             
+                                sf::Vector2f{0,100},
+                                TEXT_COLOR);
+                                
+  
+  m_user_interface.InitElement( "simulation speed", 
+                              "Simulation Speed: " +  std::to_string(((int)(sim_speed * 100 + .5) / 100.0)) + "x", 
+                              m_ui_settings.h3_size, 
+                              sf::Vector2f{0,125},
+                              TEXT_COLOR);
   
   m_user_interface.InitElement( "command mode", 
                               (!m_command_mode) ? "Ctrl + I for Command Mode" : "Ctrl + I to Exit Command Mode", 
-                              m_ui_settings.h3_size, sf::Vector2f { 0, (float)WINDOW->getSize().y - 40 }) ;
+                              m_ui_settings.h3_size,
+                              sf::Vector2f { 0, (float)WINDOW->getSize().y - 40 },
+                              TEXT_COLOR) ;
   
   
   m_user_interface.InitElement( "command indicator",
                                 "> ",
                                 m_ui_settings.h2_size,
-                                sf::Vector2f { 0, (float)WINDOW->getSize().y - 60 } );
+                                sf::Vector2f { 0, (float)WINDOW->getSize().y - 60 },
+                                TEXT_COLOR );
                                 
-  m_user_interface.UpdateElementPosition(m_user_interface.FindElement("command indicator"), sf::Vector2f { 0, (float)WINDOW->getSize().y - 60 } );
+  //m_user_interface.UpdateElementPosition(m_user_interface.FindElement("command indicator"), sf::Vector2f { 0, (float)WINDOW->getSize().y - 60 } );
                              
   float x_offset = 200.0f;
   float y_offset;
@@ -990,28 +1084,33 @@ void Engine::InitializeUI(){
   m_user_interface.InitElement( "gizmos text", 
                               (m_gizmos_mode) ? "Gizmos: ON " : "Gizmos: OFF ",
                               m_ui_settings.h3_size,
-                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 150.0f } );
+                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 150.0f },
+                              TEXT_COLOR);
   
   m_user_interface.InitElement( "cpu text", 
                               "CPU Used: " +  std::to_string( 0 ) + "%",
                               m_ui_settings.h3_size,
-                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 125.0f } );
+                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 125.0f },
+                              TEXT_COLOR );
   
   m_user_interface.InitElement( "memory available text", 
                               "Available Memory: " +  std::to_string( 0 ) + " MB",
                               m_ui_settings.h3_size,
-                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 100.0f } );
+                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 100.0f },
+                              TEXT_COLOR );
   
   m_user_interface.InitElement( "memory used text", 
                               "Memory Used: " +  std::to_string( 0 ) + " MB",
                               m_ui_settings.h3_size,
-                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 75.0f } );
+                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 75.0f },
+                              TEXT_COLOR );
 
 
   m_user_interface.InitElement( "fps text", 
                               "FPS: " +  std::to_string( floor(0) ),
                               m_ui_settings.h3_size,
-                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 50.0f } );
+                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 50.0f },
+                              TEXT_COLOR );
 }
 
 bool Engine::isRunning(){
@@ -1025,18 +1124,22 @@ sf::View& Engine::getMainView(){
 bool Engine::isGizmosMode(){
   return m_gizmos_mode;
 }
+
 bool Engine::isCommandMode(){
   return m_command_mode;
 }
+
 bool Engine::isSelectMode(){
   return m_select_mode;
 }
+
 float Engine::getDrag(){
   return m_drag;
 }
 void Engine::setDrag( const float& drag ){
   m_drag = drag;
 }
+
 const float Engine::getDefaultDrag(){
   return m_default_drag;
 }
@@ -1063,14 +1166,72 @@ void Engine::setGravityMode( const bool& b ){
 sf::Vector2f& Engine::getMousePosf(){
   return m_mouse_pos_f;
 }
+
 sf::Vector2i& Engine::getMousePosi(){
   return m_mouse_pos_i;
+}
+
+void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
+  HELP_WINDOW = std::make_shared<sf::RenderWindow>( sf::VideoMode( window_settings.DEFAULT_WINDOW_SIZE_X, 
+    window_settings.DEFAULT_WINDOW_SIZE_Y ),
+    window_settings.WINDOW_NAME );
+
+  HELP_WINDOW->setView( m_help_view = 
+    sf::View( sf::FloatRect( 0.0f, 0.0f, 
+      static_cast<float>(window_settings.DEFAULT_WINDOW_SIZE_X), 
+      static_cast<float>(window_settings.DEFAULT_WINDOW_SIZE_Y)
+    )));
+/*
+    m_help_interface.InitElement( "title", 
+    "MANUAL PAGE",
+    m_ui_settings.h2_size,
+    sf::Vector2f{ 0.0f, 0.0f },
+    sf::Color::White);
+
+  m_help_interface.InitElement( "spawn 0", 
+    "SPAWN rectangle/circle mass size.x size.y position.x position.y",
+    m_ui_settings.h3_size,
+    sf::Vector2f{ 0.0f, 35.0f },
+    sf::Color::White);
+  
+
+  m_help_interface.InitElement( "spawn 1",
+    "Example: SPAWN circle 1000 50 50 0 0",
+    m_ui_settings.h3_size,
+    sf::Vector2f{ 0.0f, 50.0f },
+    sf::Color::White);
+*/
+  
+
+  /*
+  Manual Page
+    spawn circle/rectangle mass size.x size.y position.x position.y
+    friction on/off/any number value
+    mode single/multi
+    speed number
+    exit
+  */
+
+}
+
+void Engine::setSimulationSpeed( const float& f ){
+  if (f < 0){
+    sim_speed = 1;
+    return;
+  } else if (f > MAX_SIM_SPEED){
+    sim_speed = 8;
+    return;
+  }
+
+  sim_speed = f;
 }
 
 void Engine::MainLoop(){
   while ( isRunning() ) {
     start = std::chrono::high_resolution_clock::now(); // for benchmarking
-    WINDOW->clear( );
+    WINDOW->clear( BACKGROUND_COLOR );
+    if (HELP_WINDOW != nullptr) HELP_WINDOW->clear( sf::Color::Black );
+
     m_mouse_pos_f = WINDOW->mapPixelToCoords( sf::Mouse::getPosition( *(WINDOW) ) ); // current mouse pos in float
     m_mouse_pos_i = { static_cast<int>( m_mouse_pos_f.x ), static_cast<int>( m_mouse_pos_f.y ) };  // current mouse pos in int
     float delta_time = clock.restart().asSeconds(); // getting deltaTime
@@ -1079,9 +1240,13 @@ void Engine::MainLoop(){
     UpdatePhysics( delta_time ); // updating and rerendering the positions of objects
     Render( ); // rendering any non-UI and non-world elements
     WINDOW->setView( m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
-    UI( ); // rendering UI 
+    Update_UI( ); // rendering UI 
     displayDiagnosticInfo( start );  // diagnostic info for benchmarking
     WINDOW->setView( m_main_view ); // resetting view to main 
     WINDOW->display();
+    if (HELP_WINDOW != nullptr) {
+      HELP_WINDOW->setView( m_help_view );
+      HELP_WINDOW->display();  
+    }
   }
 }

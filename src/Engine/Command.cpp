@@ -18,6 +18,7 @@ const std::map <std::string, Receiver::CommandType> Receiver::m_command_map = {
       { "manual", MANUAL },
       { "help", MANUAL },
       { "gravity", GRAVITY },
+      { "speed", SPEED }
       
 };
 
@@ -87,7 +88,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           break;
         }
         
-        else{
+        else {
  
           int num_objects;
           float centerX, centerY, radius, angleIncrement;
@@ -108,7 +109,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           radius = isNumber( commands[3] ) ? std::stof(commands[3]) : 30.0f;
           angleIncrement = (2 * MY_PI) / num_objects;
                     
-          for (int i = 0; i < num_objects; i++){  
+          for (int i = 0; i < num_objects; i++) {
             float posX, posY;
             if (num_objects > 1){
               float angle = i * angleIncrement;
@@ -131,7 +132,10 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
             
             obj->setID(engine_instance->getAllObjects().size()+1);
             engine_instance->addObject(obj);
-            if ( engine_instance->m_quad_root != nullptr ) engine_instance->m_quad_root->insert( obj );
+            if ( engine_instance->m_quad_root != nullptr && obj != nullptr ) 
+            {
+                engine_instance->m_quad_root->insert( obj );
+            }
           }
         }
       break;
@@ -178,7 +182,12 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           std::cout << "spawn circle/rectangle mass size.x size.y position.x position.y\n";
           std::cout << "friction on/off/any number value \n";   
           std::cout << "mode single/multi \n";
+          std::cout << "speed number \n";
           std::cout << "exit \n"; 
+          
+          const WINDOW_SETTINGS help_window_settings = { 144.0f, 1000, 600, 0, "Help"};
+
+          engine_instance->createHelpWindow( help_window_settings );
         }
         
         else if ( commands.size() >= 2 ) {
@@ -189,7 +198,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
       break;
       
       case GRAVITY:
-        if (commands.size() > 1) {
+        if ( commands.size() > 1 ) {
           NormalizeString(commands[1]);
           if ( commands[1] == "on" ) {
             engine_instance->setGravityMode(true);
@@ -198,7 +207,17 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           }   
         }
       break;
+
+      case SPEED:
+        if ( commands.size() > 1 ){
+          if ( isNumber(commands[1]) ){
+            std::cout << commands[1] << "\n";
+            engine_instance->setSimulationSpeed( std::stof(commands[1]) );
+          }
+        }
       
+      break;
+
       case EXIT:
         engine_instance->WINDOW->close();
       break;
@@ -210,6 +229,9 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
   return true;
 }
 
+/* Returns true if target string is number */
 bool Receiver::isNumber( const std::string& target ) {
-  return !target.empty() && std::all_of(target.begin(), target.end(), ::isdigit);
+  std::istringstream iss(target);
+  double d;
+  return iss >> std::noskipws >> d && iss.eof();
 }

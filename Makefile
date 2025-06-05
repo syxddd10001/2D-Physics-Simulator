@@ -8,9 +8,9 @@ LIBS:= -lpsapi
 INCLUDE := -I include
 
 EXECUTABLE := build/test/main.exe
-OBJECTS := obj/UserInterface.o obj/DiagnosticInfo.o obj/Rectangle.o obj/Circle.o obj/Object.o obj/PhysicsMath.o 
+OBJECTS := obj/UserInterface.o obj/UIElements.o obj/DiagnosticInfo.o obj/Rectangle.o obj/Circle.o obj/Object.o obj/PhysicsMath.o 
 OBJECTS += obj/Engine.o obj/Physics.o obj/Vector2.o
-OBJECTS += obj/Command.o obj/ObjectFactory.o obj/AbstractBox.o obj/Quadtree.o
+OBJECTS += obj/Command.o obj/ObjectFactory.o obj/AbstractBox.o obj/Quadtree.o 
 
 $(EXECUTABLE): src/main.cpp $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(SFML_INCLUDE) $(INCLUDE) -I src $^ -o $@ $(SFML_LIB) $(LIBS)
@@ -46,6 +46,9 @@ obj/AbstractBox.o: src/Math/AbstractBox.cpp include/AbstractBox.hpp obj/Vector2.
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 	
 obj/UserInterface.o: src/UserInterface/UserInterface.cpp include/UserInterface.hpp
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+obj/UIElements.o: src/UserInterface/UIElements.cpp include/UIElements.hpp
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/Vector2.o: src/Math/Vector2.cpp include/Vector2.hpp

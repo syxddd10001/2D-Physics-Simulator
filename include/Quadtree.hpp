@@ -17,7 +17,7 @@ using namespace syxd;
 
 class Quadtree {
 private:
-  const float THETA = 2.0f;
+  const float THETA = 1.0f;
   
   int m_threshold;
   int m_depth;

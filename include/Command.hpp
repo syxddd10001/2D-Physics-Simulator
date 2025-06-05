@@ -18,7 +18,7 @@ using namespace syxd;
 class Receiver{
 private:
   static std::shared_ptr<Receiver> p_instance;
-  enum CommandType { SPAWN, MODE, EXIT, DRAG, MANUAL, GRAVITY };
+  enum CommandType { SPAWN, MODE, EXIT, DRAG, MANUAL, GRAVITY, SPEED };
   static const std::map <std::string, CommandType> m_command_map;
   bool CallCommand( std::vector<std::string> commands, Engine* engine_instance); //Calls a command and executes the appropriate function
   std::vector<std::string> DeconstructCommand( const std::string& str ); // Breaks down string into words (i.e deconstructs command)
