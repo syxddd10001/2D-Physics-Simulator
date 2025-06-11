@@ -35,9 +35,11 @@ public:
   ~UserInterface(){};
  
   
-  void InitElement( const std::string& identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color  ) noexcept;  
+  void InitText( const std::string& identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color  ) noexcept;  
+  void InitInputBox( const std::string& identifier, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color  ) noexcept;  
+  
   bool AddElement( std::unique_ptr<syxd::UI_Element> elem );
-  void RenderUI( );
+  void RenderUI( const float& delta_time );
   void UpdateElementPosition(  syxd::UI_Element* elem, const sf::Vector2f& updated_position );
   void UpdateElementText( syxd::UI_Element* elem, const std::string& updated_string );
   void SetElementPosition( UI_Element_Legacy* elem, const std::string relative_position, const float position_offset );
@@ -49,6 +51,7 @@ public:
   std::shared_ptr<sf::RenderWindow> GetWindow( );
   void SetWindow( std::shared_ptr<sf::RenderWindow> window );
   std::unique_ptr<syxd::UI_Element>::pointer FindElement( const std::string& element_identifier ) const noexcept;
+  std::unique_ptr<syxd::UI_Element>::pointer FindElement( const uint32_t element_id ) const noexcept;
   
 
   void InitElement_Legacy( const std::string identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color& text_color ) noexcept;  

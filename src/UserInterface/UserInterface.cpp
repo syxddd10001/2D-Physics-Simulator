@@ -2,44 +2,22 @@
 #include <string>
 #include <iostream>
 
-void UserInterface::InitElement_Legacy( const std::string identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color& text_color ) noexcept { 
-  sf::Text text;
-  text.setFont( font );
-  text.setString( str );
-  text.setCharacterSize(char_size);
-  text.setColor(text_color);
-  text.setPosition(position);
-  std::unique_ptr<UI_Element_Legacy> elem = std::make_unique<UI_Element_Legacy>( identifier, text, char_size, position ); // contructing the UI
-
-  AddElement_Legacy( std::move(elem) );
-}
-
-void UserInterface::InitElement( const std::string& identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color ) noexcept {
+void UserInterface::InitText( const std::string& identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color ) noexcept {
   std::unique_ptr<syxd::UI_Element> element = std::make_unique<syxd::Text>( m_ui_elements.size()+1, identifier, str, char_size, position, font_color );
   m_ui_elements.push_back( std::move(element) );
 
 }
 
+void UserInterface::InitInputBox( const std::string& identifier, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color  ) noexcept {
+  std::unique_ptr<syxd::UI_Element> element = std::make_unique<syxd::InputBox>( m_ui_elements.size()+1, identifier, char_size, position, font_color );
+  m_ui_elements.push_back( std::move(element) );
 
-bool UserInterface::AddElement_Legacy( std::unique_ptr<UI_Element_Legacy> elem ) {
-  m_ui_elements_legacy.push_back( std::move(elem) );
-  return true;
-}
+}  
+
 
 bool UserInterface::AddElement( std::unique_ptr<syxd::UI_Element> elem ) {
   m_ui_elements.push_back( std::move(elem) );
   return true;
-}
-
-std::unique_ptr<UI_Element_Legacy>::pointer UserInterface::FindElement_Legacy( const std::string& element_identifier ) const noexcept {
-  for ( auto& elem : m_ui_elements_legacy ) {
-    if (elem == nullptr) continue;
-
-    if ( elem->identifier == element_identifier ){
-      return elem.get();
-    }
-  }
-  return nullptr;
 }
 
 std::unique_ptr<syxd::UI_Element>::pointer UserInterface::FindElement( const std::string& element_identifier ) const noexcept {
@@ -53,7 +31,16 @@ std::unique_ptr<syxd::UI_Element>::pointer UserInterface::FindElement( const std
   return nullptr;
 }
 
+std::unique_ptr<syxd::UI_Element>::pointer UserInterface::FindElement( const uint32_t element_id ) const noexcept {
+  for ( auto& elem : m_ui_elements ) {
+    if (elem == nullptr) continue;
 
+    if ( elem->getID() == element_id ){
+      return elem.get();
+    }
+  }
+  return nullptr;
+}
 
 
 void UserInterface::UpdateElementText( syxd::UI_Element* elem, const std::string& updated_string ) {
@@ -64,22 +51,11 @@ void UserInterface::UpdateElementText( syxd::UI_Element* elem, const std::string
   }
 }
 
-void UserInterface::UpdateElementText_Legacy( UI_Element_Legacy* elem, const std::string& updated_string ) {
-  if (elem) elem->text.setString(updated_string);
-}
-
 void UserInterface::UpdateElementPosition( syxd::UI_Element* elem, const sf::Vector2f& updated_position ) {
   if ( elem == nullptr || !elem ) return;
 
   if ( syxd::Text* t = dynamic_cast<syxd::Text*>( elem )  ) {
     t->setPosition( updated_position );
-  }
-}
-
-void UserInterface::UpdateElementPosition_Legacy( UI_Element_Legacy* elem, const sf::Vector2f& updated_position ) {
-  if (elem) {
-    elem->position = updated_position;
-    elem->text.setPosition( elem->position );
   }
 }
 
@@ -117,24 +93,19 @@ void UserInterface::SetElementPosition( UI_Element_Legacy* elem, const std::stri
 
 }
 
-void UserInterface::RenderUI_Legacy(  ) {
-  if ( WINDOW_REF == nullptr ) return;
-
-  for (const auto& elem: m_ui_elements_legacy) {
-    if (elem->show_element) {
-      WINDOW_REF->draw( elem->text );
-    }
-  }
-}
-
-void UserInterface::RenderUI( ){
+void UserInterface::RenderUI( const float& delta_time ){
   if ( WINDOW_REF == nullptr ) return;
 
   for ( const auto& elem: m_ui_elements ) { 
     if ( elem != nullptr && !elem->hidden() ) {
       if ( syxd::Text* t = dynamic_cast<syxd::Text*>( elem.get() ) ) {
-        WINDOW_REF->draw( t->text_element() );
+        WINDOW_REF->draw( t->getTextElement() );
       }
+
+      else if ( syxd::InputBox* t = dynamic_cast<syxd::InputBox*>( elem.get() ) ) {  
+        t->render(WINDOW_REF, delta_time );
+      }
+
     }
   }
 }
@@ -151,15 +122,6 @@ void UserInterface::ShowElement( syxd::UI_Element* target_element ) {
 void UserInterface::HideElement( syxd::UI_Element* target_element ) {
   if (target_element != nullptr) target_element->hide(true);
 }
-
-void UserInterface::ShowElement_Legacy( UI_Element_Legacy* target_element ) {
-  if (target_element != nullptr) target_element->show_element = true;
-}
-
-void UserInterface::HideElement_Legacy( UI_Element_Legacy* target_element ) {
-  if (target_element != nullptr) target_element->show_element = false;
-}
-
 
 void UserInterface::HideAllElements( ){
   for ( auto& elem : m_ui_elements ){
@@ -179,3 +141,4 @@ std::shared_ptr<sf::RenderWindow> UserInterface::GetWindow( ){
 void UserInterface::SetWindow( std::shared_ptr<sf::RenderWindow> window ){
   WINDOW_REF = window;
 }
+

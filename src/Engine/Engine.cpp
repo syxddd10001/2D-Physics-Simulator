@@ -40,7 +40,6 @@ bool selection_lock = false;
 bool objects_selected = false;
 bool deleted = false;
 bool input_lock = true;
-bool cursor_show = true;
 bool focus = false;
 bool show_diagnostic = true;
 bool set_zoom_limit = false;
@@ -48,18 +47,6 @@ bool ui_elements_hidden = false;
 
 sf::Vector2i original_coordinates; // where the camera originally is
 
-// command mode blink cursor position
-int8_t cursor_position = 0;
-// store command mode input text 
-string s_input_text = "";
-std::stack<int8_t> cursor_position_history;
-// command mode text ui
-sf::Text inputBox;
-// physical cursor for command mode
-sf::RectangleShape cursor;
-
-
-string input_previous = "";
 // Singleton Recevier that receives and executes commands
 shared_ptr<Receiver> p_receiver;
 
@@ -110,11 +97,6 @@ Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 9
     }
   #endif
 
-  // For the UI
-  inputBox = sf::Text( "Input text: ", m_default_font ); // the input box
-  inputBox.setCharacterSize( m_ui_settings.h2_size );
-  cursor.setSize( sf::Vector2f { 5.0f, 20.0f } ); // cursor for text input
-  cursor.setFillColor( sf::Color::White );
 
   m_user_interface.SetWindow( WINDOW );
   m_help_interface.SetWindow( HELP_WINDOW );
@@ -122,6 +104,7 @@ Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 9
   m_user_interface.SetFont( m_default_font );
   m_help_interface.SetFont( m_default_font );
 
+  
   WINDOW->setFramerateLimit( m_window_settings.MAX_FRAME_RATE );
   WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_X), 
                                                                   static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_Y) ) ));
@@ -169,7 +152,24 @@ void Engine::EventManager( const float& delta_time ) {
     }
   }
 
-  if( WINDOW->pollEvent( e_event ) ) {
+  if( WINDOW != nullptr && WINDOW->pollEvent( e_event ) ) {
+    if (m_command_mode) {
+      syxd::UI_Element* elem = (m_user_interface.FindElement("command input 1"));
+      if ( elem ) {
+        if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
+          e->setFocused(true);
+          e->checkInput(e_event, WINDOW, delta_time);
+
+        if (e_event.type == sf::Event::KeyPressed && e_event.key.code == sf::Keyboard::Enter){
+
+          p_receiver->Receive( e->getInputText(), this );
+          e->clearInput();
+        }
+
+        }
+      }
+    }
+
     switch( e_event.type ) {
       case sf::Event::Closed:
         is_running = false;
@@ -181,19 +181,6 @@ void Engine::EventManager( const float& delta_time ) {
         //setZoomLimits ( sf::Vector2f {m_window_settings.WORLD_SIZE, m_window_settings.WORLD_SIZE}, sf::Vector2f(WINDOW->getSize()));
         WINDOW->setView( m_main_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
         WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
-      break;
-
-      case sf::Event::TextEntered:
-          
-        if ( !input_lock && m_command_mode ) {
-          if ( std::isprint(e_event.text.unicode) && s_input_text.length() <= 100) {
-            char ch = static_cast<char>( e_event.text.unicode );
-            s_input_text.insert(cursor_position, 1, ch);
-            cursor_position_history.push(cursor_position);
-            cursor_position++;
-          }
-        }
-  
       break;
         
       case sf::Event::MouseButtonPressed:
@@ -268,23 +255,20 @@ void Engine::EventManager( const float& delta_time ) {
           is_paused = !is_paused;
         }
 
-        if ( input_lock && m_command_mode && e_event.key.code == sf::Keyboard::P ) {
-          s_input_text = input_previous;
-        }  
-        if ( e_event.key.code == sf::Keyboard::Enter && m_command_mode ) {
-          p_receiver->Receive( s_input_text, this );
-
-          if ( !s_input_text.empty() && cursor_position > 0) {
-            input_previous = s_input_text;
-            s_input_text.clear();
-            cursor_position = 0;
-          }
-        }
-        
         if ( e_event.key.code == sf::Keyboard::LControl && m_command_mode ) {
           DEBUG_PRINT("%s\n", "released");
           input_lock = false;
-        }   
+          
+          if (m_command_mode) {
+            syxd::UI_Element* elem = (m_user_interface.FindElement("command input 1"));
+            if ( elem ) {
+              if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
+                e->setBackgroundColor(sf::Color::Red);
+
+            }
+          } 
+        } 
+        } 
         
         if ( e_event.key.code == sf::Keyboard::F && m_elapsed_time_spawn >= INTERRUPT_INTERVAL && !m_command_mode ) {
           m_elapsed_time_spawn = 0.0f;  
@@ -314,17 +298,9 @@ void Engine::EventManager( const float& delta_time ) {
         }
         
         if ( e_event.key.code == sf::Keyboard::Escape ) {
-          if (m_command_mode) {
-            if ( !s_input_text.empty() && cursor_position > 0) {    
-              s_input_text.clear();
-              cursor_position = 0;
-            }
-            
-            if ( s_input_text.empty() ){
-              m_command_mode = false;
-            }
+          if (!m_command_mode){
+            objectDefault( );
           }
-          objectDefault( );
         }
         
         if ( e_event.key.code == sf::Keyboard::Delete && p_selected_object != nullptr ) {   
@@ -357,17 +333,6 @@ void Engine::EventManager( const float& delta_time ) {
           if (sim_speed < 8) sim_speed*=2;
           else if (sim_speed == 8) sim_speed = 1;
         }   
-        
-        if ( e_event.key.control &&
-          e_event.key.code == sf::Keyboard::Z && 
-          m_elapsed_diagnostic >= TOGGLE_INTERVAL &&
-          !cursor_position_history.empty() ) {
-          m_elapsed_diagnostic = 0.0f;
-          uint8_t top = cursor_position_history.top();
-          s_input_text.erase(top,1);
-          cursor_position_history.pop();
-          cursor_position_history.empty() ? cursor_position = 0 : cursor_position = cursor_position_history.top()+1;
-        }
 
         if ( e_event.key.control &&
           e_event.key.code == sf::Keyboard::D && 
@@ -375,7 +340,7 @@ void Engine::EventManager( const float& delta_time ) {
           
           m_elapsed_diagnostic = 0.0f;
           show_diagnostic = !show_diagnostic;
-          /*
+          
           if (!show_diagnostic){
             m_user_interface.HideElement(m_user_interface.FindElement("gizmos text"));
             m_user_interface.HideElement(m_user_interface.FindElement("cpu text"));
@@ -389,16 +354,8 @@ void Engine::EventManager( const float& delta_time ) {
             m_user_interface.ShowElement(m_user_interface.FindElement("memory used text"));
             m_user_interface.ShowElement(m_user_interface.FindElement("fps text"));
           }
-          */
+          
           DEBUG_PRINT("%s\n", "Diagnostic toggled"); 
-        }
-
-        if ( e_event.key.control &&
-          e_event.key.code == sf::Keyboard::V &&
-          m_command_mode ) {
-          std::string clipboard = sf::Clipboard::getString();
-          s_input_text.insert(cursor_position, clipboard);
-          cursor_position += clipboard.length();
         }
 
         if ( e_event.key.control &&
@@ -417,42 +374,8 @@ void Engine::EventManager( const float& delta_time ) {
           }
         }
 
-        if ( e_event.key.control &&
-        e_event.key.code == sf::Keyboard::C &&
-        m_command_mode ) {
-           sf::Clipboard::setString( s_input_text );
-        }
-
-        if ( e_event.key.code == sf::Keyboard::Left && 
-        cursor_position > 0 && 
-        m_command_mode && 
-        m_elapsed_time_input >= _INPUT_INTERVAL ) {
-          cursor_position --;
-        }
-
-        if ( e_event.key.code == sf::Keyboard::Right &&
-        cursor_position < s_input_text.size() &&
-        m_command_mode &&
-        m_elapsed_time_input >= _INPUT_INTERVAL) {
-          cursor_position ++;  
-        }                
-
         if ( e_event.key.code == sf::Keyboard::LControl && m_command_mode ) {
           input_lock = true;
-        }
-
-        if ( e_event.key.code == sf::Keyboard::BackSpace && m_command_mode ) {
-          if ( !s_input_text.empty() && cursor_position > 0 ) {    
-            s_input_text.erase(cursor_position-1,1);
-            cursor_position--;
-          }
-        }
-
-        if ( input_lock && e_event.key.code == sf::Keyboard::BackSpace && m_command_mode ) {
-          if ( !s_input_text.empty() && cursor_position > 0) {    
-            s_input_text.clear();
-            cursor_position = 0;
-          }
         }
         
         if ( e_event.key.code == sf::Keyboard::Equal && 
@@ -529,6 +452,18 @@ void Engine::EventManager( const float& delta_time ) {
       m_elapsed_time_input = 0.0f;
       m_command_mode = !m_command_mode;
       input_lock = false;
+
+      if (!m_command_mode) {
+      syxd::UI_Element* elem = (m_user_interface.FindElement("command input 1"));
+      if ( elem ) {
+        if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
+          e->setFocused(false);
+          e->getCursor().setFillColor( sf::Color::Transparent );
+        }
+      }
+  }
+      
+
       DEBUG_PRINT("%s", m_command_mode ? "input mode\n" : "not input mode\n" );           
     }
 
@@ -831,7 +766,7 @@ void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::ti
 /*
   Update User Interface elements
 */
-void Engine::Update_UI( ) {
+void Engine::Update_UI( const float& delta_time ) {
   
   m_user_interface.UpdateElementText(m_user_interface.FindElement("spawn size"), 
                                     "Spawn Size: " + std::to_string((int)spawn_size));
@@ -866,33 +801,14 @@ void Engine::Update_UI( ) {
                                     (!m_command_mode) ? "Ctrl + I for Command Mode" : "Ctrl + I to Exit Command Mode");
 
 
-  inputBox.setPosition( sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90 } );
-  inputBox.setString( s_input_text );
-  cursor.setPosition( sf::Vector2f { inputBox.findCharacterPos(cursor_position).x, inputBox.findCharacterPos(cursor_position).y+4.f } );
-
-
-
-  if ( cursor_show && m_elapsed_time_cursor_blink >= _CURSOR_BLINK_INTERVAL ) {
-    cursor_show = false;
-    m_elapsed_time_cursor_blink = 0.0f;
-  }
-  
-  if ( !cursor_show && m_elapsed_time_cursor_blink >= _CURSOR_BLINK_INTERVAL ) {
-    cursor_show = true;
-    m_elapsed_time_cursor_blink = 0.0f;
-  }
-  
-  if ( cursor_show && m_command_mode ) WINDOW->draw( cursor );
-  
-  WINDOW->draw( inputBox );
-  m_user_interface.RenderUI( );
+  m_user_interface.RenderUI( delta_time );
 
   
   if ( HELP_WINDOW != nullptr ) {
     m_help_interface.UpdateElementText(m_help_interface.FindElement("title"), 
                                     "MANUAL PAGE");
 
-    m_help_interface.RenderUI( ); 
+    m_help_interface.RenderUI( delta_time );
   }
 
 }
@@ -1022,91 +938,92 @@ void Engine::InitializeWorld( ) {
 */
 
 void Engine::InitializeUI(){
+  m_user_interface.InitInputBox("command input 1", (uint8_t) 20, sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90 }, sf::Color::White );
 
-  m_user_interface.InitElement( "spawn size", 
+  m_user_interface.InitText( "spawn size", 
                                 "Spawn Size: " +  std::to_string((int) spawn_size), 
                                 m_ui_settings.h3_size, 
                                 sf::Vector2f{0,0},
                                 TEXT_COLOR);
   
 
-  m_user_interface.InitElement( "select mode", ( m_select_mode ) ? 
+  m_user_interface.InitText( "select mode", ( m_select_mode ) ? 
       "Multi Select Mode - Right click and Drag to select multiple Objects and Left Click an Object to move all Objects" : 
       "Single Select Mode - Left Click Object to move and Right click and m_drag to launch object", 
       m_ui_settings.h3_size,
       sf::Vector2f{0,25},
       TEXT_COLOR);
   
-  m_user_interface.InitElement( "spawn object", 
+  m_user_interface.InitText( "spawn object", 
                                 "Tab to change object type, SpaceBar to spawn an Object", 
                                 m_ui_settings.h3_size, 
                                 sf::Vector2f{0,50},
                                 TEXT_COLOR);
   
   
-  m_user_interface.InitElement( "num objects",
+  m_user_interface.InitText( "num objects",
                                 "Objects: " + std::to_string(object_count),
                                 m_ui_settings.h3_size,
                                 sf::Vector2f{0,75},
                                 TEXT_COLOR);
                                 
-  m_user_interface.InitElement( "gravity",
+  m_user_interface.InitText( "gravity",
                                 "Gravity: " + std::to_string( m_gravity_mode ),
                                 m_ui_settings.h3_size,
                                 sf::Vector2f{0,100},
                                 TEXT_COLOR);
                                 
   
-  m_user_interface.InitElement( "simulation speed", 
+  m_user_interface.InitText( "simulation speed", 
                               "Simulation Speed: " +  std::to_string(((int)(sim_speed * 100 + .5) / 100.0)) + "x", 
                               m_ui_settings.h3_size, 
                               sf::Vector2f{0,125},
                               TEXT_COLOR);
   
-  m_user_interface.InitElement( "command mode", 
+  m_user_interface.InitText( "command mode", 
                               (!m_command_mode) ? "Ctrl + I for Command Mode" : "Ctrl + I to Exit Command Mode", 
                               m_ui_settings.h3_size,
                               sf::Vector2f { 0, (float)WINDOW->getSize().y - 40 },
                               TEXT_COLOR) ;
   
   
-  m_user_interface.InitElement( "command indicator",
-                                "> ",
-                                m_ui_settings.h2_size,
-                                sf::Vector2f { 0, (float)WINDOW->getSize().y - 60 },
-                                TEXT_COLOR );
+  m_user_interface.InitText( "command indicator",
+                              "> ",
+                              m_ui_settings.h2_size,
+                              sf::Vector2f { 0, (float)WINDOW->getSize().y - 60 },
+                              TEXT_COLOR );
                                 
   //m_user_interface.UpdateElementPosition(m_user_interface.FindElement("command indicator"), sf::Vector2f { 0, (float)WINDOW->getSize().y - 60 } );
                              
   float x_offset = 200.0f;
   float y_offset;
 
-  m_user_interface.InitElement( "gizmos text", 
+  m_user_interface.InitText( "gizmos text", 
                               (m_gizmos_mode) ? "Gizmos: ON " : "Gizmos: OFF ",
                               m_ui_settings.h3_size,
                               sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 150.0f },
                               TEXT_COLOR);
   
-  m_user_interface.InitElement( "cpu text", 
+  m_user_interface.InitText( "cpu text", 
                               "CPU Used: " +  std::to_string( 0 ) + "%",
                               m_ui_settings.h3_size,
                               sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 125.0f },
                               TEXT_COLOR );
   
-  m_user_interface.InitElement( "memory available text", 
+  m_user_interface.InitText( "memory available text", 
                               "Available Memory: " +  std::to_string( 0 ) + " MB",
                               m_ui_settings.h3_size,
                               sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 100.0f },
                               TEXT_COLOR );
   
-  m_user_interface.InitElement( "memory used text", 
+  m_user_interface.InitText( "memory used text", 
                               "Memory Used: " +  std::to_string( 0 ) + " MB",
                               m_ui_settings.h3_size,
                               sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 75.0f },
                               TEXT_COLOR );
 
 
-  m_user_interface.InitElement( "fps text", 
+  m_user_interface.InitText( "fps text", 
                               "FPS: " +  std::to_string( floor(0) ),
                               m_ui_settings.h3_size,
                               sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 50.0f },
@@ -1214,23 +1131,23 @@ void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
 
 }
 
-void Engine::setSimulationSpeed( const float& f ){
-  if (f < 0){
+void Engine::setSimulationSpeed( const float& s ){
+  if (s < 0){
     sim_speed = 1;
     return;
-  } else if (f > MAX_SIM_SPEED){
+  } else if (s > MAX_SIM_SPEED){
     sim_speed = 8;
     return;
   }
 
-  sim_speed = f;
+  sim_speed = s;
 }
 
 void Engine::MainLoop(){
   while ( isRunning() ) {
     start = std::chrono::high_resolution_clock::now(); // for benchmarking
-    WINDOW->clear( BACKGROUND_COLOR );
-    if (HELP_WINDOW != nullptr) HELP_WINDOW->clear( sf::Color::Black );
+    if ( WINDOW != nullptr ) WINDOW->clear( BACKGROUND_COLOR );
+    if ( HELP_WINDOW != nullptr ) HELP_WINDOW->clear( BACKGROUND_COLOR );
 
     m_mouse_pos_f = WINDOW->mapPixelToCoords( sf::Mouse::getPosition( *(WINDOW) ) ); // current mouse pos in float
     m_mouse_pos_i = { static_cast<int>( m_mouse_pos_f.x ), static_cast<int>( m_mouse_pos_f.y ) };  // current mouse pos in int
@@ -1240,7 +1157,7 @@ void Engine::MainLoop(){
     UpdatePhysics( delta_time ); // updating and rerendering the positions of objects
     Render( ); // rendering any non-UI and non-world elements
     WINDOW->setView( m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
-    Update_UI( ); // rendering UI 
+    Update_UI( delta_time ); // rendering UI 
     displayDiagnosticInfo( start );  // diagnostic info for benchmarking
     WINDOW->setView( m_main_view ); // resetting view to main 
     WINDOW->display();

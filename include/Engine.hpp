@@ -144,7 +144,7 @@ public:
   void CollisionCheck( ); // checks if any collision has occured and provides a response to that collision 
   void UpdatePhysics( const float& delta_time ); // updates object data
   void Render( ); // render any non-ui and non-world elements
-  void Update_UI( ); // Updates UI every frame
+  void Update_UI( const float& delta_time ); // Updates UI every frame
   
   void MainLoop(); // main engine loop
   

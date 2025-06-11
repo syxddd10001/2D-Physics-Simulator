@@ -45,10 +45,10 @@ obj/Object.o: src/Objects/Object.cpp include/Object.hpp obj/Vector2.o obj/Abstra
 obj/AbstractBox.o: src/Math/AbstractBox.cpp include/AbstractBox.hpp obj/Vector2.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 	
-obj/UserInterface.o: src/UserInterface/UserInterface.cpp include/UserInterface.hpp
+obj/UserInterface.o: src/UserInterface/UserInterface.cpp include/UserInterface.hpp obj/UIElements.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/UIElements.o: src/UserInterface/UIElements.cpp include/UIElements.hpp
+obj/UIElements.o: src/UserInterface/UIElements.cpp include/UIElements.hpp obj/Vector2.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/Vector2.o: src/Math/Vector2.cpp include/Vector2.hpp
