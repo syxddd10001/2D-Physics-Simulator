@@ -1,6 +1,5 @@
+#pragma once
 #include <UIElements.hpp>
-#include <iostream>
-
 
 syxd::UI_Element::UI_Element ( const uint32_t id, const std::string identifier, const sf::Vector2f position ) noexcept
   : m_id(id), m_identifier(identifier), m_position(position)
@@ -13,8 +12,7 @@ void syxd::InputBox::checkInput( sf::Event e_event, std::shared_ptr<sf::RenderWi
 
   if ( m_focused ) {
 
-    if ( e_event.type == sf::Event::TextEntered )
-    {
+    if ( e_event.type == sf::Event::TextEntered ) {
       if ( std::isprint(e_event.text.unicode) && m_input_string.length() <= 100) {
         m_elapsed_time_input = 0.0f;
         char ch = static_cast<char>( e_event.text.unicode );
@@ -22,16 +20,15 @@ void syxd::InputBox::checkInput( sf::Event e_event, std::shared_ptr<sf::RenderWi
         m_cursor_position_history.push(m_cursor_position);
         m_cursor_position++;
       }
-
     }
     
 
     if (e_event.type == sf::Event::KeyPressed) {
       if ( e_event.key.control &&
-        e_event.key.code == sf::Keyboard::V 
-        // && m_command_mode
+        e_event.key.code == sf::Keyboard::V
       ) {
         std::string clipboard = sf::Clipboard::getString();
+        clipboard.erase(std::remove(clipboard.begin(), clipboard.end(), '\n'), clipboard.end());
         m_input_string.insert(m_cursor_position, clipboard);
         m_cursor_position += clipboard.length();
       }
@@ -75,8 +72,10 @@ void syxd::InputBox::checkInput( sf::Event e_event, std::shared_ptr<sf::RenderWi
       }
 
       if ( e_event.key.code == sf::Keyboard::Delete ) {
-        if ( !m_input_string.empty() ) {    
+        if ( !m_input_string.empty() && m_cursor_position != m_input_string.length() ) {    
           // delete logic
+          m_input_string.erase(m_input_string.begin()+m_cursor_position,m_input_string.begin()+m_cursor_position+1);
+
         }
       }
 
@@ -135,11 +134,15 @@ void syxd::InputBox::render( std::shared_ptr<sf::RenderWindow> WINDOW, const flo
     m_text_color = sf::Color::Transparent;
 
   }
- 
-  m_input_text.setString( m_input_string );
-  m_input_text.setPosition( sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90 } );
-  m_cursor.setPosition( sf::Vector2f { m_input_text.findCharacterPos(m_cursor_position).x, m_input_text.findCharacterPos(m_cursor_position).y+4.f } );
+
+  std::string visibleText = m_input_string.substr(std::max(0, (int)m_input_string.size() - max_visible_chars));
+  m_input_text.setString(visibleText);
+  m_cursor.setPosition(sf::Vector2f { m_input_text.findCharacterPos(std::min((int)m_cursor_position, max_visible_chars)).x + pad_x, 
+                                    m_input_text.findCharacterPos(m_cursor_position).y + 4.f });
+                                 
   
+
+  WINDOW->draw( m_text_box );
   WINDOW->draw( getTextElement() );
   WINDOW->draw( m_cursor );
 

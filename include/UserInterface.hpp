@@ -34,6 +34,13 @@ public:
   UserInterface(){};
   ~UserInterface(){};
  
+  enum font_size {
+    H1,
+    H2,
+    H3,
+    H4,
+    P
+  };
   
   void InitText( const std::string& identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color  ) noexcept;  
   void InitInputBox( const std::string& identifier, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color  ) noexcept;  
@@ -52,17 +59,5 @@ public:
   void SetWindow( std::shared_ptr<sf::RenderWindow> window );
   std::unique_ptr<syxd::UI_Element>::pointer FindElement( const std::string& element_identifier ) const noexcept;
   std::unique_ptr<syxd::UI_Element>::pointer FindElement( const uint32_t element_id ) const noexcept;
-  
-
-  void InitElement_Legacy( const std::string identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color& text_color ) noexcept;  
-  void RenderUI_Legacy( );
-  bool AddElement_Legacy( std::unique_ptr<UI_Element_Legacy> elem );
-  void UpdateElementPosition_Legacy(  UI_Element_Legacy* elem, const sf::Vector2f& updated_position );
-  void UpdateElementText_Legacy( UI_Element_Legacy* elem, const std::string& updated_string );
-
-  void HideElement_Legacy( UI_Element_Legacy* target_element );
-  void ShowElement_Legacy( UI_Element_Legacy* target_element );
-  std::unique_ptr<UI_Element_Legacy>::pointer FindElement_Legacy( const std::string& element_identifier ) const noexcept;
-
 
 };

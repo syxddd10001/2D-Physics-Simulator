@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <stack>
+#include <algorithm>
 
 namespace syxd{
   using namespace syxd;
@@ -154,10 +155,15 @@ namespace syxd{
     sf::Color m_text_color = sf::Color::White;
     sf::Color m_background_color;
 
+    int max_visible_chars;
+
     bool m_clear_on_enter = false;
     bool m_focused = false;
     float _CURSOR_BLINK_INTERVAL = 0.50f;
     float _INPUT_INTERVAL = 0.0001f;
+
+    float pad_x;
+    float pad_y;
 
     float m_elapsed_time_cursor_blink = _CURSOR_BLINK_INTERVAL;
     float m_elapsed_time_input = _INPUT_INTERVAL;
@@ -180,7 +186,7 @@ namespace syxd{
       UI_Element::setPosition(position);
       setFontDefault();
     
-      m_input_text = sf::Text( "> ", m_font ); // the input box
+      m_input_text = sf::Text( "X ", m_font ); // the input box
       m_input_text.setCharacterSize( m_char_size );
       m_input_text.setColor( m_text_color );
       m_input_text.setPosition( position );   
@@ -191,11 +197,49 @@ namespace syxd{
       m_cursor.setSize( sf::Vector2f { 5.0f, char_size } ); // cursor for text input
       m_cursor.setFillColor( sf::Color::White );
       m_cursor.setPosition( getPosition() );
+
+      m_text_box.setSize( sf::Vector2f { 5.0f, char_size } );
+      m_text_box.setFillColor( sf::Color::Red );
+      m_text_box.setPosition( getPosition() );
+      m_text_box.setOutlineColor( sf::Color::Blue );
+      m_text_box.setOutlineThickness( 1.0f );
+
+      float char_width = m_input_text.getFont()->getGlyph('X', m_input_text.getCharacterSize(), false).advance;
+      max_visible_chars = std::max(1, static_cast<int>(m_text_box.getSize().x / m_text_box.getSize().x));
       
+
       std::cout << m_input_text.findCharacterPos(m_cursor_position).x << ", " << m_input_text.findCharacterPos(m_cursor_position).x << "\n";
 
 
     };
+
+    void setBoxSize( const sf::Vector2f size ){
+      m_text_box.setSize( size );
+      float char_width = m_input_text.getFont()->getGlyph('X', m_input_text.getCharacterSize(), false).advance;
+      max_visible_chars = std::max( 1, static_cast<int>( m_text_box.getSize().x / char_width ) );
+      std::cout << "sds\n";
+    }
+
+    sf::Vector2f getTextBoxSize(){
+      return m_text_box.getSize();
+    }
+
+    sf::RectangleShape getTextBox(){
+      return m_text_box;
+    }
+
+    void setPadding( const sf::Vector2f& new_pad ){
+      pad_x = new_pad.x;
+      pad_y = new_pad.y;
+    }
+
+    void setPaddingX( const float& X ){
+      pad_x = X;
+    }
+
+    void setPaddingY( const float& Y ){
+      pad_y = Y;
+    }
 
     void setBackgroundColor( const sf::Color& new_color ){
       m_background_color = new_color;

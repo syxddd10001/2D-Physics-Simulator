@@ -257,18 +257,8 @@ void Engine::EventManager( const float& delta_time ) {
 
         if ( e_event.key.code == sf::Keyboard::LControl && m_command_mode ) {
           DEBUG_PRINT("%s\n", "released");
-          input_lock = false;
-          
-          if (m_command_mode) {
-            syxd::UI_Element* elem = (m_user_interface.FindElement("command input 1"));
-            if ( elem ) {
-              if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
-                e->setBackgroundColor(sf::Color::Red);
-
-            }
-          } 
-        } 
-        } 
+          input_lock = false; 
+        }
         
         if ( e_event.key.code == sf::Keyboard::F && m_elapsed_time_spawn >= INTERRUPT_INTERVAL && !m_command_mode ) {
           m_elapsed_time_spawn = 0.0f;  
@@ -939,6 +929,12 @@ void Engine::InitializeWorld( ) {
 
 void Engine::InitializeUI(){
   m_user_interface.InitInputBox("command input 1", (uint8_t) 20, sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90 }, sf::Color::White );
+  if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>( m_user_interface.FindElement("command input 1") ) ){
+    if (e != nullptr){
+      e->setBoxSize({700.0f,25.0f});
+//
+    }
+  } 
 
   m_user_interface.InitText( "spawn size", 
                                 "Spawn Size: " +  std::to_string((int) spawn_size), 
