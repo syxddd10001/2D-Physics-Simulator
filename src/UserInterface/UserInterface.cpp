@@ -59,17 +59,17 @@ void UserInterface::UpdateElementPosition( syxd::UI_Element* elem, const sf::Vec
   }
 }
 
-void UserInterface::SetElementPosition( UI_Element_Legacy* elem, const std::string relative_position, const float position_offset ){
+void UserInterface::SetElementPosition( syxd::UI_Element* elem, const std::string relative_position, const float position_offset ){
   if (WINDOW_REF == nullptr || elem == nullptr) return;
 
   sf::Vector2f new_position;
   sf::Vector2u window_size = WINDOW_REF->getSize();
 
   if ( relative_position == "top" ){
-    new_position = {elem->position.x, 0.0f+position_offset}; 
+    new_position = {elem->getPosition().x, 0.0f+position_offset}; 
   }
   else if ( relative_position == "bottom" ){
-    new_position = {elem->position.x, window_size.y-position_offset}; 
+    new_position = {elem->getPosition().y, window_size.y-position_offset}; 
   }
 
   else if ( relative_position == "center_x" ){
@@ -87,9 +87,6 @@ void UserInterface::SetElementPosition( UI_Element_Legacy* elem, const std::stri
   else if ( relative_position == "right" ){
 
   }
-
-  elem->position = new_position;
-  elem->text.setPosition(elem->position);
 
 }
 

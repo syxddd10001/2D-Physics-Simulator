@@ -7,7 +7,6 @@
 
 class UserInterface {
 private:
-  std::vector<std::unique_ptr<UI_Element_Legacy>> m_ui_elements_legacy;
   std::vector<std::unique_ptr<syxd::UI_Element>> m_ui_elements;
 
   sf::Font font;
@@ -37,7 +36,7 @@ public:
   void RenderUI( const float& delta_time );
   void UpdateElementPosition(  syxd::UI_Element* elem, const sf::Vector2f& updated_position );
   void UpdateElementText( syxd::UI_Element* elem, const std::string& updated_string );
-  void SetElementPosition( UI_Element_Legacy* elem, const std::string relative_position, const float position_offset );
+  void SetElementPosition( syxd::UI_Element* elem, const std::string relative_position, const float position_offset );
   bool SetFont( const sf::Font& font ) noexcept;
   void HideElement( syxd::UI_Element* target_element );
   void ShowElement( syxd::UI_Element* target_element );
