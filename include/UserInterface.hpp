@@ -5,18 +5,6 @@
 #include <cassert>
 #include <UIElements.hpp>
 
-struct UI_Element_Legacy {
-  std::string identifier;
-  sf::Text text;
-  uint8_t char_size;
-  sf::Vector2f position;
-  bool show_element = true;
-  
-  UI_Element_Legacy( const std::string& identifier, const sf::Text& text, uint8_t char_size, sf::Vector2f position)
-        :identifier(identifier) , text(text), char_size(char_size), position(position) {}
-
-};
-
 class UserInterface {
 private:
   std::vector<std::unique_ptr<UI_Element_Legacy>> m_ui_elements_legacy;
