@@ -58,4 +58,8 @@ obj/DiagnosticInfo.o: src/Engine/DiagnosticInfo.cpp include/DiagnosticInfo.hpp
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 clean:
+ifeq ($(OS),Windows_NT)
+	del /Q build\test\main.exe obj\*.o
+else
 	rm -rf build/test/main.exe obj/*.o
+endif

@@ -157,8 +157,12 @@ void Engine::EventManager( const float& delta_time ) {
       syxd::UI_Element* elem = (m_user_interface.FindElement("command input 1"));
       if ( elem ) {
         if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
-          e->setFocused(true);
-          e->checkInput(e_event, WINDOW, delta_time);
+          if (!e->isFocused()){
+            e->setFocused(true);
+            e->setOutlineColor(sf::Color::White);
+          }
+          
+          e->checkInput(e_event, WINDOW, delta_time);      
 
         if (e_event.type == sf::Event::KeyPressed && e_event.key.code == sf::Keyboard::Enter){
 
@@ -293,13 +297,13 @@ void Engine::EventManager( const float& delta_time ) {
           }
         }
         
-        if ( e_event.key.code == sf::Keyboard::Delete && p_selected_object != nullptr ) {   
+        if ( e_event.key.code == sf::Keyboard::Delete && p_selected_object != nullptr && !m_command_mode) {   
           deleteObject( p_selected_object, p_objects );
           p_selected_object = nullptr;
           deleted = false;    
         }
         
-        if ( e_event.key.code == sf::Keyboard::Delete && p_selected_objects.size()>0 ) {   
+        if ( e_event.key.code == sf::Keyboard::Delete && p_selected_objects.size()>0 && !m_command_mode) {   
           deleteSelectedObjects( p_selected_objects );
           p_selected_objects.clear();
           p_selected_objects.shrink_to_fit();
@@ -449,6 +453,7 @@ void Engine::EventManager( const float& delta_time ) {
         if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
           e->setFocused(false);
           e->getCursor().setFillColor( sf::Color::Transparent );
+          e->setOutlineColor(sf::Color::Black);
         }
       }
   }
@@ -724,7 +729,7 @@ void Engine::checkCollisionWithWorld( const shptr_obj object ) const noexcept {
 }
 
 /*
-  Returns the Frames Per Second of the window 
+  Returns diagnostic info
 */
 void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::time_point& start ) {
   std::chrono::high_resolution_clock::time_point end;
@@ -756,8 +761,8 @@ void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::ti
 /*
   Update User Interface elements
 */
-void Engine::Update_UI( const float& delta_time ) {
-  
+void Engine::Update_UI( const float& delta_time ) { // ui elements are variable and should be part of a "scene" instead
+
   m_user_interface.UpdateElementText(m_user_interface.FindElement("spawn size"), 
                                     "Spawn Size: " + std::to_string((int)spawn_size));
   
@@ -927,14 +932,15 @@ void Engine::InitializeWorld( ) {
   Initialize UI elements
 */
 
-void Engine::InitializeUI(){
+void Engine::InitializeUI(){ // 
   m_user_interface.InitInputBox("command input 1", (uint8_t) 20, sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90 }, sf::Color::White );
   if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>( m_user_interface.FindElement("command input 1") ) ){
     if (e != nullptr){
-      e->setBoxSize({700.0f,25.0f});
-//
+      e->setInputBoxSize({700.0f,25.0f});
+      e->setBackgroundColor(sf::Color::Black);
+      e->setOutlineColor(sf::Color::Black);
     }
-  } 
+  }
 
   m_user_interface.InitText( "spawn size", 
                                 "Spawn Size: " +  std::to_string((int) spawn_size), 
@@ -1094,26 +1100,26 @@ void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
       static_cast<float>(window_settings.DEFAULT_WINDOW_SIZE_X), 
       static_cast<float>(window_settings.DEFAULT_WINDOW_SIZE_Y)
     )));
-/*
-    m_help_interface.InitElement( "title", 
+
+    m_help_interface.InitText( "title", 
     "MANUAL PAGE",
     m_ui_settings.h2_size,
     sf::Vector2f{ 0.0f, 0.0f },
     sf::Color::White);
 
-  m_help_interface.InitElement( "spawn 0", 
+  m_help_interface.InitText( "spawn 0", 
     "SPAWN rectangle/circle mass size.x size.y position.x position.y",
     m_ui_settings.h3_size,
     sf::Vector2f{ 0.0f, 35.0f },
     sf::Color::White);
   
 
-  m_help_interface.InitElement( "spawn 1",
+  m_help_interface.InitText( "spawn 1",
     "Example: SPAWN circle 1000 50 50 0 0",
     m_ui_settings.h3_size,
     sf::Vector2f{ 0.0f, 50.0f },
     sf::Color::White);
-*/
+
   
 
   /*
@@ -1141,6 +1147,8 @@ void Engine::setSimulationSpeed( const float& s ){
 
 void Engine::MainLoop(){
   while ( isRunning() ) {
+    /************Diagnostic*****************************************************/
+
     start = std::chrono::high_resolution_clock::now(); // for benchmarking
     if ( WINDOW != nullptr ) WINDOW->clear( BACKGROUND_COLOR );
     if ( HELP_WINDOW != nullptr ) HELP_WINDOW->clear( BACKGROUND_COLOR );
@@ -1148,18 +1156,33 @@ void Engine::MainLoop(){
     m_mouse_pos_f = WINDOW->mapPixelToCoords( sf::Mouse::getPosition( *(WINDOW) ) ); // current mouse pos in float
     m_mouse_pos_i = { static_cast<int>( m_mouse_pos_f.x ), static_cast<int>( m_mouse_pos_f.y ) };  // current mouse pos in int
     float delta_time = clock.restart().asSeconds(); // getting deltaTime
+    
+    /****************************************************************************/
+     
+    /************Integral Part of Engine*****************************************/
+   
     EventManager( delta_time ); // calling event manager to handle inputs
     CollisionCheck( ); // calling collision checker
     UpdatePhysics( delta_time ); // updating and rerendering the positions of objects
     Render( ); // rendering any non-UI and non-world elements
-    WINDOW->setView( m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
+    
+    /*******************************************************************************/
+
+    /************ User Interface **************************************************/
+    if ( WINDOW != NULL ){
+      WINDOW->setView( m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
+    }
     Update_UI( delta_time ); // rendering UI 
     displayDiagnosticInfo( start );  // diagnostic info for benchmarking
-    WINDOW->setView( m_main_view ); // resetting view to main 
-    WINDOW->display();
+    if ( WINDOW != NULL ){
+     WINDOW->setView( m_main_view ); // resetting view to main 
+      WINDOW->display();
+    }
     if (HELP_WINDOW != nullptr) {
       HELP_WINDOW->setView( m_help_view );
       HELP_WINDOW->display();  
     }
+    /************ ******************** *****************************************/
+
   }
 }

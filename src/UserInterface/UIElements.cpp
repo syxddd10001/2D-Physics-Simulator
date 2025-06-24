@@ -1,6 +1,6 @@
 #pragma once
 #include <UIElements.hpp>
-
+bool action = false;
 syxd::UI_Element::UI_Element ( const uint32_t id, const std::string identifier, const sf::Vector2f position ) noexcept
   : m_id(id), m_identifier(identifier), m_position(position)
 {
@@ -9,11 +9,10 @@ syxd::UI_Element::UI_Element ( const uint32_t id, const std::string identifier, 
 }
 
 void syxd::InputBox::checkInput( sf::Event e_event, std::shared_ptr<sf::RenderWindow> WINDOW, const float& delta_time ) {
-
   if ( m_focused ) {
-
     if ( e_event.type == sf::Event::TextEntered ) {
-      if ( std::isprint(e_event.text.unicode) && m_input_string.length() <= 100) {
+      if ( std::isprint(e_event.text.unicode) 
+          && (m_input_text.findCharacterPos(m_input_string.size()).x) < m_text_box.getSize().x) {
         m_elapsed_time_input = 0.0f;
         char ch = static_cast<char>( e_event.text.unicode );
         m_input_string.insert(m_cursor_position, 1, ch);
@@ -44,6 +43,7 @@ void syxd::InputBox::checkInput( sf::Event e_event, std::shared_ptr<sf::RenderWi
 
       if ( e_event.key.code == sf::Keyboard::Enter ) { 
         if ( m_clear_on_enter ) {
+
           clearInput();
         }
       }
@@ -73,11 +73,17 @@ void syxd::InputBox::checkInput( sf::Event e_event, std::shared_ptr<sf::RenderWi
 
       if ( e_event.key.code == sf::Keyboard::Delete ) {
         if ( !m_input_string.empty() && m_cursor_position != m_input_string.length() ) {    
-          // delete logic
           m_input_string.erase(m_input_string.begin()+m_cursor_position,m_input_string.begin()+m_cursor_position+1);
-
         }
       }
+
+      if ( e_event.key.code == sf::Keyboard::End ) {
+        m_cursor_position = m_input_string.size();
+      }
+      if ( e_event.key.code == sf::Keyboard::Home ) {
+        m_cursor_position = 0;
+      }
+
 
       if ( e_event.key.control && e_event.key.code == sf::Keyboard::BackSpace ) {
         clearInput();
@@ -85,7 +91,6 @@ void syxd::InputBox::checkInput( sf::Event e_event, std::shared_ptr<sf::RenderWi
 
     }
 
-    //std::cout << m_input_text << "\n";
   }
 
   if (e_event.type == sf::Event::KeyReleased){
@@ -122,9 +127,9 @@ void syxd::InputBox::render( std::shared_ptr<sf::RenderWindow> WINDOW, const flo
       m_elapsed_time_cursor_blink = 0.0f;
     }
 
+
   }
-
-
+  
   if ( m_show_cursor && m_focused ) {
     m_cursor.setFillColor( sf::Color::White );
     m_text_color = sf::Color::White;
@@ -135,15 +140,22 @@ void syxd::InputBox::render( std::shared_ptr<sf::RenderWindow> WINDOW, const flo
 
   }
 
-  std::string visibleText = m_input_string.substr(std::max(0, (int)m_input_string.size() - max_visible_chars));
+  std::string visibleText = m_input_string;
+  
   m_input_text.setString(visibleText);
-  m_cursor.setPosition(sf::Vector2f { m_input_text.findCharacterPos(std::min((int)m_cursor_position, max_visible_chars)).x + pad_x, 
+  m_cursor.setPosition(sf::Vector2f { std::min((m_input_text.findCharacterPos(m_cursor_position).x),(m_input_text.findCharacterPos(m_input_string.size()).x)), 
                                     m_input_text.findCharacterPos(m_cursor_position).y + 4.f });
                                  
-  
 
   WINDOW->draw( m_text_box );
   WINDOW->draw( getTextElement() );
   WINDOW->draw( m_cursor );
+}
+
+void syxd::InputBox::setInputBoxSize( const sf::Vector2f size ){
+    m_text_box.setSize( size ); 
+    max_visible_chars = std::max( 1, static_cast<int>( m_text_box.getSize().x / average_char_width ) );
+    std::cout << average_char_width << "\n";
+    std::cout << max_visible_chars << "\n";
 
 }
