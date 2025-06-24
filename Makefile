@@ -24,9 +24,6 @@ obj/Engine.o: src/Engine/Engine.cpp include/Engine.hpp obj/Object.o obj/PhysicsM
 obj/Physics.o: src/Engine/Physics.cpp include/Physics.hpp obj/Object.o obj/PhysicsMath.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/PhysicsMath.o: src/Math/PhysicsMath.cpp include/PhysicsMath.hpp obj/Object.o
-	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
-
 obj/ObjectFactory.o: src/Engine/ObjectFactory.cpp include/ObjectFactory.hpp obj/Object.o obj/Circle.o obj/Rectangle.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
@@ -49,6 +46,9 @@ obj/UserInterface.o: src/UserInterface/UserInterface.cpp include/UserInterface.h
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/UIElements.o: src/UserInterface/UIElements.cpp include/UIElements.hpp obj/Vector2.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+obj/PhysicsMath.o: src/Math/PhysicsMath.cpp include/PhysicsMath.hpp obj/Vector2.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/Vector2.o: src/Math/Vector2.cpp include/Vector2.hpp

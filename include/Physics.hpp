@@ -18,3 +18,4 @@ void dynamicResponse( std::shared_ptr<Circle> object1, std::shared_ptr<Rectangle
 
 bool onCollision( std::shared_ptr<Rectangle> object1, std::shared_ptr<Rectangle> object2 ); 
 void dynamicResponse( std::shared_ptr<Rectangle> object1, std::shared_ptr<Rectangle> object2 ) ;
+float calculateDistance( const Vec2& pos1, const Vec2& pos2 );
