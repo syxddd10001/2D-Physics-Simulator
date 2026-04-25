@@ -16,25 +16,39 @@ const float MY_PI = 3.14159265358979323846; // PI
 const double MY_G_CONSTANT = 10; // GRAVITATIONAL CONSTANT OF (MY) UNIVERSE
 
 namespace syxd{
+  struct Color {
+      sf::Uint8 r, g, b;
+  };
+  constexpr std::size_t color_count = 7;
+  
+  inline sf::Uint8 st_cast_ui8(float value) {
+    return static_cast<sf::Uint8>(value);
+  }
+
   class Object {
   protected: 
     // Object State
     float m_mass;
     int m_object_id;
-    
+    bool m_glow = false;
+
     Vec2 position_current; // position of the object
     Vec2 position_old;
     Vec2 velocity;
     Vec2 acceleration;
     Vec2 net_force;
     
-    std::shared_ptr<sf::Shape> m_shape;
+    std::shared_ptr<sf::Shape> m_shape; // for regular
+    std::shared_ptr<sf::Sprite> m_sprite = nullptr; // for glow
+
+
+    sf::Shader* m_my_shader = nullptr;
     std::unique_ptr<sf::Color> m_color;
     AbstractBox<float> m_queryBox;
   
   public:    
   
-    Object( float mass, float pos_x, float pos_y ) noexcept;
+    Object( float mass, float pos_x, float pos_y, bool glow ) noexcept;
     Object( ) { };
     virtual ~Object( ) = default;
     
@@ -43,8 +57,9 @@ namespace syxd{
     void setOldPosition( );
     void setOldPosition( const Vec2& pos );
     virtual void setPosition( const Vec2 pos );
+    virtual void draw( std::shared_ptr<sf::RenderWindow> WINDOW ) = 0;
   
-    void print_info( );
+    void printInfo( );
     virtual std::shared_ptr<sf::Shape> getShape();
     float getMass( );
     void setMass( const float mass );
@@ -65,7 +80,10 @@ namespace syxd{
     void setID( int id );
     int getID( );
     
-    
+    sf::Shader* getShader() const { 
+      return m_my_shader; 
+    }
+
     virtual bool mouseOnObject( const Vec2& vector );
   
     bool operator==( Object& other ) const {
@@ -89,10 +107,20 @@ namespace syxd{
         RECTANGLE,
         NONE
     };
-    
+
+
+
+    void setShader(sf::Shader* shader){
+      m_my_shader = shader;
+    }
+
     static const std::map <std::string, ObjectType> m_object_type_map;
     
     virtual ObjectType getType();
+    virtual std::string typeName() const = 0;
+
+    virtual std::string serializeCSV( int id ) const = 0;
+    static std::unique_ptr<Object> deserializeCSV( const std::vector<std::string>& tokens );
     
     const bool operator= ( Object& other ) noexcept {
       return ( getID() == other.getID()) ;
@@ -106,5 +134,8 @@ namespace syxd{
     void applyForce( std::shared_ptr<Object> object, const Vec2& dir, const float& distance );
     void applyForce( const Vec2& force );
     
+    bool hasGlow();
+    
   };
+  
 }

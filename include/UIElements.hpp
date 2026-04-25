@@ -44,6 +44,7 @@ namespace syxd{
   
     void setPosition( const sf::Vector2f& position ) {
       m_position = position;
+      
     }
     void setPosition( const float& pos_x, const float& pos_y ) {
       m_position = { pos_x, pos_y };
@@ -211,6 +212,27 @@ namespace syxd{
       std::cout << m_input_text.findCharacterPos(m_cursor_position).x << ", " << m_input_text.findCharacterPos(m_cursor_position).x << "\n";
 
     };
+
+    void setPosition( const sf::Vector2f& position ){
+      UI_Element::setPosition(position);
+      m_text_box.setPosition( position );
+      m_input_text.setPosition( position );  
+      m_cursor.setPosition( position );
+    }
+
+    void setPosition( const float& pos_x, const float& pos_y ){
+      UI_Element::setPosition( pos_x, pos_y );
+      m_text_box.setPosition( pos_x, pos_y );
+      m_input_text.setPosition( sf::Vector2f{pos_x, pos_y} );  
+      m_cursor.setPosition( sf::Vector2f{pos_x, pos_y} );
+    }
+
+    void setPosition( const Vector2<float>& position ){
+      UI_Element::setPosition(position);
+      m_text_box.setPosition( position.x, position.y );
+      m_input_text.setPosition( sf::Vector2f{position.x, position.y});
+      m_cursor.setPosition( sf::Vector2f{position.x, position.y} );
+    }
 
     sf::Vector2f getTextBoxSize(){
       return m_text_box.getSize();

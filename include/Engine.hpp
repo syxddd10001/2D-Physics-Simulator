@@ -60,6 +60,12 @@ struct UI_SETTINGS {
   uint16_t p1_size; // 20
 };
 
+struct Engine_Data {
+  vector<shptr_obj> p_objects; // objects
+  WINDOW_SETTINGS window_settings;
+
+};
+
 class Engine {
 private:
   const float CREATION_INTERVAL = 0.1f;
@@ -131,23 +137,30 @@ public:
   UserInterface m_user_interface; // this engine's user interface
   UserInterface m_help_interface; // help user interface
 
+  sf::Shader* m_glow_shader = nullptr;
   sf::Event e_event;
 
   vector<shptr_obj> p_objects; // all objects
   vector<shptr_obj> p_selected_objects; // selected objects
   shptr_obj p_selected_object = nullptr;
 
-  Engine( const uint16_t world_size );
+  Engine( const WINDOW_SETTINGS& window_settings );
+  Engine( const Engine_Data& dataset );
+  
+
   ~Engine();
+    
+  bool InitializeEngine( const WINDOW_SETTINGS& window_settings, const bool& load ); // initalize the engine (without prior data)
+  bool InitializeEngine( const Engine_Data data_set ); // initialize the engine (WITH prior data)
 
   void EventManager( const float& delta_time ); // event and input manager
   void CollisionCheck( ); // checks if any collision has occured and provides a response to that collision 
   void UpdatePhysics( const float& delta_time ); // updates object data
+  void RenderObjects();
   void Render( ); // render any non-ui and non-world elements
-  void Update_UI( const float& delta_time ); // Updates UI every frame
+  void UpdateUI( const float& delta_time ); // Updates UI every frame
   
   void MainLoop(); // main engine loop
-  
   void addObject( const shptr_obj object ); // adds a new object to the world
   vector<shptr_obj>& getAllObjects(); // returns all objects in the world
   void zoomViewAt( const sf::Vector2i& pixel, const float& zoom ); // zoom
@@ -159,6 +172,7 @@ public:
   void moveAll( vector<shptr_obj> objects, const sf::Vector2f delta ); // move all objects that are selected
   bool deleteObject( const shptr_obj object_to_delete, vector<shared_ptr<Object>>& all_objects ); // delete a selected object
   void deleteSelectedObjects( vector<shptr_obj>& objects_to_delete ); // deleted all objects that are selected
+  bool deleteIfOutOfWorld(); // deletes objects that are out of the bounds of this world
   void InitializeWorld( ); // initialize the world with objects
   void displayDiagnosticInfo( const std::chrono::high_resolution_clock::time_point& start ); // returns window frames per second
   void InitializeUI( ); // initialize the ui with elements
@@ -183,8 +197,12 @@ public:
   void setGravityMode( const bool& b );
   void setSimulationSpeed( const float& f );
   void createHelpWindow( const WINDOW_SETTINGS& window_settings );
+  void updateHelpWindow(void);
   sf::Vector2f& getMousePosf();
   sf::Vector2i& getMousePosi();
   
   sf::View& getMainView();
+
+  WINDOW_SETTINGS getWindowSetting();
+  UI_SETTINGS getUISettings();
 };

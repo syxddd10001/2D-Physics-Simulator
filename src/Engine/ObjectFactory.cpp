@@ -17,15 +17,16 @@ std::shared_ptr<ObjectFactory> ObjectFactory::GetInstance() {
 std::shared_ptr<Object> ObjectFactory::createObject( const Object::ObjectType object_type, 
                                     const float mass, 
                                     const float dim_x, const float dim_y, 
-                                    const float pos_x,  const float pos_y ) {
+                                    const float pos_x,  const float pos_y,
+                                    const bool glow) {
   
   switch ( object_type ) {
     case Object::CIRCLE:
-      return std::make_shared<Circle>( dim_x, mass, pos_x, pos_y );
+      return std::make_shared<Circle>( dim_x, mass, pos_x, pos_y, glow );
     break;
   
     case Object::RECTANGLE:
-      return std::make_shared<Rectangle>( mass, pos_x, pos_y, dim_x, dim_y );
+      return std::make_shared<Rectangle>( mass, pos_x, pos_y, dim_x, dim_y, glow );
     break;
     
     default:

@@ -61,9 +61,21 @@ float m_max_zoom = 2.0f;
 uint16_t current_world_size;
 
 
-Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 900, world_size, "2D Physics Simulator" } { 
+Engine::Engine( const WINDOW_SETTINGS& window_settings ) : m_window_settings{ window_settings } { 
+  InitializeEngine( window_settings, false );
+}
+
+Engine::Engine( const Engine_Data& dataset ) : m_window_settings{ dataset.window_settings } {
+  InitializeEngine( dataset );
+}
+
+Engine::~Engine( ) {
+  
+}
+
+bool Engine::InitializeEngine( const WINDOW_SETTINGS& window_settings, const bool& load ){
   m_ui_settings = { 30, 20, 15, 12 }; // h1, h2, h3, p font sizes
-  current_world_size = world_size;
+  current_world_size = window_settings.WORLD_SIZE;
   WINDOW = std::make_shared<sf::RenderWindow>( sf::VideoMode( m_window_settings.DEFAULT_WINDOW_SIZE_X, 
                                                               m_window_settings.DEFAULT_WINDOW_SIZE_Y ),
                                                               m_window_settings.WINDOW_NAME );
@@ -76,7 +88,7 @@ Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 9
   //box for quadtree
   //box = AbstractBox<float>( Vec2( WINDOW->mapPixelToCoords( sf::Vector2i {0, 0} ) ) , Vec2(  m_main_view.getSize() ) );
   
-  box = AbstractBox<float>( Vec2( -1*world_size, -1*world_size ), Vec2( world_size*2, world_size*2 ) );
+  box = AbstractBox<float>( Vec2( -1*current_world_size, -1*current_world_size ), Vec2( current_world_size*2, current_world_size*2 ) );
   //root mode of the quadtree
   m_quad_root = std::make_unique<Quadtree>(box, 1, 8);
   
@@ -97,6 +109,15 @@ Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 9
     }
   #endif
 
+  m_glow_shader = new sf::Shader();
+  if (!m_glow_shader->loadFromFile("shaders/glow.frag", sf::Shader::Fragment)){
+      DEBUG_PRINT("Shader not found\n");
+
+  } else{
+    DEBUG_PRINT("Shader Loaded\n");
+  }
+  
+  m_glow_shader->setUniform("texture", sf::Shader::CurrentTexture);
 
   m_user_interface.SetWindow( WINDOW );
   m_help_interface.SetWindow( HELP_WINDOW );
@@ -114,18 +135,28 @@ Engine::Engine( const uint16_t world_size ) : m_window_settings{ 144.0f, 1500, 9
   sf::Vector2f move_amount { -half_size.x, -half_size.y } ; // move camera s.t the screen center is 0,0
   m_main_view.move( move_amount );
 
-  InitializeWorld();
+  InitializeWorld(); // obsolete
+
   InitializeUI();
+  
   init();
   cout << std::setprecision(13);
 
   DEBUG_PRINT( "%dx%d window spawned \n", m_window_settings.DEFAULT_WINDOW_SIZE_X, m_window_settings.DEFAULT_WINDOW_SIZE_Y );
   is_running = true;
+
+  return is_running;
 }
 
-Engine::~Engine( ) {
-  
+bool Engine::InitializeEngine( Engine_Data data_set ){
+  InitializeEngine( data_set.window_settings, true );
+
+  p_objects = data_set.p_objects;
+  object_count = p_objects.size();
+
+  return true;
 }
+
 /*
  Events and input manager
 
@@ -154,7 +185,7 @@ void Engine::EventManager( const float& delta_time ) {
 
   if( WINDOW != nullptr && WINDOW->pollEvent( e_event ) ) {
     if (m_command_mode) {
-      syxd::UI_Element* elem = (m_user_interface.FindElement("command input 1"));
+      syxd::UI_Element* elem = (m_user_interface.FindElement("command input"));
       if ( elem ) {
         if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
           if (!e->isFocused()){
@@ -185,6 +216,8 @@ void Engine::EventManager( const float& delta_time ) {
         //setZoomLimits ( sf::Vector2f {m_window_settings.WORLD_SIZE, m_window_settings.WORLD_SIZE}, sf::Vector2f(WINDOW->getSize()));
         WINDOW->setView( m_main_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
         WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
+
+      
       break;
         
       case sf::Event::MouseButtonPressed:
@@ -255,7 +288,7 @@ void Engine::EventManager( const float& delta_time ) {
       break;
   
       case sf::Event::KeyReleased:
-        if ( e_event.key.code == sf::Keyboard::Pause ){
+        if ( e_event.key.code == sf::Keyboard::Pause || e_event.key.code == sf::Keyboard::F12  ){
           is_paused = !is_paused;
         }
 
@@ -336,12 +369,16 @@ void Engine::EventManager( const float& delta_time ) {
           show_diagnostic = !show_diagnostic;
           
           if (!show_diagnostic){
+
+            m_user_interface.HideElement(m_user_interface.FindElement("pause text"));
             m_user_interface.HideElement(m_user_interface.FindElement("gizmos text"));
             m_user_interface.HideElement(m_user_interface.FindElement("cpu text"));
             m_user_interface.HideElement(m_user_interface.FindElement("memory available text"));
             m_user_interface.HideElement(m_user_interface.FindElement("memory used text"));
             m_user_interface.HideElement(m_user_interface.FindElement("fps text"));
           } else {
+                          
+            m_user_interface.HideElement(m_user_interface.FindElement("pause text"));
             m_user_interface.ShowElement(m_user_interface.FindElement("gizmos text"));
             m_user_interface.ShowElement(m_user_interface.FindElement("cpu text"));
             m_user_interface.ShowElement(m_user_interface.FindElement("memory available text"));
@@ -399,7 +436,10 @@ void Engine::EventManager( const float& delta_time ) {
             command.append(std::to_string(spawn_size) + " " + std::to_string(spawn_size) + " ");
             command.append(std::to_string(m_mouse_pos_f.x) + " " + std::to_string(m_mouse_pos_f.y) + " ");
             command.append(std::to_string(num_objects_to_spawn));
+            command.append(" glow");
             p_receiver->Receive( command, this );
+            std::cout << "spawned 1 \n";
+
 
           } else if ( spawn_type == "rec" ) {
             float t_mass = spawn_size*100.0f;
@@ -448,15 +488,15 @@ void Engine::EventManager( const float& delta_time ) {
       input_lock = false;
 
       if (!m_command_mode) {
-      syxd::UI_Element* elem = (m_user_interface.FindElement("command input 1"));
-      if ( elem ) {
-        if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
-          e->setFocused(false);
-          e->getCursor().setFillColor( sf::Color::Transparent );
-          e->setOutlineColor(sf::Color::Black);
+        syxd::UI_Element* elem = (m_user_interface.FindElement("command input"));
+        if ( elem ) {
+          if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
+            e->setFocused(false);
+            e->getCursor().setFillColor( sf::Color::Transparent );
+            e->setOutlineColor(sf::Color::Black);
+          }
         }
       }
-  }
       
 
       DEBUG_PRINT("%s", m_command_mode ? "input mode\n" : "not input mode\n" );           
@@ -505,16 +545,34 @@ vector<shptr_obj>& Engine::getAllObjects() {
 /*
   Deletes an object from the world
 */
-bool Engine::deleteObject( shptr_obj object_to_delete, vector<shptr_obj>& all_objects ) {
-  deleted = false;
-  auto it = std::find( all_objects.begin( ), all_objects.end( ), object_to_delete );
-  if ( it != all_objects.end( ) ) {
-    all_objects.erase( it );
-    object_to_delete.reset();
-    deleted = true;
-  }
-  deleted ? object_count -- : object_count = 0;
-  return deleted;
+bool Engine::deleteObject( const shptr_obj object_to_delete, vector<shared_ptr<Object>>& all_objects )
+{
+    auto it = std::find(all_objects.begin(), all_objects.end(), object_to_delete);
+    if (it == all_objects.end())
+        return false;
+
+    all_objects.erase(it);
+    object_count--; 
+    return true;
+}
+
+/*
+  Deletes objects that are out of WORLD_SIZE
+*/
+bool Engine::deleteIfOutOfWorld( ){
+  p_objects.erase(
+    std::remove_if(
+        p_objects.begin(),
+        p_objects.end(),
+        [this](const std::shared_ptr<Object>& obj) {
+            const auto pos = obj->getPosition();
+            return std::abs(pos.x) > float(m_window_settings.WORLD_SIZE) ||
+                  std::abs(pos.y) > float(m_window_settings.WORLD_SIZE);
+        }
+    ),
+    p_objects.end()
+  );
+  object_count = p_objects.size();
 }
 
 /*
@@ -646,13 +704,21 @@ void Engine::UpdatePhysics( const float& delta_time ) {
   box = AbstractBox<float>(Vec2( -1*current_world_size, -1*current_world_size ), Vec2( current_world_size*2, current_world_size*2 ));
   m_quad_root = std::make_unique<Quadtree>( box, 1, 8 );
   // apply euler integration every frame + draw
-  for ( size_t i = 0; i < p_objects.size(); i++ ) {
+
+  // erase object if it goes beyond the bounds of the world
+  // erase object BEFORE physics operations for efficiency
+  deleteIfOutOfWorld(); // O(n)
+
+  for ( size_t i = 0; i < p_objects.size(); i++ ) { // O(n)
     assert( p_objects[i] != nullptr );
-    if ( !is_paused ) p_objects[i]->EulerIntegration( delta_time * sim_speed  );
+    if ( !is_paused ) 
+      p_objects[i]->EulerIntegration( delta_time * sim_speed  );
+
     m_quad_root->insert( p_objects[i] );
-    shared_ptr<sf::Shape> sh = p_objects[i]->getShape();
-    if ( m_gizmos_mode ) WINDOW->draw(*(p_objects[i]->getQueryBox().shape) );
-    WINDOW->draw( *sh );
+    p_objects[i]->draw( WINDOW );
+
+    if ( m_gizmos_mode ) 
+      WINDOW->draw(*(p_objects[i]->getQueryBox().shape) );
   }
 }
 
@@ -661,14 +727,21 @@ void Engine::UpdatePhysics( const float& delta_time ) {
 */
 void Engine::CollisionCheck( ) {
   // collision detection and response
+
   for ( auto& current : p_objects ) {
+
+
     auto obj_in_range = m_quad_root->query( current->getQueryBox() ); 
+
+
     //checkCollisionWithWorld( current );
     if ( m_gravity_mode && !is_paused ) {
-    // gravity simulation using Barnes Hut -- O(n log n)
+      // gravity simulation using Barnes Hut -- O(n log n)
       Vec2 force = m_quad_root->calculateForce( current ); // Use an appropriate theta value
       current->applyForce( force );
     }
+
+
     for ( auto& other : obj_in_range ) {
       if ( current == other ) continue;
       
@@ -746,6 +819,7 @@ void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::ti
   float x_offset = 200.0f;
   float y_offset;
 
+  m_user_interface.UpdateElementText(m_user_interface.FindElement("pause text"), (is_paused) ? "PAUSED" : "");
   m_user_interface.UpdateElementText(m_user_interface.FindElement("gizmos text"), (m_gizmos_mode) ? "Gizmos: ON " : "Gizmos: OFF ");
   m_user_interface.UpdateElementText(m_user_interface.FindElement("cpu text"), "CPU Used: " +  std::to_string( cpu_usage ) + "%");
   m_user_interface.UpdateElementText(m_user_interface.FindElement("memory available text"), "Available Memory: " +  std::to_string( memory_available ) + " MB");
@@ -761,7 +835,9 @@ void Engine::displayDiagnosticInfo( const std::chrono::high_resolution_clock::ti
 /*
   Update User Interface elements
 */
-void Engine::Update_UI( const float& delta_time ) { // ui elements are variable and should be part of a "scene" instead
+void Engine::UpdateUI( const float& delta_time ) { // ui elements are variable and should be part of a "scene" instead
+
+  object_count = p_objects.size();
 
   m_user_interface.UpdateElementText(m_user_interface.FindElement("spawn size"), 
                                     "Spawn Size: " + std::to_string((int)spawn_size));
@@ -794,6 +870,10 @@ void Engine::Update_UI( const float& delta_time ) { // ui elements are variable 
   
   m_user_interface.UpdateElementText( m_user_interface.FindElement("command mode"),
                                     (!m_command_mode) ? "Ctrl + I for Command Mode" : "Ctrl + I to Exit Command Mode");
+
+
+  m_user_interface.UpdateElementPosition(m_user_interface.FindElement("command mode"), sf::Vector2f { 0, (float)WINDOW->getSize().y - 40.0f } );
+  m_user_interface.UpdateElementPosition(m_user_interface.FindElement("command input"), sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90.0f } );
 
 
   m_user_interface.RenderUI( delta_time );
@@ -833,7 +913,7 @@ void Engine::Render( ) {
     WINDOW->draw( line );
   }
   
-  if ( p_selected_object && sf::Mouse::isButtonPressed( sf::Mouse::Left )) {
+  if ( p_selected_object && sf::Mouse::isButtonPressed( sf::Mouse::Left ) && !p_selected_object->hasGlow()) {
     shared_ptr<sf::Shape> sh = p_selected_object->getShape( );
     sh->setOutlineColor( sf::Color::Red );
     WINDOW->draw( *sh );
@@ -933,8 +1013,8 @@ void Engine::InitializeWorld( ) {
 */
 
 void Engine::InitializeUI(){ // 
-  m_user_interface.InitInputBox("command input 1", (uint8_t) 20, sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90 }, sf::Color::White );
-  if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>( m_user_interface.FindElement("command input 1") ) ){
+  m_user_interface.InitInputBox("command input", (uint8_t) 20, sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90 }, sf::Color::White );
+  if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>( m_user_interface.FindElement("command input") ) ){
     if (e != nullptr){
       e->setInputBoxSize({700.0f,25.0f});
       e->setBackgroundColor(sf::Color::Black);
@@ -999,6 +1079,12 @@ void Engine::InitializeUI(){ //
                              
   float x_offset = 200.0f;
   float y_offset;
+
+  m_user_interface.InitText( "pause text", 
+                              (is_paused) ? "Paused " : "",
+                              m_ui_settings.h3_size,
+                              sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 175.0f },
+                              TEXT_COLOR);
 
   m_user_interface.InitText( "gizmos text", 
                               (m_gizmos_mode) ? "Gizmos: ON " : "Gizmos: OFF ",
@@ -1105,20 +1191,20 @@ void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
     "MANUAL PAGE",
     m_ui_settings.h2_size,
     sf::Vector2f{ 0.0f, 0.0f },
-    sf::Color::White);
+    TEXT_COLOR);
 
   m_help_interface.InitText( "spawn 0", 
     "SPAWN rectangle/circle mass size.x size.y position.x position.y",
     m_ui_settings.h3_size,
     sf::Vector2f{ 0.0f, 35.0f },
-    sf::Color::White);
-  
+    TEXT_COLOR);
+
 
   m_help_interface.InitText( "spawn 1",
     "Example: SPAWN circle 1000 50 50 0 0",
     m_ui_settings.h3_size,
     sf::Vector2f{ 0.0f, 50.0f },
-    sf::Color::White);
+    TEXT_COLOR);
 
   
 
@@ -1145,10 +1231,11 @@ void Engine::setSimulationSpeed( const float& s ){
   sim_speed = s;
 }
 
-void Engine::MainLoop(){
+
+
+void Engine::MainLoop( ){
   while ( isRunning() ) {
     /************Diagnostic*****************************************************/
-
     start = std::chrono::high_resolution_clock::now(); // for benchmarking
     if ( WINDOW != nullptr ) WINDOW->clear( BACKGROUND_COLOR );
     if ( HELP_WINDOW != nullptr ) HELP_WINDOW->clear( BACKGROUND_COLOR );
@@ -1166,23 +1253,24 @@ void Engine::MainLoop(){
     UpdatePhysics( delta_time ); // updating and rerendering the positions of objects
     Render( ); // rendering any non-UI and non-world elements
     
-    /*******************************************************************************/
+    /*****************************************************************************/
 
-    /************ User Interface **************************************************/
+    /************ User Interface *************************************************/
     if ( WINDOW != NULL ){
       WINDOW->setView( m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
     }
-    Update_UI( delta_time ); // rendering UI 
+    UpdateUI( delta_time ); // rendering UI 
     displayDiagnosticInfo( start );  // diagnostic info for benchmarking
     if ( WINDOW != NULL ){
-     WINDOW->setView( m_main_view ); // resetting view to main 
+      WINDOW->setView( m_main_view ); // resetting view to main 
       WINDOW->display();
     }
+    
     if (HELP_WINDOW != nullptr) {
       HELP_WINDOW->setView( m_help_view );
       HELP_WINDOW->display();  
     }
-    /************ ******************** *****************************************/
+    /*****************************************************************************/
 
   }
 }

@@ -70,6 +70,7 @@ bool Receiver::Receive( const std::string command, Engine* engine_instance ) {
     DEBUG_PRINT("Enter a valid command!", " ");
     return false;
   }
+  std::cout << command << "\n";
   NormalizeString( commands ); 
   // commands are being recieved properly
   return CallCommand( commands, engine_instance );
@@ -77,6 +78,7 @@ bool Receiver::Receive( const std::string command, Engine* engine_instance ) {
 
 // Calls a command and executes the appropriate function
 bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_instance ) {
+  
   CommandType command = StringToCommand( m_command_map, commands[0] );
   try
   { 
@@ -121,20 +123,26 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
               posX = centerX;
               posY = centerY;
             }
+            std::cout << "command 1 \n";
+
             std::shared_ptr<Object> obj = (
               p_factory->createObject( type, 
                                      std::stof(commands[2]), // mass
                                      std::stof(commands[3]),  // dimension.x
                                      std::stof(commands[4]),  // dimension.y
                                      ( commands[5] == "random" || commands[5] == "rand" ) ? rand() % (int) range.getRight()+ (int)range.left : posX, // position.x
-                                     ( commands[6] == "random" || commands[6] == "rand" ) ? rand() % (int) range.getBottom()+ (int)range.top : posY)); // position.y
+                                     ( commands[6] == "random" || commands[6] == "rand" ) ? rand() % (int) range.getBottom()+ (int)range.top : posY,  // position.y
+                                     (commands[8] == "glow" || commands[8] == "true") ? true : false));
             assert ( obj != nullptr );
-            
+  
             obj->setID(engine_instance->getAllObjects().size()+1);
+
             engine_instance->addObject(obj);
+
             if ( engine_instance->m_quad_root != nullptr && obj != nullptr ) 
             {
                 engine_instance->m_quad_root->insert( obj );
+
             }
           }
         }

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <memory>
 #include <cstdlib>
+#include <random>
 
 #include <SFML/Graphics.hpp>
 #include "Object.hpp"
@@ -17,9 +18,10 @@ namespace syxd{
   private: 
     float m_radius;
     std::shared_ptr<sf::CircleShape> m_shape;
-  
+    sf::Texture m_glowTexture;  // keep texture alive
+
   public:
-    Circle( float rad, float mass, float pos_x, float pos_y ) noexcept;
+    Circle( float rad, float mass, float pos_x, float pos_y, bool glow ) noexcept;
     ~Circle() override {};
     Circle( );
     float getRadius( );
@@ -30,9 +32,16 @@ namespace syxd{
     Vec2 getSize( ) const override;
     Vec2 getCenter( ) const override;
     AbstractBox<float> getBoundingBox( ) const;
-    
+    void draw( std::shared_ptr<sf::RenderWindow> WINDOW ) override;
+    std::string serializeCSV(int id) const override;
+
     ObjectType getType() override {
       return ObjectType::CIRCLE;
+    };
+    std::string typeName() const override { 
+      return "Circle";
     }
+
+
   };
 }

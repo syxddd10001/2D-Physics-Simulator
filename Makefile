@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS = -std=c++20
+CXXFLAGS = -std=c++20 -g -O0
 SFML_INCLUDE := -I libs/SFML/include
 SFML_LIB := -L libs/SFML/lib -lsfml-graphics -lsfml-window -lsfml-system
 
@@ -10,10 +10,13 @@ INCLUDE := -I include
 EXECUTABLE := build/test/main.exe
 OBJECTS := obj/UserInterface.o obj/UIElements.o obj/DiagnosticInfo.o obj/Rectangle.o obj/Circle.o obj/Object.o obj/PhysicsMath.o 
 OBJECTS += obj/Engine.o obj/Physics.o obj/Vector2.o
-OBJECTS += obj/Command.o obj/ObjectFactory.o obj/AbstractBox.o obj/Quadtree.o 
+OBJECTS += obj/Scene.o obj/Command.o obj/ObjectFactory.o obj/AbstractBox.o obj/Quadtree.o 
 
 $(EXECUTABLE): src/main.cpp $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(SFML_INCLUDE) $(INCLUDE) -I src $^ -o $@ $(SFML_LIB) $(LIBS)
+
+obj/Scene.o: src/Engine/Scene.cpp include/Scene.hpp obj/Engine.o obj/Command.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/Command.o: src/Engine/Command.cpp include/Command.hpp obj/ObjectFactory.o obj/Engine.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@

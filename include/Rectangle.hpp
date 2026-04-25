@@ -15,7 +15,7 @@ namespace syxd{
     std::shared_ptr<sf::RectangleShape> m_shape;
   
   public:
-    Rectangle( float mass, float pos_x, float pos_y, float dim_x, float dim_y ) noexcept;
+    Rectangle( float mass, float pos_x, float pos_y, float dim_x, float dim_y, bool glow ) noexcept;
     Rectangle( );
     ~Rectangle() override {};
   
@@ -37,8 +37,16 @@ namespace syxd{
     ObjectType getType() override {
       return ObjectType::RECTANGLE;
     }
-    
+
+    std::string typeName() const override { 
+      return "Rectangle";
+    }
+
+    void draw( std::shared_ptr<sf::RenderWindow> WINDOW ) override;
+
     bool intersects( std::shared_ptr<Rectangle> other ) const noexcept;
+
+    std::string serializeCSV( int id ) const override;
   
   };
 }

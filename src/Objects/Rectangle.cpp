@@ -2,8 +2,8 @@
 
 using namespace syxd;
 
-Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float dimY ) noexcept
-: Object( mass, pos_x, pos_y ), m_dimensions( dimX, dimY )  {
+Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float dimY, bool glow ) noexcept
+: Object( mass, pos_x, pos_y, m_glow ), m_dimensions( dimX, dimY )  {
   m_shape = std::make_shared<sf::RectangleShape>(sf::Vector2f(dimX, dimY));
   m_color = std::make_unique<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
   m_shape->setOutlineThickness(1.0f);
@@ -57,10 +57,32 @@ AbstractBox<float> Rectangle::getBoundingBox( ) const {
   return AbstractBox<float>( left, top, width, height );
 }
 
+void Rectangle::draw( std::shared_ptr<sf::RenderWindow> WINDOW ) {
+  if ( m_glow ){
+    if ( m_sprite != nullptr ){
+      WINDOW->draw( *m_sprite, sf::BlendAdd );
+      return;
+    }
+  }
+
+  if ( m_shape != nullptr) {
+    WINDOW->draw( *m_shape );
+  }
+  
+}
+
 bool Rectangle::intersects( std::shared_ptr<Rectangle> other ) const noexcept {
   Vec2 other_dim = other->getDimension();
   return ( position_current.x < other->position_current.x + other_dim.x &&
           position_current.x+ m_dimensions.x > other->position_current.x &&
           position_current.y < other->position_current.y + other_dim.y &&
           position_current.y + m_dimensions.y > other->position_current.y );
+}
+
+std::string Rectangle::serializeCSV( int id ) const {
+  std::ostringstream o;
+  o << id << "," << typeName() << ","
+    << m_mass << "," << position_current.x << "," << position_current.y << ","
+    << m_dimensions.x << "," << m_dimensions.y << "," << (m_glow ? "1" : "0") << ";";
+  return o.str();
 }

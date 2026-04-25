@@ -10,13 +10,13 @@ const std::map<std::string, Object::ObjectType> Object::m_object_type_map = {
       { "rec", RECTANGLE }
   };
 
-Object::Object( float mass, float pos_x, float pos_y ) noexcept
-: m_mass( mass ), position_current(pos_x, pos_y), position_old(pos_x, pos_y)
+Object::Object( float mass, float pos_x, float pos_y, bool glow ) noexcept
+: m_mass( mass ), position_current(pos_x, pos_y), position_old(pos_x, pos_y), m_glow(glow)
 {
   this->setVelocity( Vec2 { 0.f, 0.f } );
 }
 
-void Object::print_info( ) {
+void Object::printInfo( ) {
   std::cout << "Mass: " << m_mass << "\nPosition: (" << position_current.x << ", " << position_current.y << ")\n";
   std::cout << "Velocity: (" << velocity.x << ", " << velocity.y << ")\n"; 
  
@@ -147,4 +147,8 @@ Vec2 Object::getNetForce( ) const {
 
 void Object::AddForce( const Vec2 force ){
   net_force += force;
+}
+
+bool Object::hasGlow(){
+  return m_glow;
 }

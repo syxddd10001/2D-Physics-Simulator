@@ -25,6 +25,7 @@ std::unique_ptr<syxd::UI_Element>::pointer UserInterface::FindElement( const std
     if (elem == nullptr) continue;
 
     if ( elem->getIdentifier() == element_identifier ){
+      
       return elem.get();
     }
   }
@@ -57,6 +58,12 @@ void UserInterface::UpdateElementPosition( syxd::UI_Element* elem, const sf::Vec
   if ( syxd::Text* t = dynamic_cast<syxd::Text*>( elem )  ) {
     t->setPosition( updated_position );
   }
+
+  if ( syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( elem )) {
+    input_box->setPosition( updated_position );
+
+  }
+
 }
 
 void UserInterface::SetElementPosition( syxd::UI_Element* elem, const std::string relative_position, const float position_offset ){
@@ -101,6 +108,7 @@ void UserInterface::RenderUI( const float& delta_time ){
 
       else if ( syxd::InputBox* t = dynamic_cast<syxd::InputBox*>( elem.get() ) ) {  
         t->render(WINDOW_REF, delta_time );
+
       }
 
     }

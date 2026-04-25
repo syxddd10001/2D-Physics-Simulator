@@ -65,17 +65,21 @@ bool Quadtree::insert ( std::shared_ptr<Object> obj ) {
 */
 std::vector<std::shared_ptr<Object>> Quadtree::query( AbstractBox<float> range ) {
   std::vector<std::shared_ptr<Object>> objects_in_range;
+
   if ( !m_bounds.intersects(range) ) {
     return objects_in_range;
   }
+
   
   for ( size_t p = 0; p<m_objects.size(); p++ ) {
     if ( range.contains( m_objects[p]->getCenter(), m_objects[p]->getSize() ) ) {
       objects_in_range.push_back( m_objects[p] );
     }
   }
+
   
   if ( m_top_left == nullptr ) { // if current node is leaf
+
     return objects_in_range;
   }
   

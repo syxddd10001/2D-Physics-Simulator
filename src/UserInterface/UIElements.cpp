@@ -143,6 +143,7 @@ void syxd::InputBox::render( std::shared_ptr<sf::RenderWindow> WINDOW, const flo
   std::string visibleText = m_input_string;
   
   m_input_text.setString(visibleText);
+  
   m_cursor.setPosition(sf::Vector2f { std::min((m_input_text.findCharacterPos(m_cursor_position).x),(m_input_text.findCharacterPos(m_input_string.size()).x)), 
                                     m_input_text.findCharacterPos(m_cursor_position).y + 4.f });
                                  
