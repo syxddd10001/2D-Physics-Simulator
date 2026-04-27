@@ -448,6 +448,7 @@ void Engine::EventManager( const float& delta_time ) {
             command.append(std::to_string(spawn_size) + " " + std::to_string(spawn_size) + " ");
             command.append(std::to_string(m_mouse_pos_f.x) + " " + std::to_string(m_mouse_pos_f.y) + " ");
             command.append(std::to_string(num_objects_to_spawn));
+            command.append(" glow");
             p_receiver->Receive( command, this );
           }
         }
