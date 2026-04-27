@@ -1,9 +1,13 @@
+#pragma once
 #include <memory> 
 #include <SFML/Graphics.hpp>
 #include <array>
 #include <string>
 #include <cassert>
 #include <UIElements.hpp>
+#include <Text.hpp>
+#include <InputBox.hpp>
+#include <Button.hpp>
 
 class UserInterface {
 private:
@@ -29,15 +33,34 @@ public:
     P
   };
   
-  void InitText( const std::string& identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color  ) noexcept;  
-  void InitInputBox( const std::string& identifier, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color  ) noexcept;  
-  
+  void InitText( const std::string& identifier, 
+                  const std::string str, 
+                  const uint8_t char_size, 
+                  const sf::Vector2f position, 
+                  const sf::Color font_color  ) noexcept;
+
+  void InitInputBox( const std::string& identifier, 
+                      const uint8_t char_size, 
+                      const sf::Vector2f position, 
+                      const sf::Color font_color  ) noexcept;  
+
+  void InitButton( const std::string identifier,
+                    const sf::Vector2f position,
+                    std::string text,
+                    sf::Color text_color,
+                    sf::Color background_color, 
+                    sf::Color outline_color,
+                    sf::Vector2f size,
+                    sf::Vector2f padding,
+                    std::function<void()> action ) noexcept; 
+
   bool AddElement( std::unique_ptr<syxd::UI_Element> elem );
   void RenderUI( const float& delta_time );
   void UpdateElementPosition(  syxd::UI_Element* elem, const sf::Vector2f& updated_position );
   void UpdateElementText( syxd::UI_Element* elem, const std::string& updated_string );
   void SetElementPosition( syxd::UI_Element* elem, const std::string relative_position, const float position_offset );
   bool SetFont( const sf::Font& font ) noexcept;
+  sf::Font GetFont ();
   void HideElement( syxd::UI_Element* target_element );
   void ShowElement( syxd::UI_Element* target_element );
   void HideAllElements();

@@ -1,9 +1,15 @@
-#include <UserInterface.hpp> 
+#include <UserInterface.hpp>
 #include <string>
 #include <iostream>
 
 void UserInterface::InitText( const std::string& identifier, const std::string str, const uint8_t char_size, const sf::Vector2f position, const sf::Color font_color ) noexcept {
-  std::unique_ptr<syxd::UI_Element> element = std::make_unique<syxd::Text>( m_ui_elements.size()+1, identifier, str, char_size, position, font_color );
+  
+  std::unique_ptr<syxd::UI_Element> element = std::make_unique<syxd::Text>( m_ui_elements.size()+1,
+                                                                            identifier,
+                                                                            str,
+                                                                            char_size,
+                                                                            position,
+                                                                            font_color );
   m_ui_elements.push_back( std::move(element) );
 
 }
@@ -14,6 +20,28 @@ void UserInterface::InitInputBox( const std::string& identifier, const uint8_t c
 
 }  
 
+void UserInterface::InitButton( const std::string identifier,
+                                const sf::Vector2f position,
+                                std::string text,
+                                sf::Color text_color,
+                                sf::Color background_color, 
+                                sf::Color outline_color,
+                                sf::Vector2f size,
+                                sf::Vector2f padding,
+                                std::function<void()> action ) noexcept {
+  std::unique_ptr<syxd::UI_Element> element = std::make_unique<syxd::Button>( m_ui_elements.size()+1, 
+                                                                              identifier,
+                                                                              text,
+                                                                              position,
+                                                                              text_color,
+                                                                              background_color,
+                                                                              outline_color,
+                                                                              size,
+                                                                              padding, 
+                                                                              action );
+  m_ui_elements.push_back( std::move(element) );
+
+}  
 
 bool UserInterface::AddElement( std::unique_ptr<syxd::UI_Element> elem ) {
   m_ui_elements.push_back( std::move(elem) );
@@ -55,13 +83,16 @@ void UserInterface::UpdateElementText( syxd::UI_Element* elem, const std::string
 void UserInterface::UpdateElementPosition( syxd::UI_Element* elem, const sf::Vector2f& updated_position ) {
   if ( elem == nullptr || !elem ) return;
 
-  if ( syxd::Text* t = dynamic_cast<syxd::Text*>( elem )  ) {
-    t->setPosition( updated_position );
+  if ( syxd::Text* text = dynamic_cast<syxd::Text*>( elem )  ) {
+    text->setPosition( updated_position );
   }
 
   if ( syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( elem )) {
     input_box->setPosition( updated_position );
-
+  }
+  
+  if ( syxd::Button* button = dynamic_cast<syxd::Button*>( elem )){
+    button->setPosition( updated_position );
   }
 
 }
@@ -103,12 +134,15 @@ void UserInterface::RenderUI( const float& delta_time ){
   for ( const auto& elem: m_ui_elements ) { 
     if ( elem != nullptr && !elem->hidden() ) {
       if ( syxd::Text* t = dynamic_cast<syxd::Text*>( elem.get() ) ) {
-        WINDOW_REF->draw( t->getTextElement() );
+        t->render( WINDOW_REF.get(), delta_time );
       }
 
-      else if ( syxd::InputBox* t = dynamic_cast<syxd::InputBox*>( elem.get() ) ) {  
-        t->render(WINDOW_REF, delta_time );
+      else if ( syxd::InputBox* i = dynamic_cast<syxd::InputBox*>( elem.get() ) ) {  
+        i->render(WINDOW_REF.get(), delta_time );
+      }
 
+      else if ( syxd::Button* b = dynamic_cast<syxd::Button*>( elem.get() ) ) {  
+        b->render(WINDOW_REF.get(), delta_time );
       }
 
     }
@@ -119,6 +153,11 @@ bool UserInterface::SetFont( const sf::Font& font ) noexcept {
   this->font = font;
   return true;
 }
+
+sf::Font UserInterface::GetFont(){
+  return font;
+}
+
 
 void UserInterface::ShowElement( syxd::UI_Element* target_element ) {
   if (target_element != nullptr) target_element->hide(false);

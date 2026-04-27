@@ -21,34 +21,19 @@ int main() {
   const uint16_t DEFAULT_WINDOW_SIZE_X = 1500; // 
   const uint16_t DEFAULT_WINDOW_SIZE_Y = 900;
   const uint16_t WORLD_SIZE = 15000; // always square
-  const std::string WINDOW_NAME;
+  const std::string WINDOW_NAME = "Scene Menu";
+  std::string ENGINE_NAME = "First Engine";
 
   WINDOW_SETTINGS window_settings = { MAX_FRAME_RATE, DEFAULT_WINDOW_SIZE_X, DEFAULT_WINDOW_SIZE_Y, WORLD_SIZE, WINDOW_NAME };
 
-  std::unique_ptr<Engine> instance = std::make_unique<Engine>(window_settings);
-  Scene scene1( std::move(instance) );
-  std::string scene_path = scene1.getScenesPath();
-  
-  bool loaded = scene1.loadAllScenes( scene_path );
-  if (loaded) {
-    std::string scene = "First Engine";
-    bool sceneLoaded = scene1.loadScene(scene);
-    if (sceneLoaded){
-      std::cout<<"Scene Loaded\n";
-      scene1.runScene();
-    }
-    else {
-      std::cout<<"Scene could not be loaded\n";
-      
-    }
-  }
-  else {
-    std::cout<<"No scenes saved or file not found\n";
-    scene1.runScene();
-  }
-  
+  Scene scene1( window_settings );
+  scene1.loadScene(ENGINE_NAME);
 
-  //scene1.runScene();
+  //scene1.DisplayMenu();
+  WINDOW_SETTINGS settings = scene1.m_engine_instance->getWindowSetting();
+  std::cout << "window name: " << settings.WINDOW_NAME << "\n";
+  scene1.runScene();
+  
 
   std::cout<<"exited\n";
   

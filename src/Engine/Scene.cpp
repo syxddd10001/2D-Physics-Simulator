@@ -1,5 +1,12 @@
 #include <Scene.hpp>
 
+Scene::Scene( const WINDOW_SETTINGS& window_settings ) : m_window_settings{window_settings} {
+
+  if ( bool loaded = loadAllScenes( m_scenes_path ) ){
+    std::cout << "Loaded";
+  }
+}
+
 void Scene::runScene(){
   m_engine_instance.get()->MainLoop();
 }
@@ -306,4 +313,94 @@ Engine_Data* Scene::findEngineByName( const std::string& target ) const {
   }
 
   return nullptr;
+}
+
+void Scene::DisplayMenu( ){
+  m_is_running = true;
+  while ( m_is_running ) { 
+    if (MAIN_WINDOW != NULL) {
+      MAIN_WINDOW->clear(m_background_color );
+    }
+  
+    float delta_time = clock.restart().asSeconds();
+    EventManager( delta_time );
+
+    m_user_interface.RenderUI( delta_time );
+    
+    if (MAIN_WINDOW != NULL) {
+      MAIN_WINDOW->display();
+    }
+  }
+}
+
+void Scene::EventManager( const float& delta_time ){
+  if( MAIN_WINDOW != nullptr && MAIN_WINDOW->pollEvent( e_event ) ) {
+    switch( e_event.type ) {
+      case sf::Event::Closed:
+        m_is_running = false;
+        MAIN_WINDOW->close();
+      break;
+
+      case sf::Event::Resized:
+        //setZoomLimits ( sf::Vector2f {m_window_settings.WORLD_SIZE, m_window_settings.WORLD_SIZE}, sf::Vector2f(WINDOW->getSize()));
+        MAIN_WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
+      break;
+    }
+  }
+}
+
+void Scene::InitializeWindow(){
+  MAIN_WINDOW = std::make_shared<sf::RenderWindow>( sf::VideoMode( m_window_settings.DEFAULT_WINDOW_SIZE_X, 
+                                                              m_window_settings.DEFAULT_WINDOW_SIZE_Y ),
+                                                              m_window_settings.WINDOW_NAME );
+  
+  m_ui_view = sf::View( sf::FloatRect( 0, 0, MAIN_WINDOW->getSize().x, MAIN_WINDOW->getSize().y ) );
+  MAIN_WINDOW->setFramerateLimit( m_window_settings.MAX_FRAME_RATE );
+  MAIN_WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_X), 
+                                                                  static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_Y) ) ));
+  
+  #if DEBUG
+    if ( !m_default_font.loadFromFile( fonts[0] ) ){
+        DEBUG_PRINT("Font not found\n");
+    }
+    else {
+        DEBUG_PRINT("Font loaded\n");
+
+    }
+    
+  #else
+    if ( !m_default_font.loadFromFile( "static/fonts/cairo.ttf" ) ){
+        DEBUG_PRINT("Font not found\n");
+    }
+  #endif
+
+  m_user_interface.SetFont( m_default_font );
+
+  
+  m_background_color = sf::Color::Black;
+  m_text_color = sf::Color::Red;
+
+  MAIN_WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_X), 
+                                                                  static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_Y) ) ));
+  m_user_interface.SetWindow(MAIN_WINDOW);
+
+  InitializeUI();
+
+}
+
+void Scene::InitializeUI( ){
+  m_user_interface.InitText( "scene menu", 
+                              "Scene Menu", 
+                              m_ui_settings.h3_size, 
+                              sf::Vector2f{15,15},
+                              m_text_color);
+
+  m_user_interface.InitButton("button 1", 
+    sf::Vector2f{50,50}, "New Button", 
+    sf::Color::White, 
+    sf::Color::Red,
+    sf::Color::Yellow, 
+    sf::Vector2f{100.f, 40.f}, {0,0}, NULL );
+  
+  
 }

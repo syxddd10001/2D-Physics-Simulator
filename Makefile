@@ -8,7 +8,7 @@ LIBS:= -lpsapi
 INCLUDE := -I include
 
 EXECUTABLE := build/test/main.exe
-OBJECTS := obj/UserInterface.o obj/UIElements.o obj/DiagnosticInfo.o obj/Rectangle.o obj/Circle.o obj/Object.o obj/PhysicsMath.o 
+OBJECTS := obj/UserInterface.o obj/UIElements.o obj/Text.o obj/InputBox.o obj/Button.o obj/DiagnosticInfo.o obj/Rectangle.o obj/Circle.o obj/Object.o obj/PhysicsMath.o 
 OBJECTS += obj/Engine.o obj/Physics.o obj/Vector2.o
 OBJECTS += obj/Scene.o obj/Command.o obj/ObjectFactory.o obj/AbstractBox.o obj/Quadtree.o 
 
@@ -44,8 +44,17 @@ obj/Object.o: src/Objects/Object.cpp include/Object.hpp obj/Vector2.o obj/Abstra
 	
 obj/AbstractBox.o: src/Math/AbstractBox.cpp include/AbstractBox.hpp obj/Vector2.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
-	
-obj/UserInterface.o: src/UserInterface/UserInterface.cpp include/UserInterface.hpp obj/UIElements.o
+
+obj/UserInterface.o: src/UserInterface/UserInterface.cpp include/UserInterface.hpp obj/UIElements.o obj/Text.o obj/InputBox.o obj/Button.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+obj/Button.o: src/UserInterface/Button.cpp include/Button.hpp obj/UIElements.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+obj/InputBox.o: src/UserInterface/InputBox.cpp include/InputBox.hpp obj/UIElements.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+obj/Text.o: src/UserInterface/Text.cpp include/Text.hpp obj/UIElements.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/UIElements.o: src/UserInterface/UIElements.cpp include/UIElements.hpp obj/Vector2.o

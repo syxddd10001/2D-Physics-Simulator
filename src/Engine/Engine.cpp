@@ -1,7 +1,7 @@
 #include <Engine.hpp>
 #include <Command.hpp>
 #include <Quadtree.hpp>
-#include "DiagnosticInfo.hpp"
+#include <DiagnosticInfo.hpp>
 #define DEBUG 1
 #if DEBUG == 1
   #define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
@@ -136,7 +136,6 @@ bool Engine::InitializeEngine( const WINDOW_SETTINGS& window_settings, const boo
   m_main_view.move( move_amount );
 
   InitializeWorld(); // obsolete
-
   InitializeUI();
   
   init();
@@ -875,6 +874,11 @@ void Engine::UpdateUI( const float& delta_time ) { // ui elements are variable a
   m_user_interface.UpdateElementPosition(m_user_interface.FindElement("command mode"), sf::Vector2f { 0, (float)WINDOW->getSize().y - 40.0f } );
   m_user_interface.UpdateElementPosition(m_user_interface.FindElement("command input"), sf::Vector2f { 15.f, (float)WINDOW->getSize().y - 90.0f } );
 
+  if (!m_command_mode){
+    m_user_interface.HideElement(m_user_interface.FindElement("command input"));
+  } else {
+    m_user_interface.ShowElement(m_user_interface.FindElement("command input"));
+  }
 
   m_user_interface.RenderUI( delta_time );
 
@@ -884,6 +888,7 @@ void Engine::UpdateUI( const float& delta_time ) { // ui elements are variable a
                                     "MANUAL PAGE");
 
     m_help_interface.RenderUI( delta_time );
+    
   }
 
 }
@@ -1176,6 +1181,10 @@ sf::Vector2i& Engine::getMousePosi(){
   return m_mouse_pos_i;
 }
 
+WINDOW_SETTINGS Engine::getWindowSetting(){
+  return m_window_settings;
+}
+
 void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
   HELP_WINDOW = std::make_shared<sf::RenderWindow>( sf::VideoMode( window_settings.DEFAULT_WINDOW_SIZE_X, 
     window_settings.DEFAULT_WINDOW_SIZE_Y ),
@@ -1187,7 +1196,9 @@ void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
       static_cast<float>(window_settings.DEFAULT_WINDOW_SIZE_Y)
     )));
 
-    m_help_interface.InitText( "title", 
+  m_help_interface.SetWindow( HELP_WINDOW );
+
+  m_help_interface.InitText( "title", 
     "MANUAL PAGE",
     m_ui_settings.h2_size,
     sf::Vector2f{ 0.0f, 0.0f },
@@ -1201,12 +1212,13 @@ void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
 
 
   m_help_interface.InitText( "spawn 1",
-    "Example: SPAWN circle 1000 50 50 0 0",
+    "Example: spawn circle 1000 5 5 -305 55 1 glow",
     m_ui_settings.h3_size,
     sf::Vector2f{ 0.0f, 50.0f },
     TEXT_COLOR);
 
-  
+  m_help_interface.ShowAllElements();
+
 
   /*
   Manual Page

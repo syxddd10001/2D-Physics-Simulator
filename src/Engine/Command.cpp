@@ -193,7 +193,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           std::cout << "speed number \n";
           std::cout << "exit \n"; 
           
-          const WINDOW_SETTINGS help_window_settings = { 144.0f, 1000, 600, 0, "Help"};
+          const WINDOW_SETTINGS help_window_settings = { 144.0f, 1000, 600, 1000, "Help"};
 
           engine_instance->createHelpWindow( help_window_settings );
         }
