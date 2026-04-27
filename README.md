@@ -1,4 +1,5 @@
-#2D Physics Simulator (v0.4)
+# 2D Physics Simulator (v0.4)
+
 This is my simple 2D Physics Simulator, built in C++ and uses SFML for graphics rendering. 
 It can simulate 2D physics like kinematics, collision detection, and response for circles and quadrilaterals accurately,
 using an optimized Quadtree Algorithm, which has an O(n log n) time complexity for collision detection. It can also simulate gravity and uses the Barnes Hut algorithm
