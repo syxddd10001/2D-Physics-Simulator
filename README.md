@@ -6,6 +6,12 @@ for force calculation and approximation, which also has an O(n log n) time compl
 Currently, I'm focused on optimizing its performance using multithreading, adding spring physics, adding a GUI for easier interactivity, and also 
 add more complex objects like polygons and n-gons.
 
+v0.4:
+- add glow shaders
+- improve and modularize UI
+- add Scene class to save and load states
+- add parsing for loading .dtf files
+
 Preview (v0.3):
 
 https://github.com/user-attachments/assets/ef844d83-76d6-4c0f-a31a-e13f35fb0543
