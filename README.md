@@ -7,11 +7,19 @@ for force calculation and approximation, which also has an O(n log n) time compl
 Currently, I'm focused on optimizing its performance using multithreading, adding spring physics, adding a GUI for easier interactivity, and also 
 add more complex objects like polygons and n-gons.
 
-v0.4:
+## v0.4:
 - add glow shaders
 - improve and modularize UI
 - add Scene class to save and load states
 - add parsing for loading .dtf files
+
+## How to run it
+1) Navigate to ./build/test
+2) Run it
+  * Launch main.exe for Windows
+  * ```./a.out``` for Linux or Mac on Terminal
+
+If you want to build, just run ```make``` on project root
 
 Preview (v0.3):
 
