@@ -729,15 +729,12 @@ void Engine::CollisionCheck( ) {
   // collision detection and response
 
   for ( auto& current : p_objects ) {
-
-
     auto obj_in_range = m_quad_root->query( current->getQueryBox() ); 
-
 
     //checkCollisionWithWorld( current );
     if ( m_gravity_mode && !is_paused ) {
       // gravity simulation using Barnes Hut -- O(n log n)
-      Vec2 force = m_quad_root->calculateForce( current ); // Use an appropriate theta value
+      Vec2 force = m_quad_root->calculateForceBarnesHut( current ); // Use an appropriate theta value
       current->applyForce( force );
     }
 

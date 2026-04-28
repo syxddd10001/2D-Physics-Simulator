@@ -1,5 +1,8 @@
 #include <Quadtree.hpp>
 
+inline Vec2 computeDirectForce(Object& a, Object& b);
+inline Vec2 computeForceFromCOM(Object& obj, const Vec2& nodeCOM, float nodeMass);
+
 /* 
   Create 4 children nodes
 */
@@ -111,9 +114,9 @@ void Quadtree::drawBox( std::shared_ptr<sf::RenderWindow> window ) {
 }
 
 /*
-  Using Barnes Hutt algorithm to calculate force on obj
+  Using Barnes Hutt (hybrid Brute Force) algorithm to calculate force on obj
 */
-Vec2 Quadtree::calculateForce( std::shared_ptr<Object> obj ){ 
+Vec2 Quadtree::calculateForceLegacy( std::shared_ptr<Object> obj ){ 
   /* 
     Calculating force on obj
   
@@ -151,11 +154,97 @@ Vec2 Quadtree::calculateForce( std::shared_ptr<Object> obj ){
     }
     
     else {
-      net_force += m_top_left->calculateForce( obj );
-      net_force += m_top_right->calculateForce( obj );
-      net_force += m_bottom_left->calculateForce( obj );
-      net_force += m_bottom_right->calculateForce( obj ); 
+      net_force += m_top_left->calculateForceLegacy( obj );
+      net_force += m_top_right->calculateForceLegacy( obj );
+      net_force += m_bottom_left->calculateForceLegacy( obj );
+      net_force += m_bottom_right->calculateForceLegacy( obj ); 
     }
   }
   return net_force;
 }
+
+/*
+  Using Barnes Hutt algorithm to calculate force on obj
+*/
+Vec2 Quadtree::calculateForceBarnesHut(std::shared_ptr<Object> obj)
+{
+    /* 
+    Calculating force on obj
+  
+    leaf node = external node = not divided => calculate force, add force to obj's netforce
+    
+    if internal = divided => calculate ratio s / d where s = the width of region and d is the distance from COM to obj's pos
+  
+    if s/d < theta (arbitrary - pick any > zero), treat this interal node as a single body, and calculate force on obj
+    add this force to obj's netforce
+    
+    if current node is internal and ratio of s/d >= theta, recurse through the children
+    */
+
+    // empty node
+    if (m_objects.empty() && !m_divided)
+        return {0.f, 0.f};
+
+    // leaf node with exactly one body
+    if (!m_divided && m_objects.size() == 1) {
+        auto other = m_objects[0];
+        if (other == obj)
+            return {0.f, 0.f};
+
+        return computeDirectForce(*obj, *other);
+    }
+
+    // internal node
+    float s = m_bounds.getSize().x;
+    float d = calculateDistance(m_node_center_of_mass, obj->getPosition());
+
+    if (d < EPSILON)
+        d = EPSILON;
+
+    // Barnes Hut approximation
+    if (s / d < THETA) {
+        return computeForceFromCOM(*obj, m_node_center_of_mass, m_node_mass_total);
+    }
+
+    // Otherwise recurse
+    Vec2 f {0.f, 0.f};
+    if (m_top_left)     f += m_top_left->calculateForceBarnesHut(obj);
+    if (m_top_right)    f += m_top_right->calculateForceBarnesHut(obj);
+    if (m_bottom_left)  f += m_bottom_left->calculateForceBarnesHut(obj);
+    if (m_bottom_right) f += m_bottom_right->calculateForceBarnesHut(obj);
+
+    return f;
+}
+
+inline Vec2 computeDirectForce(Object& a, Object& b)
+{
+    Vec2 dir = b.getPosition() - a.getPosition();
+    float dist = calculateDistance(a.getPosition(), b.getPosition());
+
+    if (dist < EPSILON)
+        dist = EPSILON;
+
+    dir = dir.normalize();
+
+    float forceMag = (MY_G_CONSTANT * a.getMass() * b.getMass()) / (dist * dist);
+
+    return dir * forceMag;
+}
+
+inline Vec2 computeForceFromCOM(Object& obj,
+                                const Vec2& nodeCOM,
+                                float nodeMass)
+{
+    Vec2 dir = nodeCOM - obj.getPosition();
+    float dist = calculateDistance(nodeCOM, obj.getPosition());
+
+    if (dist < EPSILON)
+        dist = EPSILON;
+
+    dir = dir.normalize();
+
+    float forceMag = (MY_G_CONSTANT * obj.getMass() * nodeMass) / (dist * dist);
+
+    return dir * forceMag;
+}
+

@@ -17,7 +17,7 @@ using namespace syxd;
 
 class Quadtree {
 private:
-  const float THETA = 1.0f;
+  const float THETA = 0.8f;
   
   int m_threshold;
   int m_depth;
@@ -53,7 +53,9 @@ public:
   
   void drawBox( std::shared_ptr<sf::RenderWindow> window );
 
-  Vec2 calculateForce( std::shared_ptr<Object> obj );
+  Vec2 calculateForceLegacy( std::shared_ptr<Object> obj );
+
+  Vec2 calculateForceBarnesHut(std::shared_ptr<Object> obj);
    
 };
 

@@ -8,7 +8,9 @@ make
 if ($?) {
     Write-Host "Build successful. Running executable..."
     # Execute the program
-    ./build/test/main.exe
+    cd build/test
+    ./main.exe
+    cd ../..
 } else {
     Write-Host "Build failed. Please check the output from 'make'."
 }
