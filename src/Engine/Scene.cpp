@@ -5,6 +5,8 @@ Scene::Scene( const WINDOW_SETTINGS& window_settings ) : m_window_settings{windo
   if ( bool loaded = loadAllScenes( m_scenes_path ) ){
     std::cout << "Loaded";
   }
+  
+  InitializeWindow();
 }
 
 void Scene::runScene(){
@@ -33,16 +35,19 @@ bool Scene::loadAllScenes( std::string& scene_path ){
   return false;
 }
 
-bool Scene::loadScene( std::string& engine_name ) {
+bool Scene::loadScene( std::string engine_name ) {
   if (!m_engines) return false;
+
+  std::cout << "loading " << engine_name << '\n' ;
 
   Engine_Data* target_engine = findEngineByName( engine_name );
 
-  if (target_engine != nullptr){
+  if (target_engine != nullptr) {
+    std::cout << "target engine found...\n";
+
     m_current_scene = *target_engine;
     std::cout << m_current_scene.window_settings.DEFAULT_WINDOW_SIZE_X << std::endl;
     std::cout << m_current_scene.window_settings.DEFAULT_WINDOW_SIZE_Y << std::endl;
-
 
     m_engine_instance = nullptr;
     m_engine_instance = std::make_unique<Engine>(m_current_scene);
@@ -57,68 +62,6 @@ bool Scene::loadScene( std::string& engine_name ) {
 bool Scene::saveScene( std::string& scene_path ){
   // save logic
   return false;
-}
-
-static inline string trim(const string& s) {
-  size_t a = s.find_first_not_of(" \t\r\n");
-  if (a == string::npos) return "";
-  size_t b = s.find_last_not_of(" \t\r\n");
-  return s.substr(a, b - a + 1);
-}
-
-// Split CSV line by commas, but keep quoted fields intact
-vector<string> splitCSV(const string& line) {
-  vector<string> out;
-  std::string cur;
-  bool inQuotes = false;
-  for (size_t i = 0; i < line.size(); ++i) {
-    char c = line[i];
-    if (c == '"' ) {
-      inQuotes = !inQuotes;
-      continue;
-    }
-    if (c == ',' && !inQuotes) {
-      out.push_back(cur);
-      cur.clear();
-    } else {
-      cur.push_back(c);
-    }
-  }
-  out.push_back(cur);
-  for (auto &s : out) s = trim(s);
-  return out;
-}
-
-
-std::unique_ptr<Object> Object::deserializeCSV(const std::vector<std::string>& tokens) {
-  // tokens expected: id,type,mass,pos_x,pos_y,dim_x,dim_y,rad,glow
-  if (tokens.size() < 9) return nullptr;
-  std::string type = tokens[1];
-  try {
-    if (type == "Rectangle") {
-      float mass = tokens[2].empty() ? 0.0f : std::stof(tokens[2]);
-      float px = tokens[3].empty() ? 0.0f : std::stof(tokens[3]);
-      float py = tokens[4].empty() ? 0.0f : std::stof(tokens[4]);
-      float dx = tokens[5].empty() ? 0.0f : std::stof(tokens[5]);
-      float dy = tokens[6].empty() ? 0.0f : std::stof(tokens[6]);
-      bool glow = (!tokens[8].empty() && tokens[8] != "0") ? true : false;
-      return std::make_unique<syxd::Rectangle>(mass, px, py, dx, dy, glow);
-    } else if (type == "Circle") {
-      float mass = tokens[2].empty() ? 0.0f : std::stof(tokens[2]);
-      float px = tokens[3].empty() ? 0.0f : std::stof(tokens[3]);
-      float py = tokens[4].empty() ? 0.0f : std::stof(tokens[4]);
-      float rad = tokens[7].empty() ? 0.0f : std::stof(tokens[7]);
-      bool glow = (!tokens[8].empty() && tokens[8] != "0") ? true : false;
-      return std::make_unique<syxd::Circle>(rad, mass, px, py, glow);
-    }
-  } catch (...) {
-    return nullptr;
-  }
-  return nullptr;
-}
-
-void writeQuotedLine(std::ofstream& os, const string& s) {
-  os << '"' << s << '"' << "\n";
 }
 
 void saveEnginesToFile(const string& filename, const vector<Engine_Data>& engines) {
@@ -149,137 +92,44 @@ void saveEnginesToFile(const string& filename, const vector<Engine_Data>& engine
   }
 }
 
-bool startsWith(const string& s, const string& prefix) {
-  return s.rfind(prefix, 0) == 0;
-}
+std::vector<Engine_Data> Scene::loadEnginesFromFile( const std::string& filename ) {
+  std::ifstream is(filename);
+  std::vector<Engine_Data> result;
 
-vector<Engine_Data> Scene::loadEnginesFromFile( const std::string& filename ) {
-    std::ifstream is(filename);
-    vector<Engine_Data> result;
-    
-    if (!is) {
-      std::cout << "Couldn't open file\n";
-      return result;
-    }
-
-    string line;
-
-    // optional header
-    if (!std::getline(is, line)) return result;
-    if (!startsWith(line, "# ENGINE_FILE")) {
-        // warn but continue
-    }
-
-    while (std::getline(is, line)) {
-        // strip comments (must follow semicolon)
-        {
-            size_t semi = line.find(';');
-            size_t comment = line.find("//");
-            if (comment != std::string::npos && semi != std::string::npos && comment > semi)
-                line = line.substr(0, comment);
-        }
-
-        line = trim(line);
-        if (line.empty()) continue;
-
-        if (line == "ENGINE") {
-            Engine_Data ed;
-
-            // engine name
-            if (!std::getline(is, line)) break;
-            {
-                size_t semi = line.find(';');
-                size_t comment = line.find("//");
-                if (comment != std::string::npos && semi != std::string::npos && comment > semi)
-                    line = line.substr(0, comment);
-            }
-            line = trim(line);
-
-            if (!line.empty() && line.front() == '"' && line.back() == '"')
-                line = line.substr(1, line.size() - 2);
-
-            ed.window_settings.WINDOW_NAME = line;
-
-            // find [OBJECTS]
-            while (std::getline(is, line)) {
-                {
-                    size_t semi = line.find(';');
-                    size_t comment = line.find("//");
-                    if (comment != std::string::npos && semi != std::string::npos && comment > semi)
-                        line = line.substr(0, comment);
-                }
-                line = trim(line);
-                if (line.empty()) continue;
-
-                if (line == "[OBJECTS]") {
-                    // read objects
-                    while (std::getline(is, line)) {
-                        {
-                            size_t semi = line.find(';');
-                            size_t comment = line.find("//");
-                            if (comment != std::string::npos && semi != std::string::npos && comment > semi)
-                                line = line.substr(0, comment);
-                        }
-                        line = trim(line);
-                        if (line.empty()) continue;
-
-                        if (line == "[WINDOW_SETTINGS]") break;
-
-                        if (!line.empty() && line.back() == ';')
-                            line.pop_back();
-
-                        auto tokens = splitCSV(line);
-                        while (tokens.size() < 9) tokens.push_back("");
-
-                        auto obj = Object::deserializeCSV(tokens);
-                        if (obj) ed.p_objects.push_back(std::move(obj));
-                    }
-
-                    // window settings line
-                    if (!std::getline(is, line)) break;
-
-                    {
-                        size_t semi = line.find(';');
-                        size_t comment = line.find("//");
-                        if (comment != std::string::npos && semi != std::string::npos && comment > semi)
-                            line = line.substr(0, comment);
-                    }
-
-                    line = trim(line);
-                    if (!line.empty() && line.back() == ';')
-                        line.pop_back();
-
-                    auto wsTokens = splitCSV(line);
-
-                    try {
-                        if (wsTokens.size() >= 5) {
-                            ed.window_settings.MAX_FRAME_RATE =
-                                wsTokens[0].empty() ? 0.0f : std::stof(wsTokens[0]);
-                            ed.window_settings.DEFAULT_WINDOW_SIZE_X =
-                                wsTokens[1].empty() ? 0 : static_cast<uint16_t>(std::stoi(wsTokens[1]));
-                            ed.window_settings.DEFAULT_WINDOW_SIZE_Y =
-                                wsTokens[2].empty() ? 0 : static_cast<uint16_t>(std::stoi(wsTokens[2]));
-                            ed.window_settings.WORLD_SIZE =
-                                wsTokens[3].empty() ? 0 : static_cast<uint16_t>(std::stoi(wsTokens[3]));
-
-                            string wn = wsTokens[4];
-                            if (!wn.empty() && wn.front() == '"' && wn.back() == '"')
-                                wn = wn.substr(1, wn.size() - 2);
-
-                            ed.window_settings.WINDOW_NAME = wn;
-                        }
-                    } catch (...) {
-                        // ignore parse errors
-                    }
-
-                    break; // finished ENGINE block
-                }
-            }
-
-            result.push_back(std::move(ed));
-        }
-    }
+  if (!is) {
+    std::cout << "Couldn't open file\n";
     return result;
+  }
+
+  std::string line;
+
+  // optional header
+  if (!std::getline(is, line))
+    return result;
+
+  if (!startsWith(line, "# ENGINE_FILE")) {
+      // warn but continue if you want
+      // std::cout << "Warning: missing # ENGINE_FILE header\n";
+  }
+
+  while (std::getline(is, line)) {
+    line = cleanLine(line);
+    if (line.empty()) continue;
+
+    if (line == "ENGINE") {
+      Engine_Data ed;
+
+      // ENGINE name
+      parseEngineName(is, ed);
+
+      // OBJECTS + WINDOW_SETTINGS
+      parseObjects(is, ed);
+      parseWindowSettings(is, ed);
+
+      result.push_back(std::move(ed));
+    }
+  }
+  return result;
 }
 
 const std::string Scene::getScenesPath( ){
@@ -317,8 +167,8 @@ Engine_Data* Scene::findEngineByName( const std::string& target ) const {
 
 void Scene::DisplayMenu( ){
   m_is_running = true;
-  while ( m_is_running ) { 
-    if (MAIN_WINDOW != NULL) {
+  while ( m_is_running && MAIN_WINDOW != nullptr) { 
+    if ( MAIN_WINDOW->isOpen() ) {
       MAIN_WINDOW->clear(m_background_color );
     }
   
@@ -327,7 +177,7 @@ void Scene::DisplayMenu( ){
 
     m_user_interface.RenderUI( delta_time );
     
-    if (MAIN_WINDOW != NULL) {
+    if ( MAIN_WINDOW->isOpen() ) {
       MAIN_WINDOW->display();
     }
   }
@@ -392,15 +242,92 @@ void Scene::InitializeUI( ){
   m_user_interface.InitText( "scene menu", 
                               "Scene Menu", 
                               m_ui_settings.h3_size, 
-                              sf::Vector2f{15,15},
+                              sf::Vector2f{10,15},
                               m_text_color);
 
-  m_user_interface.InitButton("button 1", 
-    sf::Vector2f{50,50}, "New Button", 
-    sf::Color::White, 
-    sf::Color::Red,
-    sf::Color::Yellow, 
-    sf::Vector2f{100.f, 40.f}, {0,0}, NULL );
   
   
+  std::string button_name = "New Scene";
+  std::function<void()> create_new;
+  
+  create_new = [this, button_name]() {
+    
+    // create a new engine instance
+    // put the engine data into m_engines
+    // load that engine
+
+    WINDOW_SETTINGS DEFAULT_WINDOW_SETTINGS = { 144.0f, 1600, 900, 15000, button_name};
+    Engine instance(DEFAULT_WINDOW_SETTINGS);
+    Engine_Data constructed = instance.getEngineData();
+
+    m_engines->push_back(constructed);
+    
+    bool loaded = this->loadScene(button_name);
+    if (loaded) {
+      std::cout << "Loaded " << button_name << '\n';
+      m_is_running = false;
+      MAIN_WINDOW->close(); // close the menu window 
+      runScene(); // and then run the current scene (ie the engine)
+    }
+  };
+
+  m_user_interface.InitButton(button_name, 
+  sf::Vector2f{ 100.f, 70.0f },
+  button_name, 
+  sf::Color::White, // text color
+  sf::Color::Transparent, // background color
+  sf::Color::Green, // hover color
+  sf::Color::Yellow, // outline color
+  sf::Vector2f{150.f, 40.f}, // size
+  {0,0}, //padding
+  true, // hover
+  create_new ); // perform this action on click
+
+  float init_position = 120.0f;
+
+  if ( m_engines != nullptr ){
+    for (int i = 0; i < m_engines->size(); i++){
+      float offset = 50.f;
+      float y_position = init_position+offset*(i);
+      std::string button_name = m_engines->at(i).window_settings.WINDOW_NAME;
+      std::function<void()> action;
+      
+      action = [this, button_name]() {
+        bool loaded = this->loadScene(button_name);
+        if (loaded) {
+          std::cout << "Loaded " << button_name << '\n';
+          //m_is_running = false;
+          //MAIN_WINDOW->close(); // close the menu window 
+          runScene(); // and then run the current scene (ie the engine)
+        }
+      };
+      m_user_interface.InitButton(button_name, 
+      sf::Vector2f{ 100.f, y_position },
+      button_name, 
+      sf::Color::White, // text color
+      sf::Color::Transparent, // background color
+      sf::Color::Green, // hover color
+      sf::Color::Yellow, // outline color
+      sf::Vector2f{150.f, 40.f}, // size
+      {0,0}, //padding
+      true, // hover
+      action ); // perform this action on click 
+    }
+    
+  } else std::cout << "sadly engines is nullptr :(\n";
+  
+
+   m_user_interface.InitButton("button 1", 
+    sf::Vector2f{100,500}, 
+    "Save Test", 
+    sf::Color::White, // text color
+    sf::Color::Transparent, // background color
+    sf::Color::Green, // hover color
+    sf::Color::Yellow, // outline color
+    sf::Vector2f{100.f, 40.f}, // size
+    {0,0}, //padding
+    true, // hover
+    NULL ); // perform this action on click
+
 }
+

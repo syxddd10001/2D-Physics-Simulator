@@ -7,6 +7,7 @@
 #include <time.h>
 
 #include "Engine.hpp"
+#include "Parser.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Clipboard.hpp>
@@ -57,9 +58,7 @@ namespace syxd {
     void runScene();
 
     bool loadAllScenes( std::string& scene_path );
-    
-    bool loadScene( std::string& engine_name );
-
+    bool loadScene( std::string engine_name );
     bool saveScene( std::string& scene_path );
 
     vector<Engine_Data> loadEnginesFromFile( const std::string& filename );

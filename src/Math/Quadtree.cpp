@@ -116,7 +116,7 @@ void Quadtree::drawBox( std::shared_ptr<sf::RenderWindow> window ) {
 /*
   Using Barnes Hutt (hybrid Brute Force) algorithm to calculate force on obj
 */
-Vec2 Quadtree::calculateForceLegacy( std::shared_ptr<Object> obj ){ 
+Vec2 Quadtree::calculateForceLegacy( std::shared_ptr<Object> obj ){
   /* 
     Calculating force on obj
   
@@ -168,7 +168,7 @@ Vec2 Quadtree::calculateForceLegacy( std::shared_ptr<Object> obj ){
 */
 Vec2 Quadtree::calculateForceBarnesHut(std::shared_ptr<Object> obj)
 {
-    /* 
+  /* 
     Calculating force on obj
   
     leaf node = external node = not divided => calculate force, add force to obj's netforce
@@ -180,40 +180,49 @@ Vec2 Quadtree::calculateForceBarnesHut(std::shared_ptr<Object> obj)
     
     if current node is internal and ratio of s/d >= theta, recurse through the children
     */
+    // Net force on this object from everything in / under this node
+    Vec2 net_force { 0.f, 0.f };
 
-    // empty node
-    if (m_objects.empty() && !m_divided)
-        return {0.f, 0.f};
+    // 1) Direct forces from bodies stored in this node (typically leaves only)
+    for (const auto& other : m_objects) {
+        if (other == obj) continue;
 
-    // leaf node with exactly one body
-    if (!m_divided && m_objects.size() == 1) {
-        auto other = m_objects[0];
-        if (other == obj)
-            return {0.f, 0.f};
+        Vec2 dir = other->getPosition() - obj->getPosition();
+        float dist = calculateDistance(other->getPosition(), obj->getPosition());
+        if (dist < EPSILON) dist = EPSILON;
 
-        return computeDirectForce(*obj, *other);
+        dir = dir.normalize();
+        Vec2 force = (dir * MY_G_CONSTANT * obj->getMass() * other->getMass()) / (dist * dist);
+        net_force += force;
     }
 
-    // internal node
-    float s = m_bounds.getSize().x;
+    // 2) If this node is not subdivided, we're done
+    if (!m_divided) {
+        return net_force;
+    }
+
+    // 3) Internal node: decide whether to approximate or recurse
+    float s = m_bounds.getSize().x; // region width
     float d = calculateDistance(m_node_center_of_mass, obj->getPosition());
+    if (d < EPSILON) d = EPSILON;
 
-    if (d < EPSILON)
-        d = EPSILON;
-
-    // Barnes Hut approximation
+    // If far enough away, approximate this whole node as a single body at COM
     if (s / d < THETA) {
-        return computeForceFromCOM(*obj, m_node_center_of_mass, m_node_mass_total);
+        Vec2 dir = m_node_center_of_mass - obj->getPosition();
+        dir = dir.normalize();
+
+        Vec2 force = (dir * MY_G_CONSTANT * obj->getMass() * m_node_mass_total) / (d * d);
+        net_force += force;
+        return net_force;
     }
 
-    // Otherwise recurse
-    Vec2 f {0.f, 0.f};
-    if (m_top_left)     f += m_top_left->calculateForceBarnesHut(obj);
-    if (m_top_right)    f += m_top_right->calculateForceBarnesHut(obj);
-    if (m_bottom_left)  f += m_bottom_left->calculateForceBarnesHut(obj);
-    if (m_bottom_right) f += m_bottom_right->calculateForceBarnesHut(obj);
+    // Otherwise, recurse into children
+    if (m_top_left)     net_force += m_top_left->calculateForceBarnesHut(obj);
+    if (m_top_right)    net_force += m_top_right->calculateForceBarnesHut(obj);
+    if (m_bottom_left)  net_force += m_bottom_left->calculateForceBarnesHut(obj);
+    if (m_bottom_right) net_force += m_bottom_right->calculateForceBarnesHut(obj);
 
-    return f;
+    return net_force;
 }
 
 inline Vec2 computeDirectForce(Object& a, Object& b)

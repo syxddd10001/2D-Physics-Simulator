@@ -153,6 +153,10 @@ bool Engine::InitializeEngine( Engine_Data data_set ){
   p_objects = data_set.p_objects;
   object_count = p_objects.size();
 
+  for (auto a : p_objects){
+    a->printInfo();
+  }
+
   return true;
 }
 
@@ -303,7 +307,7 @@ void Engine::EventManager( const float& delta_time ) {
         
         if ( e_event.key.code == sf::Keyboard::Tab && m_elapsed_time_spawn >= INTERRUPT_INTERVAL ) {
           m_elapsed_time_spawn = 0.0f;
-          spawn_type = ( spawn_type == "cir" ) ? "rec" : "cir";
+          spawn_type = ( spawn_type == "cir" || spawn_type == "circle") ? "rec" : "cir";
         }
         
         if ( e_event.key.code == sf::Keyboard::T && m_elapsed_time_spawn >= CREATION_INTERVAL && !m_command_mode ) {
@@ -1183,6 +1187,13 @@ WINDOW_SETTINGS Engine::getWindowSetting(){
   return m_window_settings;
 }
 
+Engine_Data Engine::getEngineData(){
+  Engine_Data constructed_data = {p_objects, m_window_settings};
+  m_engine_data = constructed_data;
+  return m_engine_data;
+}
+
+
 void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
   HELP_WINDOW = std::make_shared<sf::RenderWindow>( sf::VideoMode( window_settings.DEFAULT_WINDOW_SIZE_X, 
     window_settings.DEFAULT_WINDOW_SIZE_Y ),
@@ -1220,7 +1231,7 @@ void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
 
   /*
   Manual Page
-    spawn circle/rectangle mass size.x size.y position.x position.y
+    spawn circle/rectangle mass size.x size.y position.x position.y count glow
     friction on/off/any number value
     mode single/multi
     speed number

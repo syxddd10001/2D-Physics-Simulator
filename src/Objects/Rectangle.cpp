@@ -2,10 +2,14 @@
 
 using namespace syxd;
 
-Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float dimY, bool glow ) noexcept
+Rectangle::Rectangle( float mass, float pos_x, float pos_y, float dimX, float dimY, bool glow, sf::Color* color ) noexcept
 : Object( mass, pos_x, pos_y, m_glow ), m_dimensions( dimX, dimY )  {
   m_shape = std::make_shared<sf::RectangleShape>(sf::Vector2f(dimX, dimY));
-  m_color = std::make_unique<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
+  if ( color != nullptr ){
+    m_color = std::make_unique<sf::Color>( *color );
+  } else {
+    m_color = std::make_unique<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
+  }
   m_shape->setOutlineThickness(1.0f);
   m_shape->setOutlineColor(sf::Color::Black);
   m_shape->setFillColor(*m_color);
@@ -79,10 +83,21 @@ bool Rectangle::intersects( std::shared_ptr<Rectangle> other ) const noexcept {
           position_current.y + m_dimensions.y > other->position_current.y );
 }
 
-std::string Rectangle::serializeCSV( int id ) const {
-  std::ostringstream o;
-  o << id << "," << typeName() << ","
-    << m_mass << "," << position_current.x << "," << position_current.y << ","
-    << m_dimensions.x << "," << m_dimensions.y << "," << (m_glow ? "1" : "0") << ";";
-  return o.str();
+std::string Rectangle::serializeCSV(int id) const {
+    std::ostringstream o;
+    int color_int = m_color ? m_color->toInteger() : -1;
+
+    o << id << ","
+      << typeName() << ","
+      << m_mass << ","
+      << position_current.x << ","
+      << position_current.y << ","
+      << m_dimensions.x << ","
+      << m_dimensions.y << ","
+      << "" << ","                     // rad (unused for rectangle)
+      << (m_glow ? "1" : "0") << ","
+      << velocity.x << ","
+      << velocity.y << ","
+      << color_int << ";";
+    return o.str();
 }

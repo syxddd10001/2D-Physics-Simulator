@@ -10,6 +10,7 @@
 #include "PhysicsMath.hpp"
 #include "AbstractBox.hpp"
 #include "Vector2.hpp"
+#include "Texture.hpp"
 
 namespace syxd{
   using namespace syxd;
@@ -21,7 +22,7 @@ namespace syxd{
     sf::Texture m_glowTexture;  // keep texture alive
 
   public:
-    Circle( float rad, float mass, float pos_x, float pos_y, bool glow ) noexcept;
+    Circle( float rad, float mass, float pos_x, float pos_y, bool glow, sf::Color* color ) noexcept;
     ~Circle() override {};
     Circle( );
     float getRadius( );
@@ -33,7 +34,8 @@ namespace syxd{
     Vec2 getCenter( ) const override;
     AbstractBox<float> getBoundingBox( ) const;
     void draw( std::shared_ptr<sf::RenderWindow> WINDOW ) override;
-    std::string serializeCSV(int id) const override;
+    std::string serializeCSV( int id ) const override;
+    void makeCircleGlow( sf::Color* color );
 
     ObjectType getType() override {
       return ObjectType::CIRCLE;

@@ -84,9 +84,10 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
   { 
     switch ( command ){
       case SPAWN:   
+        
         if (commands.size() < 7)
         {
-          std::cout << "Enter atleast 7 arguments\n";
+          std::cout << "Enter atleast 8 arguments\n";
           break;
         }
         
@@ -125,14 +126,34 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
             }
             std::cout << "command 1 \n";
 
-            std::shared_ptr<Object> obj = (
-              p_factory->createObject( type, 
-                                     std::stof(commands[2]), // mass
-                                     std::stof(commands[3]),  // dimension.x
-                                     std::stof(commands[4]),  // dimension.y
-                                     ( commands[5] == "random" || commands[5] == "rand" ) ? rand() % (int) range.getRight()+ (int)range.left : posX, // position.x
-                                     ( commands[6] == "random" || commands[6] == "rand" ) ? rand() % (int) range.getBottom()+ (int)range.top : posY,  // position.y
-                                     (commands[8] == "glow" || commands[8] == "true") ? true : false));
+            float mass = std::stof(commands[2]);
+            float dim_x = std::stof(commands[3]);
+            float dim_y = std::stof(commands[4]);
+
+            float pos_x = (commands[5] == "random" || commands[5] == "rand")
+                            ? (rand() % static_cast<int>(range.getRight()) + static_cast<int>(range.left))
+                            : posX;
+
+            float pos_y = (commands[6] == "random" || commands[6] == "rand")
+                            ? (rand() % static_cast<int>(range.getBottom()) + static_cast<int>(range.top))
+                            : posY;
+
+            bool glow = (commands[8] == "glow" || commands[8] == "true");
+            sf::Color* color = nullptr;
+
+            // Now call createObject with clean arguments
+            std::shared_ptr<Object> obj =
+                p_factory->createObject(
+                    type,
+                    mass,
+                    dim_x,
+                    dim_y,
+                    pos_x,
+                    pos_y,
+                    glow,
+                    color
+                );
+
             assert ( obj != nullptr );
   
             obj->setID(engine_instance->getAllObjects().size()+1);

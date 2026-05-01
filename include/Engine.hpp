@@ -131,6 +131,7 @@ public:
 
   std::unique_ptr<Quadtree> m_quad_root; // Root of the quadtree of this world
   
+  Engine_Data m_engine_data;
   WINDOW_SETTINGS m_window_settings; // window/world settings
   UI_SETTINGS m_ui_settings; // ui settings
 
@@ -205,4 +206,5 @@ public:
 
   WINDOW_SETTINGS getWindowSetting();
   UI_SETTINGS getUISettings();
+  Engine_Data getEngineData();
 };

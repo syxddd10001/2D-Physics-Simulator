@@ -27,12 +27,13 @@ int main() {
   WINDOW_SETTINGS window_settings = { MAX_FRAME_RATE, DEFAULT_WINDOW_SIZE_X, DEFAULT_WINDOW_SIZE_Y, WORLD_SIZE, WINDOW_NAME };
 
   Scene scene1( window_settings );
-  scene1.loadScene( ENGINE_NAME );
+  //scene1.loadScene( ENGINE_NAME );
 
-  //scene1.DisplayMenu();
+  scene1.DisplayMenu();
   WINDOW_SETTINGS settings = scene1.m_engine_instance->getWindowSetting();
   std::cout << "window name: " << settings.WINDOW_NAME << "\n";
-  scene1.runScene();
+
+  //scene1.runScene();
   
 
   std::cout<<"exited\n";

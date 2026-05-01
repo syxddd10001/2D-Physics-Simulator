@@ -48,10 +48,12 @@ public:
                     const sf::Vector2f position,
                     std::string text,
                     sf::Color text_color,
-                    sf::Color background_color, 
+                    sf::Color background_color,
+                    sf::Color hover_color,
                     sf::Color outline_color,
                     sf::Vector2f size,
                     sf::Vector2f padding,
+                    bool hover,
                     std::function<void()> action ) noexcept; 
 
   bool AddElement( std::unique_ptr<syxd::UI_Element> elem );

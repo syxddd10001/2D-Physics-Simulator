@@ -26,6 +26,6 @@ public:
   std::shared_ptr<Object> createObject( Object::ObjectType object_type, const float mass, 
                                       const float dim_x, const float dim_y, 
                                       const float pos_x, const float pos_y,
-                                      const bool glow);
+                                      const bool glow, sf::Color* color );
 
 };

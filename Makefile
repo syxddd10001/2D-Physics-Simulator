@@ -8,14 +8,17 @@ LIBS:= -lpsapi
 INCLUDE := -I include
 
 EXECUTABLE := build/test/main.exe
-OBJECTS := obj/UserInterface.o obj/UIElements.o obj/Text.o obj/InputBox.o obj/Button.o obj/DiagnosticInfo.o obj/Rectangle.o obj/Circle.o obj/Object.o obj/PhysicsMath.o 
+OBJECTS := obj/Texture.o obj/UserInterface.o obj/UIElements.o obj/Text.o obj/InputBox.o obj/Button.o obj/DiagnosticInfo.o obj/Rectangle.o obj/Circle.o obj/Object.o obj/PhysicsMath.o 
 OBJECTS += obj/Engine.o obj/Physics.o obj/Vector2.o
-OBJECTS += obj/Scene.o obj/Command.o obj/ObjectFactory.o obj/AbstractBox.o obj/Quadtree.o 
+OBJECTS += obj/Scene.o obj/Parser.o obj/Command.o obj/ObjectFactory.o obj/AbstractBox.o obj/Quadtree.o 
 
 $(EXECUTABLE): src/main.cpp $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(SFML_INCLUDE) $(INCLUDE) -I src $^ -o $@ $(SFML_LIB) $(LIBS)
 
-obj/Scene.o: src/Engine/Scene.cpp include/Scene.hpp obj/Engine.o obj/Command.o
+obj/Scene.o: src/Engine/Scene.cpp include/Scene.hpp obj/Engine.o obj/Command.o obj/Parser.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+obj/Parser.o: src/Engine/Parser.cpp include/Parser.hpp obj/Engine.o obj/Object.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/Command.o: src/Engine/Command.cpp include/Command.hpp obj/ObjectFactory.o obj/Engine.o
@@ -33,7 +36,7 @@ obj/ObjectFactory.o: src/Engine/ObjectFactory.cpp include/ObjectFactory.hpp obj/
 obj/Quadtree.o: src/Math/Quadtree.cpp include/Quadtree.hpp obj/Object.o obj/Circle.o obj/Rectangle.o obj/AbstractBox.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Circle.o: src/Objects/Circle.cpp include/Circle.hpp obj/Object.o
+obj/Circle.o: src/Objects/Circle.cpp include/Circle.hpp obj/Object.o obj/Texture.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/Rectangle.o: src/Objects/Rectangle.cpp include/Rectangle.hpp obj/Object.o
@@ -48,7 +51,7 @@ obj/AbstractBox.o: src/Math/AbstractBox.cpp include/AbstractBox.hpp obj/Vector2.
 obj/UserInterface.o: src/UserInterface/UserInterface.cpp include/UserInterface.hpp obj/UIElements.o obj/Text.o obj/InputBox.o obj/Button.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Button.o: src/UserInterface/Button.cpp include/Button.hpp obj/UIElements.o
+obj/Button.o: src/UserInterface/Button.cpp include/Button.hpp obj/UIElements.o obj/PhysicsMath.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/InputBox.o: src/UserInterface/InputBox.cpp include/InputBox.hpp obj/UIElements.o
@@ -58,6 +61,9 @@ obj/Text.o: src/UserInterface/Text.cpp include/Text.hpp obj/UIElements.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/UIElements.o: src/UserInterface/UIElements.cpp include/UIElements.hpp obj/Vector2.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+obj/Texture.o: src/Texture/Texture.cpp include/Texture.hpp obj/Vector2.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 obj/PhysicsMath.o: src/Math/PhysicsMath.cpp include/PhysicsMath.hpp obj/Vector2.o
