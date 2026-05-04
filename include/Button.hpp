@@ -86,6 +86,7 @@ namespace syxd{
     void setBackgroundColor( sf::Color new_color );
     void setHoverColor( sf::Color new_color );
     void setTextColor( sf::Color new_color );
+    void setCharacterSize( const float size );
     void onHover( sf::Vector2f mouse_pos, bool hovered, const float& delta_time );
     bool mouseOnObject(const Vec2& mouse);
     void onClick( bool hovered );

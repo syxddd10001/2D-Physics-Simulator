@@ -70,7 +70,7 @@ Engine::Engine( const Engine_Data& dataset ) : m_window_settings{ dataset.window
 }
 
 Engine::~Engine( ) {
-  
+  std::cout << this << " Engine Instance destroyed\n";
 }
 
 bool Engine::InitializeEngine( const WINDOW_SETTINGS& window_settings, const bool& load ){
@@ -322,7 +322,7 @@ void Engine::EventManager( const float& delta_time ) {
         }
   
         
-        if ( e_event.key.code == sf::Keyboard::S && !m_command_mode ) {
+        if ( e_event.key.code == sf::Keyboard::M && !m_command_mode ) {
           m_select_mode = !m_select_mode;
           objectDefault( );
         }
@@ -395,6 +395,12 @@ void Engine::EventManager( const float& delta_time ) {
         if ( e_event.key.control &&
           e_event.key.code == sf::Keyboard::A ) {
           getObjectsInArea( box );
+        }
+
+        if (  e_event.key.control &&
+          e_event.key.code == sf::Keyboard::S && !m_command_mode ) {
+          executeSave();
+          std::cout << "Saved!\n";
         }
 
         if ( e_event.key.control &&
@@ -1123,6 +1129,8 @@ void Engine::InitializeUI(){ //
                               m_ui_settings.h3_size,
                               sf::Vector2f { (float) WINDOW->getSize().x - x_offset, (float) WINDOW->getSize().y - 50.0f },
                               TEXT_COLOR );
+
+                              
 }
 
 bool Engine::isRunning(){
@@ -1252,6 +1260,19 @@ void Engine::setSimulationSpeed( const float& s ){
   sim_speed = s;
 }
 
+void Engine::executeSave(){
+  if ( m_save_function ){
+    m_save_function();
+  }
+}
+void Engine::executeSave( std::function<void()> save_function ){
+  if ( save_function ){
+    save_function();
+  }
+}
+void Engine::updateSaveFunction( std::function<void()> updated_function ){
+  m_save_function = updated_function;
+}
 
 
 void Engine::MainLoop( ){

@@ -71,5 +71,6 @@ public:
   void SetWindow( std::shared_ptr<sf::RenderWindow> window );
   std::unique_ptr<syxd::UI_Element>::pointer FindElement( const std::string& element_identifier ) const noexcept;
   std::unique_ptr<syxd::UI_Element>::pointer FindElement( const uint32_t element_id ) const noexcept;
+  void RemoveAllElements();
 
 };

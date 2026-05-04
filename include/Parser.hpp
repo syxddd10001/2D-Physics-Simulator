@@ -7,20 +7,22 @@
 #include <Object.hpp>
 #include <Engine.hpp>
 
-bool startsWith(const string& s, const string& prefix);
+bool startsWith( const string& s, const string& prefix );
 
-void writeQuotedLine(std::ofstream& os, const string& s);
+void writeQuotedLine( std::ofstream& os, const string& s );
 
-static inline string trim(const string& s);
+std::string trim( const string& s );
 
-vector<string> splitCSV(const string& line);
+vector<string> splitCSV( const string& line );
 
-std::string cleanLine(std::string line);
+std::string cleanLine (std::string line );
 
-bool readCleanLine(std::istream& is, std::string& out);
+bool readCleanLine( std::istream& is, std::string& out );
 
-void parseEngineName(std::istream& is, Engine_Data& ed);
+void parseEngineName( std::istream& is, Engine_Data& ed );
 
-void parseObjects(std::istream& is, Engine_Data& ed);
+void parseObjects( std::istream& is, Engine_Data& ed );
 
-void parseWindowSettings(std::istream& is, Engine_Data& ed);
+void parseWindowSettings( std::istream& is, Engine_Data& ed );
+
+std::string ensure_trailing_semicolon( std::string s );

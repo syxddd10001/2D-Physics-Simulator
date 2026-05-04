@@ -63,7 +63,6 @@ struct UI_SETTINGS {
 struct Engine_Data {
   vector<shptr_obj> p_objects; // objects
   WINDOW_SETTINGS window_settings;
-
 };
 
 class Engine {
@@ -121,9 +120,7 @@ private:
   bool is_paused = false;
   sf::Color BACKGROUND_COLOR = sf::Color::Black;
   sf::Color TEXT_COLOR = sf::Color::White;
-
-
-
+  std::function<void()> m_save_function;
 
 public:
   shared_ptr<sf::RenderWindow> WINDOW; // Main render window that displays stuff
@@ -207,4 +204,8 @@ public:
   WINDOW_SETTINGS getWindowSetting();
   UI_SETTINGS getUISettings();
   Engine_Data getEngineData();
+
+  void executeSave();
+  void executeSave( std::function<void()> save_function );
+  void updateSaveFunction( std::function<void()> updated_function );
 };

@@ -117,3 +117,13 @@ void Button::setHoverColor( sf::Color new_color ){
 void Button::setTextColor( sf::Color new_color ){
   m_text_color = new_color;
 }
+
+void Button::setCharacterSize( const float size ){
+  m_text.setCharacterSize(size);
+  sf::FloatRect bounds = m_text.getLocalBounds();
+  m_text.setOrigin(
+      bounds.left + bounds.width  / 2.f,
+      bounds.top  + bounds.height / 2.f
+  );
+  m_text.setPosition(getPosition());
+}

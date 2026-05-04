@@ -1,0 +1,32 @@
+# ENGINE_FILE v2
+ENGINE
+"First Engine"
+[OBJECTS]
+; // this is a comment - comments are ignored by parser
+; // semicolon must exist before a comment
+; // 
+1,Circle,10000,100,20,,,50,1,0,0,65280; // id,type,mass,pos_x,pos_y,dim_x,dim_y,rad,glow,vel_x,vel_y,color_int
+2,Circle,10000,100,60,,,70,1,0,0,;
+3,Circle,10000,150,260,,,70,1,0,0,-1;
+
+[WINDOW_SETTINGS]
+120,1280,720,15000,"First Engine";
+
+ENGINE
+"Solar System"
+[OBJECTS]
+; // Solar System Data
+1,Circle,19890000,0,0,,,100,1,1,0,4294638335;      // Sun
+2,Circle,3.3,200,0,,,5,1,0,-997,2846468607;        // Mercury
+3,Circle,49,360,0,,,12,1,0,-743,4292665087;        // Venus
+4,Circle,60.0,500,0,,,13,1,0,-600,65535;        // Earth
+5,Circle,6.4,760,0,,,7,1,0,-512,4278190335;        // Mars
+6,Circle,19080,2600,0,,,30,1,0,-276,3537023999;    // Jupiter
+7,Circle,56800,1430,0,,,25,1,0,-373,4043306239;    // Saturn
+8,Circle,8680,2870,0,,,20,1,0,-263,2526451711;     // Uranus
+9,Circle,10200,4500,0,,,19,1,0,-210,46335;         // Neptune
+;//10,Circle,0.74,501,0,,,4,24.5,0,-600; // Earth's moon
+
+
+[WINDOW_SETTINGS]
+120,1280,720,15000,"Solar System";

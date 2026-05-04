@@ -9,17 +9,16 @@
 #endif
 
 const std::map <std::string, Receiver::CommandType> Receiver::m_command_map = { 
-      { "spawn", SPAWN }, 
-      { "mode", MODE }, 
-      { "exit", EXIT }, 
-      { "friction", DRAG },
-      { "drag", DRAG },
-      { "man", MANUAL },
-      { "manual", MANUAL },
-      { "help", MANUAL },
-      { "gravity", GRAVITY },
-      { "speed", SPEED }
-      
+  { "spawn", SPAWN }, 
+  { "mode", MODE }, 
+  { "exit", EXIT }, 
+  { "friction", DRAG },
+  { "drag", DRAG },
+  { "man", MANUAL },
+  { "manual", MANUAL },
+  { "help", MANUAL },
+  { "gravity", GRAVITY },
+  { "speed", SPEED }    
 };
 
 std::shared_ptr<Receiver> Receiver::p_instance;

@@ -164,22 +164,22 @@ sf::Font UserInterface::GetFont(){
 
 
 void UserInterface::ShowElement( syxd::UI_Element* target_element ) {
-  if (target_element != nullptr) target_element->hide(false);
+  if ( target_element != nullptr ) target_element->hide(false);
 }
 
 void UserInterface::HideElement( syxd::UI_Element* target_element ) {
-  if (target_element != nullptr) target_element->hide(true);
+  if ( target_element != nullptr ) target_element->hide(true);
 }
 
 void UserInterface::HideAllElements( ){
   for ( auto& elem : m_ui_elements ){
-    HideElement(elem.get());
+    HideElement( elem.get() );
   }
 }
 
 void UserInterface::ShowAllElements( ){
   for ( auto& elem : m_ui_elements ){
-    ShowElement(elem.get());
+    ShowElement( elem.get() );
   }
 }
 
@@ -190,3 +190,6 @@ void UserInterface::SetWindow( std::shared_ptr<sf::RenderWindow> window ){
   WINDOW_REF = window;
 }
 
+void UserInterface::RemoveAllElements(){
+  m_ui_elements.clear();
+}

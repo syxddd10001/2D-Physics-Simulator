@@ -1,22 +1,22 @@
 #pragma once
 #include <Parser.hpp>
 
-void writeQuotedLine(std::ofstream& os, const string& s) {
+void writeQuotedLine( std::ofstream& os, const string& s ) {
   os << '"' << s << '"' << "\n";
 }
 
-bool startsWith(const string& s, const string& prefix) {
+bool startsWith( const string& s, const string& prefix ) {
   return s.rfind(prefix, 0) == 0;
 }
 
-static inline string trim(const string& s) {
+std::string trim( const string& s ) {
   size_t a = s.find_first_not_of(" \t\r\n");
   if (a == string::npos) return "";
   size_t b = s.find_last_not_of(" \t\r\n");
   return s.substr(a, b - a + 1);
 }
 
-vector<string> splitCSV(const string& line) {
+vector<string> splitCSV( const string& line ) {
   vector<string> out;
   std::string cur;
   bool inQuotes = false;
@@ -38,7 +38,7 @@ vector<string> splitCSV(const string& line) {
   return out;
 }
 
-std::string cleanLine(std::string line) {
+std::string cleanLine(std::string line ) {
   // strip comments only if they come after a semicolon
   size_t semi    = line.find(';');
   size_t comment = line.find("//");
@@ -58,7 +58,7 @@ std::string cleanLine(std::string line) {
   return line;
 }
 
-bool readCleanLine(std::istream& is, std::string& out) {
+bool readCleanLine( std::istream& is, std::string& out ) {
   std::string raw;
   if (!std::getline(is, raw))
       return false;
@@ -78,17 +78,17 @@ void parseEngineName( std::istream& is, Engine_Data& ed ) {
   ed.window_settings.WINDOW_NAME = line;
 }
 
-void parseObjects(std::istream& is, Engine_Data& ed) {
+void parseObjects( std::istream& is, Engine_Data& ed ) {
   std::string line;
 
   // find [OBJECTS]
-  while (readCleanLine(is, line)) {
+  while ( readCleanLine(is, line) ) {
       if (line.empty()) continue;
       if (line == "[OBJECTS]") break;
   }
 
   // read objects until [WINDOW_SETTINGS] or EOF
-  while (readCleanLine(is, line)) {
+  while ( readCleanLine(is, line) ) {
       if (line.empty()) continue;
       if (line == "[WINDOW_SETTINGS]") {
           // push back marker into stream logic: we just return and let caller
@@ -103,6 +103,13 @@ void parseObjects(std::istream& is, Engine_Data& ed) {
       auto tokens = splitCSV(line);
       while (tokens.size() < 11) tokens.push_back("");
 
+      if (tokens[1] == "Rectangle"){
+        
+      }
+      else if (tokens[1] == "Circle"){
+
+      }
+
       auto obj = Object::deserializeCSV(tokens);
       if (obj) ed.p_objects.push_back(std::move(obj));
   }
@@ -111,7 +118,7 @@ void parseObjects(std::istream& is, Engine_Data& ed) {
   // Caller will read the actual window settings line next.
 }
 
-void parseWindowSettings(std::istream& is, Engine_Data& ed) {
+void parseWindowSettings( std::istream& is, Engine_Data& ed ) {
   std::string line;
   if (!readCleanLine(is, line))
       return;
@@ -145,23 +152,25 @@ void parseWindowSettings(std::istream& is, Engine_Data& ed) {
       // ignore parse errors
   }
 }
-
-std::unique_ptr<Object> Object::deserializeCSV(const std::vector<std::string>& tokens) {
-  // tokens expected: id,type,mass,pos_x,pos_y,dim_x,dim_y,rad,glow,vel_x,vel_y
+/*
+Desiralizes from CSV to Object
+PARAM: tokens expected -- id,type,mass,pos_x,pos_y,dim_x,dim_y,rad,glow,vel_x,vel_y,color
+*/
+std::unique_ptr<Object> Object::deserializeCSV( const std::vector<std::string>& tokens ) {
   if (tokens.size() < 11) return nullptr;
   std::string type = tokens[1];
   try {
-    if (type == "Rectangle") {
-      float mass = tokens[2].empty() ? 0.0f : std::stof(tokens[2]);
-      float px = tokens[3].empty() ? 0.0f : std::stof(tokens[3]);
-      float py = tokens[4].empty() ? 0.0f : std::stof(tokens[4]);
-      float dx = tokens[5].empty() ? 0.0f : std::stof(tokens[5]);
-      float dy = tokens[6].empty() ? 0.0f : std::stof(tokens[6]);
-      bool glow = (!tokens[8].empty() && tokens[8] != "0") ? true : false;
-      float vx = (tokens.size() > 9 && !tokens[9].empty()) ? std::stof(tokens[9]) : 0.0f;
-      float vy = (tokens.size() > 10 && !tokens[10].empty()) ? std::stof(tokens[10]) : 0.0f;
-      long long int int_color = (tokens.size() > 11 && !tokens[11].empty()) ? std::stoll(tokens[11]) : -1;
-      sf::Color* color = new sf::Color(static_cast<sf::Uint32>(int_color));
+    if ( type == "Rectangle" ) {
+      float mass = tokens[2].empty() ? 0.0f : std::stof( tokens[2] );
+      float px = tokens[3].empty() ? 0.0f : std::stof( tokens[3] );
+      float py = tokens[4].empty() ? 0.0f : std::stof( tokens[4] );
+      float dx = tokens[5].empty() ? 0.0f : std::stof( tokens[5] );
+      float dy = tokens[6].empty() ? 0.0f : std::stof( tokens[6] );
+      bool glow = ( !tokens[8].empty() && tokens[8] != "0" ) ? true : false;
+      float vx = ( tokens.size() > 9 && !tokens[9].empty() ) ? std::stof( tokens[9] ) : 0.0f;
+      float vy = ( tokens.size() > 10 && !tokens[10].empty() ) ? std::stof( tokens[10] ) : 0.0f;
+      long long int int_color = ( tokens.size() > 11 && !tokens[11].empty() ) ? std::stoll( tokens[11] ) : -1;
+      sf::Color* color = new sf::Color( static_cast<sf::Uint32>(int_color) );
       std::unique_ptr<syxd::Rectangle> r = std::make_unique<syxd::Rectangle>( mass, 
                                                                               px, 
                                                                               py, 
@@ -169,28 +178,28 @@ std::unique_ptr<Object> Object::deserializeCSV(const std::vector<std::string>& t
                                                                               dy, 
                                                                               glow, 
                                                                               color );
-      r->setVelocity({vx,vy});
+      r->setVelocity( {vx,vy} );
       return r;
 
-    } else if (type == "Circle") {
-      float mass = tokens[2].empty() ? 0.0f : std::stof(tokens[2]);
-      float px = tokens[3].empty() ? 0.0f : std::stof(tokens[3]);
-      float py = tokens[4].empty() ? 0.0f : std::stof(tokens[4]);
-      float rad = tokens[7].empty() ? 0.0f : std::stof(tokens[7]);
+    } else if ( type == "Circle" ) {
+      float mass = tokens[2].empty() ? 0.0f : std::stof( tokens[2] );
+      float px = tokens[3].empty() ? 0.0f : std::stof( tokens[3] );
+      float py = tokens[4].empty() ? 0.0f : std::stof( tokens[4] );
+      float rad = tokens[7].empty() ? 0.0f : std::stof( tokens[7] );
       bool glow = (!tokens[8].empty() && tokens[8] != "0") ? true : false;
-      float vx = (tokens.size() > 9 && !tokens[9].empty()) ? std::stof(tokens[9]) : 0.0f;
-      float vy = (tokens.size() > 10 && !tokens[10].empty()) ? std::stof(tokens[10]) : 0.0f;
+      float vx = (tokens.size() > 9 && !tokens[9].empty()) ? std::stof( tokens[9] ) : 0.0f;
+      float vy = (tokens.size() > 10 && !tokens[10].empty()) ? std::stof( tokens[10] ) : 0.0f;
 
-      long long int int_color = (tokens.size() > 11 && !tokens[11].empty()) ? std::stoll(tokens[11]) : -1;
+      long long int int_color = ( tokens.size() > 11 && !tokens[11].empty() ) ? std::stoll( tokens[11] ) : -1;
 
-      sf::Color* color = new sf::Color(static_cast<sf::Uint32>(int_color));
+      sf::Color* color = new sf::Color( static_cast<sf::Uint32>(int_color) );
 
-      std::unique_ptr<syxd::Circle> c = std::make_unique<syxd::Circle>(rad, 
+      std::unique_ptr<syxd::Circle> c = std::make_unique<syxd::Circle>( rad, 
                                                                        mass, 
                                                                        px, 
                                                                        py, 
                                                                        glow, 
-                                                                       color);
+                                                                       color );
       c->setVelocity({vx,vy});
       return c;
     }
@@ -198,4 +207,12 @@ std::unique_ptr<Object> Object::deserializeCSV(const std::vector<std::string>& t
     return nullptr;
   }
   return nullptr;
+}
+
+std::string ensure_trailing_semicolon( std::string s ) {
+  // trim right whitespace
+  while (!s.empty() && (s.back() == ' ' || s.back() == '\t' || s.back() == '\r' || s.back() == '\n'))
+      s.pop_back();
+  if (s.empty() || s.back() == ';') return s;
+  return s + ";";
 }

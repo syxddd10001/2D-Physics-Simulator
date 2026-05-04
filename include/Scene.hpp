@@ -5,6 +5,8 @@
 #include <string>
 #include <fstream>
 #include <time.h>
+#include <unordered_map>
+#include <unordered_set>
 
 #include "Engine.hpp"
 #include "Parser.hpp"
@@ -18,14 +20,16 @@ namespace syxd {
   
   class Scene{
     private:
-    Engine_Data m_current_scene;
+    Engine_Data* m_current_scene;
     std::string m_scenes_path = "data/engines.dtf";
+    std::string new_scene_name = "";
     std::unique_ptr<std::vector<Engine_Data>> m_engines;
     shared_ptr<sf::RenderWindow> MAIN_WINDOW;
     sf::Font m_default_font;
     sf::Color m_background_color;
     sf::Color m_text_color;
     sf::Clock clock;
+    bool reinitialize = false;
 
     const std::string FONT_PATH = "static/fonts/";
     const std::string fonts[5] =  
@@ -45,23 +49,23 @@ namespace syxd {
     std::chrono::high_resolution_clock::time_point start;
 
     bool m_is_running = false; // sad
+    bool m_show_input = true;
 
     public:
     std::unique_ptr<Engine> m_engine_instance;
     
     Scene ( const WINDOW_SETTINGS& window_settings );
-    
-      //instance.swap(m_engine_instance); 
-    
     ~Scene (){ };
 
     void runScene();
 
     bool loadAllScenes( std::string& scene_path );
     bool loadScene( std::string engine_name );
-    bool saveScene( std::string& scene_path );
+    void saveScene( std::string engine_name );
+    void saveEnginesToFile(  );
 
     vector<Engine_Data> loadEnginesFromFile( const std::string& filename );
+    void loadEnginesToUI();
     
     const std::string getScenesPath( );
     void setScenesPath( const std::string& new_path ); 
@@ -76,6 +80,7 @@ namespace syxd {
     void EventManager( const float& delta_time );
     void InitializeUI( );
     void InitializeWindow( );
+    bool deleteEngine( const std::string engine_name );
 
 
   };  

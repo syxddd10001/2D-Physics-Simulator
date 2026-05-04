@@ -6,37 +6,44 @@ Circle::Circle( float rad, float mass,
                 bool glow, sf::Color* color ) noexcept 
                 : Object (mass, posX, posY, glow), m_radius(rad) 
 {
-    if (glow) {
-      std::cout << "glow mode\n"; 
-      makeCircleGlow( color );
-      
+  if (glow) {
+    std::cout << "glow mode\n"; 
+    if ( color != nullptr ){
+      m_color = std::make_unique<sf::Color>( *color );
+
     } else {
-      std::cout << "regular shape\n"; 
-      
-      m_shape = std::make_shared<sf::CircleShape>( m_radius );
-      sf::Vector2f circleCenter( rad, rad );
-
-      if ( color != nullptr ){
-        m_color = std::make_unique<sf::Color>( *color );
-
-      } else {
-        m_color = std::make_unique<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
-      } 
-      m_shape->setOrigin( circleCenter );
-      m_shape->setOutlineThickness( 0.5f );
-      m_shape->setFillColor( *m_color );
-      m_shape->setOutlineColor( *m_color );
-      m_glow = false;
-      setQueryBox( AbstractBox<float>( getCenter()-(getSize()*2) ,  getSize()*4 )) ;
+      m_color = std::make_unique<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
+      color = m_color.get();
     }
+    makeCircleGlow( color );
 
-    // 5) Initialize the query‐box for spatial queries
-    setQueryBox(
-        AbstractBox<float>(
-            getCenter() - (getSize() * 2.0f),
-            getSize() * 4.0f
-        )
-    );
+  } else {
+    std::cout << "regular shape\n"; 
+    
+    m_shape = std::make_shared<sf::CircleShape>( m_radius );
+    sf::Vector2f circleCenter( rad, rad );
+
+    if ( color != nullptr ){
+      m_color = std::make_unique<sf::Color>( *color );
+
+    } else {
+      m_color = std::make_unique<sf::Color>( sf::Color{ static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), static_cast<uint8_t>(rand() % (uint8_t) 255), 255 } );
+    }
+    m_shape->setOrigin( circleCenter );
+    m_shape->setOutlineThickness( 0.5f );
+    m_shape->setFillColor( *m_color );
+    m_shape->setOutlineColor( *m_color );
+    m_glow = false;
+    setQueryBox( AbstractBox<float>( getCenter()-(getSize()*2) ,  getSize()*4 )) ;
+  }
+
+  // 5) Initialize the query‐box for spatial queries
+  setQueryBox(
+      AbstractBox<float>(
+          getCenter() - (getSize() * 2.0f),
+          getSize() * 4.0f
+      )
+  );
 }
 
 Circle::Circle( ) { }
@@ -45,7 +52,7 @@ Circle::Circle( ) { }
 Returns a pointer to the shape of THIS object
 */
 std::shared_ptr<sf::Shape> Circle::getShape( ) {
-    return this->m_shape;
+  return this->m_shape;
 }
 
 Vec2 Circle::getSize( ) const {
@@ -53,18 +60,18 @@ Vec2 Circle::getSize( ) const {
 }
 
 float Circle::setRadius( const float rad ) {
-    this->m_radius = rad;
-    return m_radius;
+  this->m_radius = rad;
+  return m_radius;
 }
 
 float Circle::getRadius( ) {
-    return m_radius;
+  return m_radius;
 }
 
 void Circle::setPosition( const Vec2 pos ) {
-    position_current = pos;
-    if ( m_shape != nullptr ) m_shape->setPosition( sf::Vector2f( position_current.x, position_current.y ) );
-    if ( m_sprite != nullptr ) m_sprite->setPosition( sf::Vector2f( position_current.x, position_current.y ) );
+  position_current = pos;
+  if ( m_shape != nullptr ) m_shape->setPosition( sf::Vector2f( position_current.x, position_current.y ) );
+  if ( m_sprite != nullptr ) m_sprite->setPosition( sf::Vector2f( position_current.x, position_current.y ) );
 
 }
 
@@ -98,21 +105,21 @@ void Circle::draw( std::shared_ptr<sf::RenderWindow> WINDOW ){
 }
 
 std::string Circle::serializeCSV(int id) const {
-    std::ostringstream r;
-    int color_int = m_color ? m_color->toInteger() : -1;
-    r << id << ","
-      << typeName() << ","
-      << m_mass << ","
-      << position_current.x << ","
-      << position_current.y << ","
-      << "" << ","              // dim_x (unused for circle)
-      << "" << ","              // dim_y (unused for circle)
-      << m_radius << ","
-      << (m_glow ? "1" : "0") << ","
-      << velocity.x << ","
-      << velocity.y << ","
-      << color_int << ";";
-    return r.str();
+  std::ostringstream r;
+  long long int color_int = m_color ? m_color->toInteger() : -1;
+  r << id << ","
+    << typeName() << ","
+    << m_mass << ","
+    << position_current.x << ","
+    << position_current.y << ","
+    << "" << ","              // dim_x (unused for circle)
+    << "" << ","              // dim_y (unused for circle)
+    << m_radius << ","
+    << (m_glow ? "1" : "0") << ","
+    << velocity.x << ","
+    << velocity.y << ","
+    << color_int << ";";
+  return r.str();
 }
 
 void Circle::makeCircleGlow( sf::Color* color ){

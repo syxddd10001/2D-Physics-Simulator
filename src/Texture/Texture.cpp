@@ -51,8 +51,6 @@ sf::Image createRadialGlowTexture(
       );
   }
 
-  std::cout << "base color: " << base.toInteger() << '\n';
-
   for (unsigned y = 0; y < texSize; ++y)
   {
     for (unsigned x = 0; x < texSize; ++x)
