@@ -85,6 +85,7 @@ namespace syxd {
     void InitializeWindow( );
     bool deleteEngine( const std::string engine_name );
 
+    bool engineExists( const std::string engine_name );
 
   };  
 

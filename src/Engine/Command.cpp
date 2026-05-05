@@ -18,7 +18,8 @@ const std::map <std::string, Receiver::CommandType> Receiver::m_command_map = {
   { "manual", MANUAL },
   { "help", MANUAL },
   { "gravity", GRAVITY },
-  { "speed", SPEED }    
+  { "speed", SPEED }, 
+  {"save", SAVE }   
 };
 
 std::shared_ptr<Receiver> Receiver::p_instance;
@@ -244,6 +245,10 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
           }
         }
       
+      break;
+
+      case SAVE:
+        engine_instance->executeSave();
       break;
 
       case EXIT:

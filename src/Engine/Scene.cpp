@@ -33,6 +33,28 @@ void Scene::saveScene( std::string engine_name ) {
   } else {
     std::cout << "Engine not found: " << engine_name << "\n";
   }
+}
+
+void saveScene( std::vector<Engine_Data> engines, std::unique_ptr<Engine> target_engine ) {
+  // 1. Get the updated engine data from the target engine
+  Engine_Data updated = target_engine->getEngineData();
+  std::string engine_name = updated.window_settings.WINDOW_NAME;
+
+  // 2. Find the matching engine in m_engines
+  auto it = std::find_if(
+    engines.begin(),
+    engines.end(),
+    [&](const Engine_Data& e) {
+      return e.window_settings.WINDOW_NAME == engine_name;
+    }
+  );
+
+  // 3. Replace the old data with the updated data
+  if (it != engines.end()) {
+    *it = updated;
+  } else {
+    std::cout << "Engine not found: " << engine_name << "\n";
+  }
 
 }
 
@@ -92,7 +114,7 @@ bool Scene::loadAllScenes( std::string& scene_path ) {
 
   WINDOW_SETTINGS window_settings;
 
-  std::vector<Engine_Data> engines = loadEnginesFromFile( scene_path );
+  std::vector<Engine_Data> engines = lazyLoadEnginesFromFile( scene_path );
 
   if (engines.size() == 0){
     return false;
@@ -123,6 +145,7 @@ bool Scene::loadScene( std::string engine_name ) {
     m_engine_instance.reset();
     m_engine_instance = std::make_unique<Engine>(*m_current_scene);
     std::function<void()> m_save_function = [this]() {
+      
       this->saveEnginesToFile();
     };
 
@@ -137,10 +160,20 @@ bool Scene::loadScene( std::string engine_name ) {
 
 void Scene::saveEnginesToFile()
 {
+  /***************SAVING LOCALLY****************/
   if (m_engine_instance) {
-    saveScene(m_engine_instance->getEngineData().window_settings.WINDOW_NAME);
+    m_engines.reset();
+    m_engines = std::make_unique<vector<Engine_Data>>(lazyLoadEnginesFromFile( m_scenes_path )); // rlazy eloading engine data from file to ensure latest data
+    Engine_Data current_engine_data = m_engine_instance->getEngineData(); // get current engine data
+    if (findEngineByName(current_engine_data.window_settings.WINDOW_NAME) == nullptr) {
+      // if engine doesnt exist (meaning newly created), push it to all engines vector
+      m_engines->push_back(current_engine_data);
+    }
+    saveScene(m_engine_instance->getEngineData().window_settings.WINDOW_NAME); // at last, save scene
   }
+  /********************************************/
 
+  /*********************** WRITING TO FILE **************************/
   std::ofstream os(m_scenes_path, std::ios::out | std::ios::trunc);
   if (!os) {
     std::cout << "File not found for writing. Not saved.\n";
@@ -149,7 +182,7 @@ void Scene::saveEnginesToFile()
 
   os << "# ENGINE_FILE v1\n";
 
-  // m_engines is a std::unique_ptr<std::vector<Engine_Data>>
+  // nothing to write
   if (!m_engines) return;
 
   for (const auto& e : *m_engines) {
@@ -176,6 +209,9 @@ void Scene::saveEnginesToFile()
         "\"" + e.window_settings.WINDOW_NAME + "\"";
     ws = ensure_trailing_semicolon(std::move(ws));
     os << ws << "\n";
+
+  /*********************************************************************/
+
   }
 }
 
@@ -348,7 +384,7 @@ void Scene::InitializeWindow(){
                                                                   static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_Y) ) ));
   
   #if DEBUG
-    if ( !m_default_font.loadFromFile( fonts[0] ) ){
+    if ( !m_default_font.loadFromFile( fonts[3] ) ){
         DEBUG_PRINT("Font not found\n");
     }
     else {
