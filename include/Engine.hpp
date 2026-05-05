@@ -61,6 +61,7 @@ struct UI_SETTINGS {
 };
 
 struct Engine_Data {
+  //std::string Engine_ID;
   vector<shptr_obj> p_objects; // objects
   WINDOW_SETTINGS window_settings;
 };

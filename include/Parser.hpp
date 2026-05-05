@@ -26,3 +26,11 @@ void parseObjects( std::istream& is, Engine_Data& ed );
 void parseWindowSettings( std::istream& is, Engine_Data& ed );
 
 std::string ensure_trailing_semicolon( std::string s );
+
+std::vector<std::string> readSection(std::istream& is, const std::string& sectionName );
+
+void parseEngineNameFromLines(const std::vector<std::string>& lines, Engine_Data& ed);
+
+void parseObjectsFromLines(const std::vector<std::string>& lines, Engine_Data& ed);
+
+void parseWindowSettingsFromLine(const std::string& line, WINDOW_SETTINGS& ws);

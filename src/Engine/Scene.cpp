@@ -36,6 +36,52 @@ void Scene::saveScene( std::string engine_name ) {
 
 }
 
+std::vector<Engine_Data> Scene::lazyLoadEnginesFromFile(const std::string& filename) {
+    std::ifstream is(filename);
+    std::vector<Engine_Data> result;
+
+    if (!is) {
+        std::cout << "Couldn't open file\n";
+        return result;
+    }
+
+    std::string line;
+
+    // optional header
+    if (!readCleanLine(is, line))
+        return result;
+
+    if (!startsWith(line, "# ENGINE_FILE")) {
+        DEBUG_PRINT("Warning: missing # ENGINE_FILE header\n");
+    }
+
+    // MAIN LOOP
+    while (readCleanLine(is, line)) {
+        if (line.empty()) continue;
+
+        // -------------------------
+        // ENGINE BLOCK START
+        // -------------------------
+        if (line == "ENGINE") {
+            Engine_Data ed;
+
+            // 1. ENGINE NAME (single quoted line)
+            parseEngineName(is, ed);
+
+            // 2. OBJECTS SECTION
+            parseObjects(is, ed);
+
+            // 3. WINDOW SETTINGS SECTION
+            parseWindowSettings(is, ed);
+
+            result.push_back(std::move(ed));
+        }
+    }
+
+    return result;
+}
+
+
 
 bool Scene::loadAllScenes( std::string& scene_path ) {
   // read a file 
@@ -51,6 +97,7 @@ bool Scene::loadAllScenes( std::string& scene_path ) {
   if (engines.size() == 0){
     return false;
   }
+
   m_engines.reset();
   m_engines = std::make_unique<vector<Engine_Data>>(engines);
 

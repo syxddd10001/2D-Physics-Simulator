@@ -216,3 +216,104 @@ std::string ensure_trailing_semicolon( std::string s ) {
   if (s.empty() || s.back() == ';') return s;
   return s + ";";
 }
+std::vector<std::string> readSection(std::istream& is, const std::string& sectionName) {
+    std::vector<std::string> lines;
+    std::string line;
+
+    // 1. Find the section header
+    while (readCleanLine(is, line)) {
+        if (line == sectionName)
+            break;
+    }
+
+    if (line != sectionName)
+        return lines; // section not found
+
+    // 2. Read until next [SECTION] or EOF
+    std::streampos lastPos;
+    while (true) {
+        lastPos = is.tellg(); // remember position before reading
+        if (!readCleanLine(is, line))
+            break;
+
+        if (!line.empty() && line.front() == '[' && line.back() == ']') {
+            // We hit the next section header → rewind so caller can read it
+            is.seekg(lastPos);
+            break;
+        }
+
+        if (!line.empty())
+            lines.push_back(line);
+    }
+
+    return lines;
+}
+
+
+
+void parseEngineNameFromLines(const std::vector<std::string>& lines,
+                              Engine_Data& ed)
+{
+    if (lines.empty())
+        return;
+
+    std::string name = lines[0];
+
+    // Strip quotes if present
+    if (name.size() >= 2 && name.front() == '"' && name.back() == '"')
+        name = name.substr(1, name.size() - 2);
+
+    ed.window_settings.WINDOW_NAME = name;
+}
+
+void parseObjectsFromLines(const std::vector<std::string>& lines,
+                           Engine_Data& ed)
+{
+    for (const auto& line : lines) {
+        if (line.empty())
+            continue;
+
+        auto tokens = splitCSV(line);
+
+        // Ensure consistent field count
+        if (tokens.size() < 11)
+            tokens.resize(11);
+
+        auto obj = Object::deserializeCSV(tokens);
+        if (obj)
+            ed.p_objects.push_back(std::move(obj));
+    }
+}
+
+void parseWindowSettingsFromLine(const std::string& line, WINDOW_SETTINGS& ws)
+{
+    if (line.empty())
+        return;
+
+    auto t = splitCSV(line);
+    if (t.size() < 5)
+        t.resize(5);
+
+    try {
+        ws.MAX_FRAME_RATE =
+            t[0].empty() ? 0.f : std::stof(t[0]);
+
+        ws.DEFAULT_WINDOW_SIZE_X =
+            t[1].empty() ? 0 : static_cast<uint16_t>(std::stoi(t[1]));
+
+        ws.DEFAULT_WINDOW_SIZE_Y =
+            t[2].empty() ? 0 : static_cast<uint16_t>(std::stoi(t[2]));
+
+        ws.WORLD_SIZE =
+            t[3].empty() ? 0 : static_cast<uint16_t>(std::stoi(t[3]));
+
+        std::string wn = t[4];
+        if (wn.size() >= 2 && wn.front() == '"' && wn.back() == '"')
+            wn = wn.substr(1, wn.size() - 2);
+
+        ws.WINDOW_NAME = wn;
+    }
+    catch (...) {
+        // ignore parse errors
+    }
+}

@@ -1222,7 +1222,7 @@ void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
     TEXT_COLOR);
 
   m_help_interface.InitText( "spawn 0", 
-    "SPAWN rectangle/circle mass size.x size.y position.x position.y",
+    "SPAWN rectangle/circle mass size.x size.y position.x position.y num_of_objects glow/not_glow",
     m_ui_settings.h3_size,
     sf::Vector2f{ 0.0f, 35.0f },
     TEXT_COLOR);
@@ -1287,9 +1287,11 @@ std::vector<shptr_obj> Engine::copyObjects( const std::vector<shptr_obj> src ){
       Vec2 pos = c->getPosition();
       bool glow = c->hasGlow();
       sf::Color* p_color = new sf::Color(c->getColor());
+      Vec2 velocity = c->getVelocity();
 
       shptr_circ p_copy_circle = std::make_shared<Circle>(rad,mass,pos.x,pos.y,glow,p_color);
       p_copy_circle->setID(id);
+      p_copy_circle->setVelocity(velocity);
       dest.push_back(p_copy_circle);
 
     }
