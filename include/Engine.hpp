@@ -208,4 +208,6 @@ public:
   void executeSave();
   void executeSave( std::function<void()> save_function );
   void updateSaveFunction( std::function<void()> updated_function );
+
+  std::vector<shptr_obj> copyObjects( const std::vector<shptr_obj> src );
 };

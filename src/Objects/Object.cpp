@@ -152,3 +152,12 @@ void Object::AddForce( const Vec2 force ){
 bool Object::hasGlow(){
   return m_glow;
 }
+
+sf::Color Object::getColor(){
+  return m_color ? *m_color : sf::Color::White;
+}
+
+void Object::setColor( sf::Color color ){
+  m_color.reset();
+  m_color = std::make_unique<sf::Color>(color);
+}

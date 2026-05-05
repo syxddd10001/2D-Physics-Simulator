@@ -135,6 +135,8 @@ namespace syxd{
     void applyForce( const Vec2& force );
     
     bool hasGlow();
+    sf::Color getColor();
+    void setColor( sf::Color color );
     
   };
   

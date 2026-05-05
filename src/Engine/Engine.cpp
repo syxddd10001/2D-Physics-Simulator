@@ -150,7 +150,7 @@ bool Engine::InitializeEngine( const WINDOW_SETTINGS& window_settings, const boo
 bool Engine::InitializeEngine( Engine_Data data_set ){
   InitializeEngine( data_set.window_settings, true );
 
-  p_objects = data_set.p_objects;
+  p_objects = copyObjects(data_set.p_objects);
   object_count = p_objects.size();
 
   for (auto a : p_objects){
@@ -1272,6 +1272,44 @@ void Engine::executeSave( std::function<void()> save_function ){
 }
 void Engine::updateSaveFunction( std::function<void()> updated_function ){
   m_save_function = updated_function;
+}
+
+std::vector<shptr_obj> Engine::copyObjects( const std::vector<shptr_obj> src ){
+  std::vector<shptr_obj> dest; 
+  for ( auto a : src ){
+    if (a == nullptr) continue;
+    if (a->typeName() == "Circle"){
+      syxd::Circle* c = dynamic_cast<syxd::Circle*>(a.get());
+      //float rad, float mass, float pos_x, float pos_y, bool glow, sf::Color* color  
+      int id = a->getID();
+      float rad = c->getRadius();
+      float mass = c->getMass();
+      Vec2 pos = c->getPosition();
+      bool glow = c->hasGlow();
+      sf::Color* p_color = new sf::Color(c->getColor());
+
+      shptr_circ p_copy_circle = std::make_shared<Circle>(rad,mass,pos.x,pos.y,glow,p_color);
+      p_copy_circle->setID(id);
+      dest.push_back(p_copy_circle);
+
+    }
+
+    else if (a->typeName() == "Rectangle"){
+      syxd::Rectangle* r = dynamic_cast<syxd::Rectangle*>(a.get());
+      //float mass, float pos_x, float pos_y, float dim_x, float dim_y, bool glow, sf::Color* color 
+      int id = a->getID();
+      Vec2 dims = r->getDimension();
+      float mass = r->getMass();
+      Vec2 pos = r->getPosition();
+      bool glow = r->hasGlow();
+      sf::Color* p_color = new sf::Color(r->getColor());
+
+      shptr_rect p_copy_rect = std::make_shared<syxd::Rectangle>(mass,pos.x,pos.y,dims.x, dims.y, glow,p_color);
+      p_copy_rect->setID(id);
+      dest.push_back(p_copy_rect);
+    }
+  }
+  return dest;
 }
 
 
