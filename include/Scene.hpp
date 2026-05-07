@@ -22,7 +22,7 @@ namespace syxd {
     Engine_Data* m_current_scene;
     std::string m_scenes_path = "data/engines.dtf";
     std::string new_scene_name = "";
-    std::unique_ptr<std::vector<Engine_Data>> m_engines;
+    //std::unique_ptr<std::vector<Engine_Data>> m_engines;
     std::vector<Engine_Block> m_basic_engine_blocks;
     shared_ptr<sf::RenderWindow> MAIN_WINDOW;
     sf::Font m_default_font;
@@ -62,10 +62,11 @@ namespace syxd {
     
     bool lazyLoadEnginesFromFile( const std::string& filename ); // loads partial engine data from file (no objects)
     bool loadAllScenes( std::string& scene_path );
-    bool loadScene( std::string engine_name );
     bool loadSceneFromBlock( std::string engine_name );
     void saveScene( std::string engine_name );
     void saveEnginesToFile(  );
+    
+    bool writeEngineDataToFile( std::string file_name, std::vector<Engine_Data> engine_data );
 
     vector<Engine_Data> loadEnginesFromFile( const std::string& filename );
     void loadEnginesToUI();
@@ -73,13 +74,12 @@ namespace syxd {
     const std::string getScenesPath( );
     void setScenesPath( const std::string& new_path ); 
 
-    const std::vector<Engine_Data>* getAllEngines() const;
     const std::vector<Engine_Block> getAllEngineBlocks() const;
 
-    void addEngine( Engine_Data engine_data );
+    void addEngine( Engine_Block engine_block );
+
     void clearAllEngines( );
 
-    Engine_Data* findEngineByName( const std::string& target ) const;
     Engine_Block findEngineByNameFromBlock( const std::string& target ) const;
 
     void DisplayMenu();
@@ -87,7 +87,6 @@ namespace syxd {
     void InitializeUI( );
     void InitializeWindow( );
     bool deleteEngine( const std::string engine_name );
-    bool deleteEngineFromBlock( const std::string engine_name );
 
     std::vector<Engine_Block> getEngineBlocksFromFile( const std::string& filename ); // reads file and puts it in a Engine_Block data structure in a raw format without parsing them into actual engine objects
   };  

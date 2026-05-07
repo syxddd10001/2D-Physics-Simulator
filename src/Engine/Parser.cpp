@@ -48,7 +48,7 @@ vector<string> splitCSV( const string& line ) {
   return out;
 }
 
-std::string cleanLine(std::string line ) {
+std::string cleanLine( std::string line ) {
   // strip comments only if they come after a semicolon
   size_t semi    = line.find(';');
   size_t comment = line.find("//");
@@ -343,7 +343,7 @@ void parseWindowSettings(const std::string& line, WINDOW_SETTINGS& ws)
         if (wn.size() >= 2 && wn.front() == '"' && wn.back() == '"')
             wn = wn.substr(1, wn.size() - 2);
 
-        ws.WINDOW_NAME = wn;
+        ws.WINDOW_NAME = cleanLine(wn);
     }
     catch (...) {
         // ignore parse errors
@@ -354,13 +354,15 @@ Engine_Data parseEngineBlock( Engine_Block block ){
   Engine_Data ed;
   
   // Parse engine name
-  parseEngineName( {block.engine_name}, ed );
+  parseEngineName(block.engine_name, ed );
 
   // Parse objects
   parseObjects(block.objects, ed);
 
   // Parse window settings
   parseWindowSettings(block.window_settings, ed.window_settings);
+
+  std::cout << "WINDOW NAME: " << ed.window_settings.WINDOW_NAME << "\n"; 
 
   return ed;
 }
