@@ -19,17 +19,17 @@ void Scene::saveScene( std::string engine_name ) {
   // 1. Get the updated engine data from the running instance
   Engine_Data updated = m_engine_instance->getEngineData();
   Engine_Block updatedBlock = engineDataToBlock(updated);
-  // 2. Find the matching engine in m_engines
+  // 2. Find the matching engine in engine vector
   auto it = std::find_if(
-    m_basic_engine_blocks.begin(),
-    m_basic_engine_blocks.end(),
+    m_engines.begin(),
+    m_engines.end(),
     [&](const Engine_Block& e) {
       return e.engine_name == engine_name;
     }
   );
 
   // 3. Replace the old data with the updated data
-  if (it != m_basic_engine_blocks.end()) {
+  if (it != m_engines.end()) {
     *it = updatedBlock;
   } else {
     std::cout << "Engine not found: " << engine_name << "\n";
@@ -41,7 +41,7 @@ void saveScene( std::vector<Engine_Data> engines, std::unique_ptr<Engine> target
   Engine_Data updated = target_engine->getEngineData();
   std::string engine_name = updated.window_settings.WINDOW_NAME;
 
-  // 2. Find the matching engine in m_engines
+  // 2. Find the matching engine in engine vector
   auto it = std::find_if(
     engines.begin(),
     engines.end(),
@@ -82,20 +82,21 @@ std::vector<Engine_Block> Scene::getEngineBlocksFromFile( const std::string& fil
     return current;
 }
 
+bool Scene::lazyLoadEnginesFromFile( const std::string& filename ) {
 
+  /****************************************************
+    LOAD FILE AND STORE IT IN RAW ENGINE BLOCK FORMAT WITHOUT PARSING IT INTO ENIGNE OBJECTS 
+  ****************************************************/
+  std::vector<Engine_Block> current = getEngineBlocksFromFile( filename );
+  for (auto c : current){
+    std::cout << c.engine_name << "\n";
+    for (auto o : c.objects) std::cout << o << "\n";
+    std::cout << c.window_settings << "\n";
 
-bool Scene::lazyLoadEnginesFromFile(const std::string& filename) {
+  }
 
-    std::vector<Engine_Block> current = getEngineBlocksFromFile( filename );
-    for (auto c : current){
-      std::cout << c.engine_name << "\n";
-      for (auto o : c.objects) std::cout << o << "\n";
-      std::cout << c.window_settings << "\n";
-
-    }
-
-    m_basic_engine_blocks = current;
-    return true;
+  m_engines = current;
+  return true;
 
 }
 
@@ -110,7 +111,7 @@ bool Scene::loadAllScenes( std::string& scene_path ) {
 
   //std::vector<Engine_Data> engines = lazyLoadEnginesFromFile( scene_path );
   std::vector<Engine_Block> engines = getEngineBlocksFromFile( scene_path );
-  m_basic_engine_blocks = engines;
+  m_engines = engines;
 
   if (engines.size() == 0){
     return false;
@@ -119,8 +120,8 @@ bool Scene::loadAllScenes( std::string& scene_path ) {
 
 }
 
-bool Scene::loadSceneFromBlock( std::string engine_name ) {
-  if (m_basic_engine_blocks.size() == 0) return false;
+bool Scene::loadScene( std::string engine_name ) {
+  if (m_engines.size() == 0) return false;
 
   std::cout << "loading " << engine_name << '\n' ;
   Engine_Block target_engine = { "", {}, ""};
@@ -156,7 +157,7 @@ void Scene::saveEnginesToFile()
       std::cout << "save failed: failed to load file." << '\n';
       return;
     }
-    std::vector<Engine_Data> engines = parseAllEngineBlocks(m_basic_engine_blocks);
+    std::vector<Engine_Data> engines = parseAllEngineBlocks(m_engines);
 
     Engine_Data current_engine_data = m_engine_instance->getEngineData(); // get current engine data
     Engine_Block current_engine_block = engineDataToBlock( current_engine_data ); // get current engine block from file (to ensure we have the latest block data structure)
@@ -164,12 +165,12 @@ void Scene::saveEnginesToFile()
     if (findEngineByNameFromBlock(current_engine_data.window_settings.WINDOW_NAME).engine_name == "") {
       // if engine doesnt exist (meaning newly created), push it to all engines vector
       engines.push_back(current_engine_data);
-      m_basic_engine_blocks.push_back(current_engine_block);
+      m_engines.push_back(current_engine_block);
       std::cout << "Engine pushed" << "\n";
     }
 
     saveScene( current_engine_block.engine_name ); // at last, save scene
-    engines = parseAllEngineBlocks(m_basic_engine_blocks);
+    engines = parseAllEngineBlocks(m_engines);
 
     writeEngineDataToFile( m_scenes_path, engines );
   }
@@ -273,21 +274,21 @@ void Scene::setScenesPath( const std::string& new_path ){
 }
 
 const std::vector<Engine_Block> Scene::getAllEngineBlocks() const {
-  return m_basic_engine_blocks;
+  return m_engines;
 }
 
 
 void Scene::addEngine( Engine_Block engine_block ){
-  m_basic_engine_blocks.push_back(engine_block);
+  m_engines.push_back(engine_block);
 }
 
 void Scene::clearAllEngines( ){
-  m_basic_engine_blocks.clear();
+  m_engines.clear();
   m_engine_instance = nullptr;
 }
 
 bool Scene::deleteEngine( const std::string engine_name ){
-  // find the target engine in m_engines and delete it
+  // find the target engine in engine_vector and delete it
   // return true if successfully deleted
   // return false if target engine doesn't exist
 
@@ -299,9 +300,9 @@ bool Scene::deleteEngine( const std::string engine_name ){
 
   bool deleted = false;
 
-  for (auto it = m_basic_engine_blocks.begin(); it != m_basic_engine_blocks.end(); ++it) {
+  for (auto it = m_engines.begin(); it != m_engines.end(); ++it) {
     if (it->engine_name == engine_name) {
-      m_basic_engine_blocks.erase(it);
+      m_engines.erase(it);
       deleted = true;
       break;
     }
@@ -309,7 +310,7 @@ bool Scene::deleteEngine( const std::string engine_name ){
 
   if (!deleted) return false;
 
-  std::vector<Engine_Data> engines = parseAllEngineBlocks(m_basic_engine_blocks);
+  std::vector<Engine_Data> engines = parseAllEngineBlocks(m_engines);
  
   writeEngineDataToFile( m_scenes_path, engines );
 
@@ -459,7 +460,7 @@ void Scene::InitializeUI( ){
 
   create_new = [this]() {
     // create a new engine instance
-    // put the engine data into m_engines
+    // put the engine data into engine_vector
     // load that engine
     syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( m_user_interface.FindElement("name_input_box") );
     if (input_box != nullptr) {
@@ -491,7 +492,7 @@ void Scene::InitializeUI( ){
     temp_block.window_settings = ws; 
 
 
-    m_basic_engine_blocks.push_back(temp_block);
+    m_engines.push_back(temp_block);
     m_show_input = !m_show_input;
     reinitialize = true;
     
@@ -574,18 +575,18 @@ void Scene::InitializeUI( ){
 void Scene::loadEnginesToUI(){
   float engine_list_init_position = 220.0f;
   
-  if ( m_basic_engine_blocks.size() != 0 ){
-    for (int i = 0; i < m_basic_engine_blocks.size(); i++){
+  if ( m_engines.size() != 0 ){
+    for (int i = 0; i < m_engines.size(); i++){
       float offset = 50.f;
       float y_position = engine_list_init_position+offset*(i);
 
-      std::string button_name = m_basic_engine_blocks.at(i).engine_name;
+      std::string button_name = m_engines.at(i).engine_name;
       std::string delete_name = "Delete";
       std::function<void()> run_scene;
       std::function<void()> delete_engine;
  
       run_scene = [this, button_name, i]() {
-        bool loaded = this->loadSceneFromBlock(button_name);
+        bool loaded = this->loadScene(button_name);
         if (loaded) {
           std::cout << "Loaded " << button_name << '\n';
           runScene(); // and then run the current scene (ie the engine)

@@ -22,8 +22,7 @@ namespace syxd {
     Engine_Data* m_current_scene;
     std::string m_scenes_path = "data/engines.dtf";
     std::string new_scene_name = "";
-    //std::unique_ptr<std::vector<Engine_Data>> m_engines;
-    std::vector<Engine_Block> m_basic_engine_blocks;
+    std::vector<Engine_Block> m_engines;
     shared_ptr<sf::RenderWindow> MAIN_WINDOW;
     sf::Font m_default_font;
     sf::Color m_background_color;
@@ -62,7 +61,7 @@ namespace syxd {
     
     bool lazyLoadEnginesFromFile( const std::string& filename ); // loads partial engine data from file (no objects)
     bool loadAllScenes( std::string& scene_path );
-    bool loadSceneFromBlock( std::string engine_name );
+    bool loadScene( std::string engine_name );
     void saveScene( std::string engine_name );
     void saveEnginesToFile(  );
     
