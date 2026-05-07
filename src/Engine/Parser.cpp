@@ -16,6 +16,16 @@ std::string trim( const string& s ) {
   return s.substr(a, b - a + 1);
 }
 
+std::string trimQuotes(const std::string& s) {
+  std::string out = s;
+
+  if (out.size() >= 2 && out.front() == '"' && out.back() == '"')
+      out = out.substr(1, out.size() - 2);
+
+  return out;
+}
+
+
 vector<string> splitCSV( const string& line ) {
   vector<string> out;
   std::string cur;
@@ -216,58 +226,80 @@ std::string ensure_trailing_semicolon( std::string s ) {
   if (s.empty() || s.back() == ';') return s;
   return s + ";";
 }
-std::vector<std::string> readSection(std::istream& is, const std::string& sectionName) {
-    std::vector<std::string> lines;
+
+std::vector<Engine_Block> parseEngines(std::istream& is) {
+    std::vector<Engine_Block> engines;
     std::string line;
 
-    // 1. Find the section header
-    while (readCleanLine(is, line)) {
-        if (line == sectionName)
-            break;
-    }
+    Engine_Block current;
+    bool inEngine = false;
+    bool inObjects = false;
+    bool inWindow = false;
 
-    if (line != sectionName)
-        return lines; // section not found
+    while (std::getline(is, line)) {
+        // Clean whitespace
+        if (line.size() && line.back() == '\r')
+            line.pop_back();
 
-    // 2. Read until next [SECTION] or EOF
-    std::streampos lastPos;
-    while (true) {
-        lastPos = is.tellg(); // remember position before reading
-        if (!readCleanLine(is, line))
-            break;
-
-        if (!line.empty() && line.front() == '[' && line.back() == ']') {
-            // We hit the next section header → rewind so caller can read it
-            is.seekg(lastPos);
-            break;
+        if (line == "[ENGINE]") {
+            // If we were already reading an engine, push it
+            if (inEngine) {
+                engines.push_back(current);
+                current = Engine_Block{};
+            }
+            inEngine = true;
+            inObjects = false;
+            inWindow = false;
+            continue;
         }
 
-        if (!line.empty())
-            lines.push_back(line);
+        if (line == "[OBJECTS]") {
+            inObjects = true;
+            inWindow = false;
+            continue;
+        }
+
+        if (line == "[WINDOW_SETTINGS]") {
+            inWindow = true;
+            inObjects = false;
+            continue;
+        }
+
+        // Now handle content
+        if (inEngine && !inObjects && !inWindow) {
+            if (!line.empty())
+                current.engine_name = trimQuotes(line);
+        }
+        else if (inObjects) {
+            if (!line.empty())
+                current.objects.push_back(line);
+        }
+        else if (inWindow) {
+            if (!line.empty())
+                current.window_settings = line;
+        }
     }
 
-    return lines;
+    // Push last engine if file didn't end with a new [ENGINE]
+    if (inEngine)
+        engines.push_back(current);
+
+    return engines;
 }
 
 
-
-void parseEngineNameFromLines(const std::vector<std::string>& lines,
-                              Engine_Data& ed)
+void parseEngineName( const std::string& rawName, Engine_Data& ed )
 {
-    if (lines.empty())
+    if (rawName.empty())
         return;
 
-    std::string name = lines[0];
-
-    // Strip quotes if present
-    if (name.size() >= 2 && name.front() == '"' && name.back() == '"')
-        name = name.substr(1, name.size() - 2);
+    std::string name =  cleanLine(trimQuotes(rawName));
 
     ed.window_settings.WINDOW_NAME = name;
 }
 
-void parseObjectsFromLines(const std::vector<std::string>& lines,
-                           Engine_Data& ed)
+
+void parseObjects(const std::vector<std::string>& lines, Engine_Data& ed)
 {
     for (const auto& line : lines) {
         if (line.empty())
@@ -275,7 +307,7 @@ void parseObjectsFromLines(const std::vector<std::string>& lines,
 
         auto tokens = splitCSV(line);
 
-        // Ensure consistent field count
+        // Ensure minimum field count
         if (tokens.size() < 11)
             tokens.resize(11);
 
@@ -285,7 +317,7 @@ void parseObjectsFromLines(const std::vector<std::string>& lines,
     }
 }
 
-void parseWindowSettingsFromLine(const std::string& line, WINDOW_SETTINGS& ws)
+void parseWindowSettings(const std::string& line, WINDOW_SETTINGS& ws)
 {
     if (line.empty())
         return;
@@ -316,4 +348,63 @@ void parseWindowSettingsFromLine(const std::string& line, WINDOW_SETTINGS& ws)
     catch (...) {
         // ignore parse errors
     }
+}
+
+Engine_Data parseEngineBlock( Engine_Block block ){
+  Engine_Data ed;
+  
+  // Parse engine name
+  parseEngineName( {block.engine_name}, ed );
+
+  // Parse objects
+  parseObjects(block.objects, ed);
+
+  // Parse window settings
+  parseWindowSettings(block.window_settings, ed.window_settings);
+
+  return ed;
+}
+
+std::vector<Engine_Data> parseAllEngineBlocks( std::vector<Engine_Block> blocks ) {
+  std::vector<Engine_Data> result;
+  for (const auto& block : blocks ) { 
+    Engine_Data ed = parseEngineBlock( block );
+    result.push_back(ed);
+  }
+
+  return result;
+}
+
+std::vector<Engine_Block> engineDataToBlockBulk( std::vector<Engine_Data> engine_data ){
+  std::vector<Engine_Block> blocks;
+  
+  for (auto ed : engine_data ) { 
+    Engine_Block b = engineDataToBlock( ed );
+    blocks.push_back(b);
+  }
+
+  return blocks;
+}
+
+Engine_Block engineDataToBlock( Engine_Data engine_data ){
+  Engine_Block b;
+  std::vector<std::shared_ptr<Object>> objects = engine_data.p_objects; 
+  std::vector<std::string> serialized_objects;
+  std::string window_settings;
+
+  b.engine_name = engine_data.window_settings.WINDOW_NAME;
+  window_settings = std::to_string(engine_data.window_settings.MAX_FRAME_RATE)+","+
+                    std::to_string(engine_data.window_settings.DEFAULT_WINDOW_SIZE_X)+","+
+                    std::to_string(engine_data.window_settings.DEFAULT_WINDOW_SIZE_Y)+","+
+                    std::to_string(engine_data.window_settings.WORLD_SIZE)+","+
+                    engine_data.window_settings.WINDOW_NAME+";";
+
+  for ( auto o : objects ){
+    serialized_objects.push_back(o->serializeCSV( o->getID() ));
+  }
+
+  b.objects = serialized_objects;
+  b.window_settings = window_settings;
+
+  return b;
 }
