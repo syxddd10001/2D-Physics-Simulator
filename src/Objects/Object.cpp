@@ -17,8 +17,11 @@ Object::Object( float mass, float pos_x, float pos_y, bool glow ) noexcept
 }
 
 void Object::printInfo( ) {
-  std::cout << "Mass: " << m_mass << "\nPosition: (" << position_current.x << ", " << position_current.y << ")\n";
-  std::cout << "Velocity: (" << velocity.x << ", " << velocity.y << ")\n"; 
+  DEBUG_PRINT("Object ID: %d\n", m_object_id);
+  DEBUG_PRINT("Position: (%f, %f)\n", position_current.x, position_current.y);
+  DEBUG_PRINT("Velocity: (%f, %f)\n", velocity.x, velocity.y);
+  DEBUG_PRINT("Acceleration: (%f, %f)\n", acceleration.x, acceleration.y);
+  DEBUG_PRINT("Mass: %f\n", m_mass);
  
 }
 

@@ -2,6 +2,7 @@
 #include <string>
 #include <memory>
 
+#include <utils.hpp>
 #include "Object.hpp"
 #include "Circle.hpp"
 #include "Rectangle.hpp"

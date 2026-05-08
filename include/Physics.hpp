@@ -2,6 +2,7 @@
 #include <cmath>
 #include <memory>
 
+#include <utils.hpp>
 #include "Vector2.hpp"
 #include "PhysicsMath.hpp" // for physics related math functions
 #include "Circle.hpp"

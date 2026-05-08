@@ -1,13 +1,5 @@
 #include "PhysicsMath.hpp"
 
-#define DEBUG 1
-#if DEBUG == 1
-#define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
-#else
-#define DEBUG_PRINT(format, ...) // Do nothing //
-#endif
-
-
 point pairAdd( const point& pair1, const point& pair2 ) {
   return point( pair1.first+pair2.first, pair1.second+pair2.second );
 }    

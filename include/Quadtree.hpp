@@ -7,6 +7,7 @@
 #include <thread>
 #include <mutex>
 
+#include <utils.hpp>
 #include "AbstractBox.hpp"
 #include "Object.hpp"
 #include "Circle.hpp"

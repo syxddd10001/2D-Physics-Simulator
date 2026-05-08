@@ -1,5 +1,7 @@
 #pragma once
 #include <UIElements.hpp>
+#include <utils.hpp>
+
 
 namespace syxd{
    
@@ -67,8 +69,7 @@ namespace syxd{
       average_char_width = getAverageCharWidth();
       max_visible_chars = std::max(1, static_cast<int>(m_text_box.getSize().x / average_char_width));
 
-      std::cout << m_input_text.findCharacterPos(m_cursor_position).x << ", " << m_input_text.findCharacterPos(m_cursor_position).x << "\n";
-
+      DEBUG_PRINT("Cursor position: %f, %f\n", m_input_text.findCharacterPos(m_cursor_position).x, m_input_text.findCharacterPos(m_cursor_position).y);
     };
 
     void setPosition( const sf::Vector2f& position ){
@@ -162,7 +163,7 @@ namespace syxd{
     
     void setFont( const std::string path ) {
       if ( !m_font.loadFromFile( path ) ){
-        std::cout << "Font not found!\n";
+        DEBUG_PRINT("Font not found!\n");
         return;
       }
       
@@ -172,10 +173,10 @@ namespace syxd{
 
     void setFontDefault( ) { // THIS IS BAD FIX THIS
       if ( !m_font.loadFromFile( "static/fonts/cairo.ttf" ) ){
-        std::cout << "Font not found!\n";
+        DEBUG_PRINT("Font not found!\n");
         return;
       }
-      std::cout << "font set successfully\n";
+      DEBUG_PRINT("font set successfully\n");
     }
 
     sf::Text getTextElement(){

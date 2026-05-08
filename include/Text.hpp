@@ -1,4 +1,5 @@
 #pragma once
+#include <utils.hpp>
 #include "UIElements.hpp"
 
 namespace syxd {
@@ -69,13 +70,13 @@ namespace syxd {
 
     void setFont( const std::string path ) {
       if ( !m_font.loadFromFile( path ) ){
-        std::cout << "Font not found!\n";
+        DEBUG_PRINT("Font not found!\n");
       }
     }
 
     void setFontDefault( ) {
       if ( !m_font.loadFromFile( "static/fonts/cairo.ttf" ) ){
-        std::cout << "Font not found!\n";
+        DEBUG_PRINT("Font not found!\n");
       }
     }
 

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 
+#include <utils.hpp>
 #include "Vector2.hpp"
 #include "AbstractBox.hpp"
 

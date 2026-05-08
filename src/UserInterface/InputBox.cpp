@@ -148,7 +148,7 @@ void syxd::InputBox::render( sf::RenderWindow* WINDOW, const float& delta_time )
 void syxd::InputBox::setInputBoxSize( const sf::Vector2f size ){
     m_text_box.setSize( size ); 
     max_visible_chars = std::max( 1, static_cast<int>( m_text_box.getSize().x / average_char_width ) );
-    std::cout << average_char_width << "\n";
-    std::cout << max_visible_chars << "\n";
+    DEBUG_PRINT("Max visible chars: %d\n", max_visible_chars);
+    DEBUG_PRINT("Text box size: %f, %f\n", m_text_box.getSize().x, m_text_box.getSize().y);
 
 }

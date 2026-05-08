@@ -2,7 +2,7 @@
 
 void Button::setFont( const std::string path ) {
   if ( !m_font.loadFromFile( path ) ){
-    std::cout << "Font not found!\n";
+    DEBUG_PRINT("Font not found!\n");
     return;
   }
   
@@ -12,10 +12,10 @@ void Button::setFont( const std::string path ) {
 
 void Button::setFontDefault( ) { // THIS IS BAD FIX THIS
   if ( !m_font.loadFromFile( "static/fonts/cairo.ttf" ) ){
-    std::cout << "Font not found!\n";
+    DEBUG_PRINT("Font not found!\n");
     return;
   }
-  std::cout << "font set successfully\n";
+  DEBUG_PRINT("font set successfully\n");
 }
 
 void Button::setPosition( const sf::Vector2f& position ){

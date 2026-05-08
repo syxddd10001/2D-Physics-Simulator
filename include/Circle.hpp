@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <random>
 
+#include <utils.hpp>
 #include <SFML/Graphics.hpp>
 #include "Object.hpp"
 #include "PhysicsMath.hpp"

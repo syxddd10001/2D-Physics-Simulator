@@ -2,12 +2,6 @@
 #include <Command.hpp>
 #include <Quadtree.hpp>
 #include <DiagnosticInfo.hpp>
-#define DEBUG 1
-#if DEBUG == 1
-  #define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
-#else
-  #define DEBUG_PRINT(format, ...) // Do nothing //
-#endif
 
 using namespace syxd;
 
@@ -400,7 +394,7 @@ void Engine::EventManager( const float& delta_time ) {
         if (  e_event.key.control &&
           e_event.key.code == sf::Keyboard::S && !m_command_mode ) {
           executeSave();
-          std::cout << "Saved!\n";
+          DEBUG_PRINT("Saved!\n");
         }
 
         if ( e_event.key.control &&
@@ -422,15 +416,14 @@ void Engine::EventManager( const float& delta_time ) {
           m_elapsed_time_increase >= CREATION_INTERVAL ){
           m_elapsed_time_increase = 0.0f;
           num_objects_to_spawn ++;
-          std::cout << std::to_string(num_objects_to_spawn) << "\n";
+          DEBUG_PRINT("num objects to spawn: %d\n", num_objects_to_spawn);
         }
         
         if ( e_event.key.code == sf::Keyboard::Hyphen && 
           m_elapsed_time_increase >= CREATION_INTERVAL ){
           m_elapsed_time_increase = 0.0f;
           ( num_objects_to_spawn > 0 ) ? num_objects_to_spawn -- : num_objects_to_spawn;
-          std::cout << std::to_string(num_objects_to_spawn) << "\n";
-          
+          DEBUG_PRINT("num objects to spawn: %d\n", num_objects_to_spawn);
         }
         
         if ( e_event.key.code == sf::Keyboard::Space && !m_command_mode && m_elapsed_time_spawn >= CREATION_INTERVAL ) {
@@ -447,7 +440,7 @@ void Engine::EventManager( const float& delta_time ) {
             command.append(std::to_string(num_objects_to_spawn));
             command.append(" glow");
             p_receiver->Receive( command, this );
-            std::cout << "spawned 1 \n";
+            DEBUG_PRINT("spawned 1 \n");
 
 
           } else if ( spawn_type == "rec" ) {

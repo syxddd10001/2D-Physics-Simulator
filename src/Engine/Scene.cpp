@@ -7,7 +7,7 @@ Scene::Scene( const WINDOW_SETTINGS& window_settings ) : m_window_settings{windo
 
 void Scene::runScene() {
   if (m_engine_instance == nullptr) {
-    std::cout << "No engine was loaded\n";
+    DEBUG_PRINT("No engine instance found. Cannot run scene.\n");
     return;
   }
 
@@ -32,7 +32,7 @@ void Scene::saveScene( std::string engine_name ) {
   if (it != m_engines.end()) {
     *it = updatedBlock;
   } else {
-    std::cout << "Engine not found: " << engine_name << "\n";
+    DEBUG_PRINT("Engine not found: %s\n", engine_name.c_str());
   }
 }
 
@@ -54,7 +54,7 @@ void saveScene( std::vector<Engine_Data> engines, std::unique_ptr<Engine> target
   if (it != engines.end()) {
     *it = updated;
   } else {
-    std::cout << "Engine not found: " << engine_name << "\n";
+    DEBUG_PRINT("Engine not found: %s\n", engine_name.c_str());
   }
 
 }
@@ -63,7 +63,7 @@ std::vector<Engine_Block> Scene::getEngineBlocksFromFile( const std::string& fil
     std::ifstream is(filename);
 
     if (!is) {
-        std::cout << "Couldn't open file\n";
+        DEBUG_PRINT("Couldn't open file\n");
         return {};
     }
 
@@ -89,10 +89,8 @@ bool Scene::lazyLoadEnginesFromFile( const std::string& filename ) {
   ****************************************************/
   std::vector<Engine_Block> current = getEngineBlocksFromFile( filename );
   for (auto c : current){
-    std::cout << c.engine_name << "\n";
-    for (auto o : c.objects) std::cout << o << "\n";
-    std::cout << c.window_settings << "\n";
-
+    for (auto o : c.objects) DEBUG_PRINT("%s\n", o.c_str());
+    DEBUG_PRINT("%s\n", c.window_settings.c_str());
   }
 
   m_engines = current;
@@ -123,16 +121,16 @@ bool Scene::loadAllScenes( std::string& scene_path ) {
 bool Scene::loadScene( std::string engine_name ) {
   if (m_engines.size() == 0) return false;
 
-  std::cout << "loading " << engine_name << '\n' ;
+  DEBUG_PRINT("loading %s\n", engine_name.c_str());
   Engine_Block target_engine = { "", {}, ""};
   target_engine = findEngineByNameFromBlock( engine_name );
 
   if ( target_engine.engine_name != "" ) {
-    std::cout << "target engine found...\n";
+    DEBUG_PRINT("target engine found...\n");
 
     m_current_scene = new Engine_Data(parseEngineBlock( target_engine ));
-    std::cout << m_current_scene->window_settings.DEFAULT_WINDOW_SIZE_X << std::endl;
-    std::cout << m_current_scene->window_settings.DEFAULT_WINDOW_SIZE_Y << std::endl;
+    DEBUG_PRINT("Default window size X: %d\n", m_current_scene->window_settings.DEFAULT_WINDOW_SIZE_X);
+    DEBUG_PRINT("Default window size Y: %d\n", m_current_scene->window_settings.DEFAULT_WINDOW_SIZE_Y);
 
     m_engine_instance.reset();
     m_engine_instance = std::make_unique<Engine>(*m_current_scene);
@@ -143,7 +141,7 @@ bool Scene::loadScene( std::string engine_name ) {
     m_engine_instance->updateSaveFunction( m_save_function );
 
     return true;
-  } else std::cout << "engine " << engine_name << " not found!";
+  } else DEBUG_PRINT("engine %s not found!\n", engine_name.c_str());
 
   return false;
 }
@@ -154,7 +152,7 @@ void Scene::saveEnginesToFile()
   if (m_engine_instance) {
     bool load_result = lazyLoadEnginesFromFile( m_scenes_path );
     if (!load_result){
-      std::cout << "save failed: failed to load file." << '\n';
+      DEBUG_PRINT("save failed: failed to load file.\n");
       return;
     }
     std::vector<Engine_Data> engines = parseAllEngineBlocks(m_engines);
@@ -166,7 +164,7 @@ void Scene::saveEnginesToFile()
       // if engine doesnt exist (meaning newly created), push it to all engines vector
       engines.push_back(current_engine_data);
       m_engines.push_back(current_engine_block);
-      std::cout << "Engine pushed" << "\n";
+      DEBUG_PRINT("Engine pushed\n");
     }
 
     saveScene( current_engine_block.engine_name ); // at last, save scene
@@ -182,11 +180,11 @@ bool Scene::writeEngineDataToFile( std::string file_name, std::vector<Engine_Dat
     /*********************** WRITING TO FILE **************************/
   std::ofstream os(file_name, std::ios::out | std::ios::trunc);
   if (!os) {
-    std::cout << "File not found for writing. Not saved.\n";
+    DEBUG_PRINT("File not found for writing. Not saved.\n");
     return false;
   }
 
-  os << "# ENGINE_FILE v1\n";
+  os << "# ENGINE_FILE v" << DTF_VERSION << "\n";
 
   // nothing to write
   if (engine_data.size() == 0) return false;
@@ -230,7 +228,7 @@ std::vector<Engine_Data> Scene::loadEnginesFromFile( const std::string& filename
   std::vector<Engine_Data> result;
 
   if (!is) {
-    std::cout << "Couldn't open file\n";
+    DEBUG_PRINT("Couldn't open file\n");
     return result;
   }
 
@@ -242,7 +240,7 @@ std::vector<Engine_Data> Scene::loadEnginesFromFile( const std::string& filename
 
   if (!startsWith(line, "# ENGINE_FILE")) {
     // warn but continue if you want
-    // std::cout << "Warning: missing # ENGINE_FILE header\n";
+    // DEBUG_PRINT("Warning: missing # ENGINE_FILE header\n");
   }
 
   while (std::getline(is, line)) {
@@ -294,7 +292,7 @@ bool Scene::deleteEngine( const std::string engine_name ){
 
   bool load_result = lazyLoadEnginesFromFile( m_scenes_path );
   if (!load_result){
-    std::cout << "save failed: failed to load file." << '\n';
+    DEBUG_PRINT("save failed: failed to load file.\n");
     return false;
   }
 
@@ -323,7 +321,7 @@ Engine_Block Scene::findEngineByNameFromBlock( const std::string& target ) const
   if (engines.size() == 0) return {};
 
   for (const auto& eg : engines) { 
-    std::cout << eg.engine_name << "\n";
+    DEBUG_PRINT("Engine name: %s\n", eg.engine_name.c_str());
     if (eg.engine_name == target ) {
       return eg; 
     }
@@ -370,7 +368,7 @@ void Scene::EventManager( const float& delta_time ){
         e->checkInput(e_event, MAIN_WINDOW, delta_time);      
 
       if (e_event.type == sf::Event::KeyPressed && e_event.key.code == sf::Keyboard::Enter){
-        std::cout << e->getInputText() << "\n";
+        DEBUG_PRINT("Input text: %s\n", e->getInputText().c_str());
         e->clearInput();
       }
 
@@ -444,6 +442,11 @@ void Scene::InitializeUI( ){
   std::function<void()> create_new;
   std::function<void()> load_engines;
 
+  sf::Color text_color = sf::Color::White;                                 
+  sf::Color background_color = {53, 98, 232, 255}; // forest green
+  sf::Color hover_color = {8, 60, 212, 255}; // lighter green
+  sf::Color outline_color = {8, 60, 212, 255};
+
   show_input = [this](){
     syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( m_user_interface.FindElement("name_input_box") );
     syxd::Button* create_button = dynamic_cast<syxd::Button*>( m_user_interface.FindElement("Create") );
@@ -468,13 +471,13 @@ void Scene::InitializeUI( ){
     }
 
     if (new_scene_name == "") {
-      std::cout << "Type in something in the input box please!\n";
+      DEBUG_PRINT("Type in something in the input box please!\n");
       return;
     }
     Engine_Block eb = findEngineByNameFromBlock(new_scene_name);
     if (eb.engine_name != "") 
     {
-      std::cout << "Scene already exists\n";
+      DEBUG_PRINT("Scene already exists\n");
       return;
     }
     
@@ -500,7 +503,8 @@ void Scene::InitializeUI( ){
 
   load_engines = [this](){ 
     if ( bool loaded = loadAllScenes( m_scenes_path ) ){
-      std::cout << "Loaded";
+      DEBUG_PRINT("Loaded\n");
+      m_show_input = !m_show_input;
       reinitialize = true;
     }
 
@@ -516,10 +520,10 @@ void Scene::InitializeUI( ){
   m_user_interface.InitButton("new_scene_button", 
                               sf::Vector2f{ 100.f, 70.0f },
                               "Create New Scene", 
-                              sf::Color::White, // text color
-                              sf::Color::Transparent, // background color
-                              sf::Color::Green, // hover color
-                              sf::Color::Yellow, // outline color
+                              text_color, // text color
+                              background_color, // background color
+                              hover_color, // hover color
+                              outline_color, // outline color
                               sf::Vector2f{150.f, 40.f}, // size
                               {0,0}, //padding
                               true, // hover
@@ -540,10 +544,10 @@ void Scene::InitializeUI( ){
   m_user_interface.InitButton( create_button_name, 
                               sf::Vector2f{ 375.f, 113.0f },
                               create_button_name, 
-                              sf::Color::White, // text color
-                              sf::Color::Transparent, // background color
-                              sf::Color::Green, // hover color
-                              sf::Color::Yellow, // outline color
+                              text_color, // text color
+                              background_color, // background color
+                              hover_color, // hover color
+                              outline_color, // outline color
                               sf::Vector2f{ 70.0f, 30.0f }, // size
                               {0,0}, //padding
                               true, // hover
@@ -560,10 +564,10 @@ void Scene::InitializeUI( ){
   m_user_interface.InitButton( load_engines_button_name, 
                               sf::Vector2f{ 100.f, 160.0f },
                               load_engines_button_name, 
-                              sf::Color::White, // text color
-                              sf::Color::Transparent, // background color
-                              sf::Color::Green, // hover color
-                              sf::Color::Yellow, // outline color
+                              text_color, // text color
+                              background_color, // background color
+                              hover_color, // hover color
+                              outline_color, // outline color
                               sf::Vector2f{ 150.f, 40.f }, // size
                               {0,0}, //padding
                               true, // hover
@@ -584,11 +588,16 @@ void Scene::loadEnginesToUI(){
       std::string delete_name = "Delete";
       std::function<void()> run_scene;
       std::function<void()> delete_engine;
- 
+
+      sf::Color text_color = sf::Color::White;                                 
+      sf::Color background_color = {160, 122, 255, 255}; // forest green
+      sf::Color hover_color = {114, 60, 250, 255}; // lighter green
+      sf::Color outline_color = {114, 60, 250, 255};
+
       run_scene = [this, button_name, i]() {
         bool loaded = this->loadScene(button_name);
         if (loaded) {
-          std::cout << "Loaded " << button_name << '\n';
+          DEBUG_PRINT("Loaded %s\n", button_name.c_str());
           runScene(); // and then run the current scene (ie the engine)
           m_engine_instance.reset();
           reinitialize = true; // reinitializeUI
@@ -598,20 +607,22 @@ void Scene::loadEnginesToUI(){
       delete_engine = [this, button_name, delete_name]() {
         bool deleted = this->deleteEngine(button_name);
         if (deleted){
-          std::cout << "Deleted " << button_name << '\n';
+          DEBUG_PRINT("Deleted %s\n", button_name.c_str());
           m_engine_instance.reset();
           saveEnginesToFile();
           reinitialize = true; // reinitializeUI
         }
       };
 
+
+
       m_user_interface.InitButton(button_name, 
                                   sf::Vector2f{ 100.f, y_position },
                                   button_name, 
-                                  sf::Color::White, // text color
-                                  sf::Color::Transparent, // background color
-                                  sf::Color::Green, // hover color
-                                  sf::Color::Yellow, // outline color
+                                  text_color,
+                                  background_color,
+                                  hover_color,
+                                  outline_color,
                                   sf::Vector2f{150.f, 40.f}, // size
                                   {0,0}, //padding
                                   true, // hover
@@ -634,6 +645,6 @@ void Scene::loadEnginesToUI(){
 
     }
     
-  } else std::cout << "No engines are loaded, nothing to show\n";
+  } else DEBUG_PRINT("No engines are loaded, nothing to show\n");
 
 }

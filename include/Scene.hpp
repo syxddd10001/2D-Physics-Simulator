@@ -14,6 +14,8 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Clipboard.hpp>
 
+const std::string DTF_VERSION = "2";
+
 namespace syxd {
   using namespace syxd;
   

@@ -31,12 +31,17 @@ int main() {
 
   scene1.DisplayMenu();
   WINDOW_SETTINGS settings = scene1.m_engine_instance->getWindowSetting();
-  std::cout << "window name: " << settings.WINDOW_NAME << "\n";
+  DEBUG_PRINT("window settings: %f, %d, %d, %d, %s\n", 
+        settings.MAX_FRAME_RATE, 
+        settings.DEFAULT_WINDOW_SIZE_X, 
+        settings.DEFAULT_WINDOW_SIZE_Y, 
+        settings.WORLD_SIZE, 
+        settings.WINDOW_NAME.c_str() );
 
   //scene1.runScene();
   
 
-  std::cout<<"exited\n";
+  DEBUG_PRINT("exited\n");
   
   return EXIT_SUCCESS;
 

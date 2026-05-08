@@ -362,7 +362,7 @@ Engine_Data parseEngineBlock( Engine_Block block ){
   // Parse window settings
   parseWindowSettings(block.window_settings, ed.window_settings);
 
-  std::cout << "WINDOW NAME: " << ed.window_settings.WINDOW_NAME << "\n"; 
+  DEBUG_PRINT("WINDOW NAME: %s\n", ed.window_settings.WINDOW_NAME.c_str());
 
   return ed;
 }

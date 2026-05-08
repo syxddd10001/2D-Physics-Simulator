@@ -9,70 +9,76 @@ INCLUDE := -I include
 
 EXECUTABLE := build/test/main.exe
 OBJECTS := obj/Texture.o obj/UserInterface.o obj/UIElements.o obj/Text.o obj/InputBox.o obj/Button.o obj/DiagnosticInfo.o obj/Rectangle.o obj/Circle.o obj/Object.o obj/PhysicsMath.o 
-OBJECTS += obj/Engine.o obj/Physics.o obj/Vector2.o
+OBJECTS += obj/Engine.o obj/Window.o obj/Physics.o obj/Vector2.o
 OBJECTS += obj/Scene.o obj/Parser.o obj/Command.o obj/ObjectFactory.o obj/AbstractBox.o obj/Quadtree.o 
 
 $(EXECUTABLE): src/main.cpp $(OBJECTS)
 	$(CXX) $(CXXFLAGS) $(SFML_INCLUDE) $(INCLUDE) -I src $^ -o $@ $(SFML_LIB) $(LIBS)
 
-obj/Scene.o: src/Engine/Scene.cpp include/Scene.hpp obj/Engine.o obj/Command.o obj/Parser.o
+obj/Scene.o: src/Engine/Scene.cpp include/Scene.hpp obj/Engine.o obj/Command.o obj/Parser.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Parser.o: src/Engine/Parser.cpp include/Parser.hpp obj/Engine.o obj/Object.o
+obj/Parser.o: src/Engine/Parser.cpp include/Parser.hpp obj/Engine.o obj/Object.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Command.o: src/Engine/Command.cpp include/Command.hpp obj/ObjectFactory.o obj/Engine.o
+obj/Command.o: src/Engine/Command.cpp include/Command.hpp obj/ObjectFactory.o obj/Engine.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Engine.o: src/Engine/Engine.cpp include/Engine.hpp obj/Object.o obj/PhysicsMath.o
+obj/Engine.o: src/Engine/Engine.cpp include/Engine.hpp obj/Object.o obj/PhysicsMath.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Physics.o: src/Engine/Physics.cpp include/Physics.hpp obj/Object.o obj/PhysicsMath.o
+obj/Window.o: src/UserInterface/Window.cpp include/Window.hpp include/UserInterface.hpp obj/UserInterface.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/ObjectFactory.o: src/Engine/ObjectFactory.cpp include/ObjectFactory.hpp obj/Object.o obj/Circle.o obj/Rectangle.o
+obj/Physics.o: src/Engine/Physics.cpp include/Physics.hpp obj/Object.o obj/PhysicsMath.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Quadtree.o: src/Math/Quadtree.cpp include/Quadtree.hpp obj/Object.o obj/Circle.o obj/Rectangle.o obj/AbstractBox.o
+obj/ObjectFactory.o: src/Engine/ObjectFactory.cpp include/ObjectFactory.hpp obj/Object.o obj/Circle.o obj/Rectangle.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Circle.o: src/Objects/Circle.cpp include/Circle.hpp obj/Object.o obj/Texture.o
+obj/Quadtree.o: src/Math/Quadtree.cpp include/Quadtree.hpp obj/Object.o obj/Circle.o obj/Rectangle.o obj/AbstractBox.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Rectangle.o: src/Objects/Rectangle.cpp include/Rectangle.hpp obj/Object.o
+obj/Circle.o: src/Objects/Circle.cpp include/Circle.hpp obj/Object.o obj/Texture.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Object.o: src/Objects/Object.cpp include/Object.hpp obj/Vector2.o obj/AbstractBox.o
+obj/Rectangle.o: src/Objects/Rectangle.cpp include/Rectangle.hpp obj/Object.o obj/utils.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+obj/Object.o: src/Objects/Object.cpp include/Object.hpp obj/Vector2.o obj/AbstractBox.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 	
-obj/AbstractBox.o: src/Math/AbstractBox.cpp include/AbstractBox.hpp obj/Vector2.o
+obj/AbstractBox.o: src/Math/AbstractBox.cpp include/AbstractBox.hpp obj/Vector2.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/UserInterface.o: src/UserInterface/UserInterface.cpp include/UserInterface.hpp obj/UIElements.o obj/Text.o obj/InputBox.o obj/Button.o
+obj/UserInterface.o: src/UserInterface/UserInterface.cpp include/UserInterface.hpp obj/UIElements.o obj/Text.o obj/InputBox.o obj/Button.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Button.o: src/UserInterface/Button.cpp include/Button.hpp obj/UIElements.o obj/PhysicsMath.o
+obj/Button.o: src/UserInterface/Button.cpp include/Button.hpp obj/UIElements.o obj/PhysicsMath.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/InputBox.o: src/UserInterface/InputBox.cpp include/InputBox.hpp obj/UIElements.o
+obj/InputBox.o: src/UserInterface/InputBox.cpp include/InputBox.hpp obj/UIElements.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Text.o: src/UserInterface/Text.cpp include/Text.hpp obj/UIElements.o
+obj/Text.o: src/UserInterface/Text.cpp include/Text.hpp obj/UIElements.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/UIElements.o: src/UserInterface/UIElements.cpp include/UIElements.hpp obj/Vector2.o
+obj/UIElements.o: src/UserInterface/UIElements.cpp include/UIElements.hpp obj/Vector2.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Texture.o: src/Texture/Texture.cpp include/Texture.hpp obj/Vector2.o
+obj/Texture.o: src/Texture/Texture.cpp include/Texture.hpp obj/Vector2.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/PhysicsMath.o: src/Math/PhysicsMath.cpp include/PhysicsMath.hpp obj/Vector2.o
+obj/PhysicsMath.o: src/Math/PhysicsMath.cpp include/PhysicsMath.hpp obj/Vector2.o obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/Vector2.o: src/Math/Vector2.cpp include/Vector2.hpp
+obj/Vector2.o: src/Math/Vector2.cpp include/Vector2.hpp obj/utils.o
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
-obj/DiagnosticInfo.o: src/Engine/DiagnosticInfo.cpp include/DiagnosticInfo.hpp
+obj/DiagnosticInfo.o: src/Engine/DiagnosticInfo.cpp include/DiagnosticInfo.hpp obj/utils.o
+	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
+
+obj/utils.o: include/utils.hpp
 	$(CXX) $(SFML_INCLUDE) $(INCLUDE) -I src -c $< -o $@
 
 clean:

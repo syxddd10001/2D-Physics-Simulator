@@ -8,6 +8,7 @@
 #include <memory>
 #include <cstring>
 #include <cstdlib>
+#include <utils.hpp>
 #include <ObjectFactory.hpp>
 #include <Object.hpp>
 #include <Engine.hpp>

@@ -8,6 +8,7 @@
 #include <memory>
 #include <cassert>
 #include <tuple>
+#include <utils.hpp>
 #include "Object.hpp"
 #include "Vector2.hpp"
 

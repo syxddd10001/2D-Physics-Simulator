@@ -10,6 +10,7 @@
 #include <condition_variable>
 #include <stack>
 
+#include <utils.hpp>
 #include "Vector2.hpp"
 #include "Object.hpp"
 #include "AbstractBox.hpp"
@@ -23,13 +24,6 @@
 #include <SFML/Window/Clipboard.hpp>
 
 using namespace syxd;
-
-#define DEBUG 1
-#if DEBUG == 1
-  #define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
-#else
-  #define DEBUG_PRINT(format, ...) // Do nothing //
-#endif
 
 #define shptr_obj shared_ptr<syxd::Object>
 #define shptr_rect shared_ptr<syxd::Rectangle>

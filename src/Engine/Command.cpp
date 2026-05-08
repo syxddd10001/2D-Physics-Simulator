@@ -1,13 +1,6 @@
 #include <Engine.hpp>
 #include <Command.hpp>
 
-#define DEBUG 1
-#if DEBUG == 1
-#define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
-#else
-#define DEBUG_PRINT(format, ...) // Do nothing //
-#endif
-
 const std::map <std::string, Receiver::CommandType> Receiver::m_command_map = { 
   { "spawn", SPAWN }, 
   { "mode", MODE }, 
@@ -70,7 +63,7 @@ bool Receiver::Receive( const std::string command, Engine* engine_instance ) {
     DEBUG_PRINT("Enter a valid command!", " ");
     return false;
   }
-  std::cout << command << "\n";
+  DEBUG_PRINT("command: %s\n", command.c_str());
   NormalizeString( commands ); 
   // commands are being recieved properly
   return CallCommand( commands, engine_instance );
@@ -87,7 +80,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
         
         if (commands.size() < 7)
         {
-          std::cout << "Enter atleast 8 arguments\n";
+          DEBUG_PRINT("Enter atleast 8 arguments\n");
           break;
         }
         
@@ -124,7 +117,6 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
               posX = centerX;
               posY = centerY;
             }
-            std::cout << "command 1 \n";
 
             float mass = std::stof(commands[2]);
             float dim_x = std::stof(commands[3]);
@@ -171,7 +163,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
   
       case MODE:
         if (commands.size() < 2) {
-          std::cout << "Enter atleast 2 arguments\n";
+          DEBUG_PRINT("Enter atleast 2 arguments\n");
           break;
         }
         
@@ -189,7 +181,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
       case DRAG:
         if ( commands.size() < 2 )
         {
-          std::cout << "Enter atleast 2 arguments\n";
+          DEBUG_PRINT("Enter atleast 2 arguments\n");
           break;
         }
         if ( commands[1] == "off" ){
@@ -207,12 +199,12 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
       
       case MANUAL:
         if ( commands.size() == 1 ) {
-          std::cout << "Manual Page\n";
-          std::cout << "spawn circle/rectangle mass size.x size.y position.x position.y\n";
-          std::cout << "friction on/off/any number value \n";   
-          std::cout << "mode single/multi \n";
-          std::cout << "speed number \n";
-          std::cout << "exit \n"; 
+          DEBUG_PRINT("Manual Page\n");
+          DEBUG_PRINT("spawn circle/rectangle mass size.x size.y position.x position.y\n");
+          DEBUG_PRINT("friction on/off/any number value \n");   
+          DEBUG_PRINT("mode single/multi \n");
+          DEBUG_PRINT("speed number \n");
+          DEBUG_PRINT("exit \n"); 
           
           const WINDOW_SETTINGS help_window_settings = { 144.0f, 1000, 600, 1000, "Help"};
 
@@ -240,7 +232,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
       case SPEED:
         if ( commands.size() > 1 ){
           if ( isNumber(commands[1]) ){
-            std::cout << commands[1] << "\n";
+            DEBUG_PRINT("Setting simulation speed to %s\n", commands[1].c_str());
             engine_instance->setSimulationSpeed( std::stof(commands[1]) );
           }
         }

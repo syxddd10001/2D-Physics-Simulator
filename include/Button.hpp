@@ -1,6 +1,7 @@
 #pragma once
 #include <algorithm>
 
+#include <utils.hpp>
 #include <UIElements.hpp>
 #include <PhysicsMath.hpp>
 
@@ -66,8 +67,8 @@ namespace syxd{
       m_box.setOrigin(size.x / 2.f, size.y / 2.f);
       m_box.setPosition(position);   
 
-      std::cout << m_text.getColor().toInteger() << std::endl;
-      std::cout << m_text.getPosition().x << "," << m_text.getPosition().y << std::endl;
+      DEBUG_PRINT("Text color: %u\n", m_text.getColor().toInteger());
+      DEBUG_PRINT("Text position: %f, %f\n", m_text.getPosition().x, m_text.getPosition().y);
 
       m_box.setFillColor(background_color);
       m_box.setOutlineColor(outline_color);

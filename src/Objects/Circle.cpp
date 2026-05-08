@@ -7,7 +7,6 @@ Circle::Circle( float rad, float mass,
                 : Object (mass, posX, posY, glow), m_radius(rad) 
 {
   if (glow) {
-    std::cout << "glow mode\n"; 
     if ( color != nullptr ){
       m_color = std::make_unique<sf::Color>( *color );
 
@@ -18,8 +17,6 @@ Circle::Circle( float rad, float mass,
     makeCircleGlow( color );
 
   } else {
-    std::cout << "regular shape\n"; 
-    
     m_shape = std::make_shared<sf::CircleShape>( m_radius );
     sf::Vector2f circleCenter( rad, rad );
 
