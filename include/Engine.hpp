@@ -39,21 +39,6 @@ using std::weak_ptr;
 using std::vector;
 using std::dynamic_pointer_cast;
 
-struct WINDOW_SETTINGS {
-  float MAX_FRAME_RATE; // max frame rate of this window
-  uint16_t DEFAULT_WINDOW_SIZE_X; // 
-  uint16_t DEFAULT_WINDOW_SIZE_Y;
-  uint16_t WORLD_SIZE; // always square
-  std::string WINDOW_NAME;
-};
-
-struct UI_SETTINGS {
-  uint16_t h1_size; // 50
-  uint16_t h2_size; // 35
-  uint16_t h3_size; // 25
-  uint16_t p1_size; // 20
-};
-
 struct Engine_Data {
   //std::string Engine_ID;
   vector<shptr_obj> p_objects; // objects
@@ -108,7 +93,7 @@ private:
   const float m_default_drag = -0.7f;
   bool m_gizmos_mode = false;
   bool m_gravity_mode = true;
-  float m_drag;
+  float m_drag = 0.000000001f; // friction is now an obsolete feature
   bool is_running;
   int num_objects_to_spawn = 1;
   float sim_speed = 1;

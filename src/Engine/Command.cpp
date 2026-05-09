@@ -178,6 +178,7 @@ bool Receiver::CallCommand( std::vector<std::string> commands, Engine* engine_in
         }
       break;
   
+      [[deprecated]]
       case DRAG:
         if ( commands.size() < 2 )
         {

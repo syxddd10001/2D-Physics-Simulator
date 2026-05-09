@@ -85,8 +85,7 @@ bool Engine::InitializeEngine( const WINDOW_SETTINGS& window_settings, const boo
   box = AbstractBox<float>( Vec2( -1*current_world_size, -1*current_world_size ), Vec2( current_world_size*2, current_world_size*2 ) );
   //root mode of the quadtree
   m_quad_root = std::make_unique<Quadtree>(box, 1, 8);
-  
-  m_drag = m_default_drag;
+
   spawn_type = "cir";
   m_gizmos_mode = true;
   
@@ -715,7 +714,7 @@ void Engine::UpdatePhysics( const float& delta_time ) {
   for ( size_t i = 0; i < p_objects.size(); i++ ) { // O(n)
     assert( p_objects[i] != nullptr );
     if ( !is_paused ) 
-      p_objects[i]->EulerIntegration( delta_time * sim_speed  );
+      p_objects[i]->EulerIntegration( delta_time * sim_speed );
 
     m_quad_root->insert( p_objects[i] );
     p_objects[i]->draw( WINDOW );
@@ -1037,7 +1036,7 @@ void Engine::InitializeUI(){ //
 
   m_user_interface.InitText( "select mode", ( m_select_mode ) ? 
       "Multi Select Mode - Right click and Drag to select multiple Objects and Left Click an Object to move all Objects" : 
-      "Single Select Mode - Left Click Object to move and Right click and m_drag to launch object", 
+      "Single Select Mode - Left Click Object to move and Right click and drag to launch object", 
       m_ui_settings.h3_size,
       sf::Vector2f{0,25},
       TEXT_COLOR);
@@ -1215,7 +1214,7 @@ void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
     TEXT_COLOR);
 
   m_help_interface.InitText( "spawn 0", 
-    "SPAWN rectangle/circle mass size.x size.y position.x position.y num_of_objects glow/not_glow",
+    "SPAWN: spawn rectangle/circle mass size.x size.y position.x position.y num_of_objects glow/not_glow",
     m_ui_settings.h3_size,
     sf::Vector2f{ 0.0f, 35.0f },
     TEXT_COLOR);
@@ -1226,6 +1225,15 @@ void Engine::createHelpWindow( const WINDOW_SETTINGS& window_settings ){
     m_ui_settings.h3_size,
     sf::Vector2f{ 0.0f, 50.0f },
     TEXT_COLOR);
+
+  m_help_interface.InitText( "drag 0",
+    "DRAG: DRAG drag_value/on/off -- Set the friction of the world (0 for no friction, 1 for very high friction)",
+    m_ui_settings.h3_size,
+    sf::Vector2f{ 0.0f, 85.0f },
+    TEXT_COLOR);
+
+
+
 
   m_help_interface.ShowAllElements();
 
