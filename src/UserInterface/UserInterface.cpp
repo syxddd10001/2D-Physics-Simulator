@@ -193,3 +193,16 @@ void UserInterface::SetWindow( std::shared_ptr<sf::RenderWindow> window ){
 void UserInterface::RemoveAllElements(){
   m_ui_elements.clear();
 }
+
+void UserInterface::resizeUI(const sf::Vector2f& prev_size, const sf::Vector2u& new_size)
+{
+    for (auto& elem : m_ui_elements)
+    {
+      if (!elem) continue;
+
+      sf::Vector2f elem_pos = elem->getPosition();
+      float new_x = (elem_pos.x / prev_size.x) * new_size.x;
+      float new_y = (elem_pos.y / prev_size.y) * new_size.y;
+      UpdateElementPosition(elem.get(), sf::Vector2f(new_x, new_y));
+    }
+}

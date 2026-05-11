@@ -210,10 +210,18 @@ void Engine::EventManager( const float& delta_time ) {
 
       case sf::Event::Resized:
         //setZoomLimits ( sf::Vector2f {m_window_settings.WORLD_SIZE, m_window_settings.WORLD_SIZE}, sf::Vector2f(WINDOW->getSize()));
-        WINDOW->setView( m_main_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
-        WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
+      {
+          float prev_width = m_ui_view.getSize().x;
+          float prev_height = m_ui_view.getSize().y;
 
-      
+          WINDOW->setView( m_main_view = sf::View(
+              sf::FloatRect(0, 0, e_event.size.width, e_event.size.height)
+          ));
+          WINDOW->setView( m_ui_view = sf::View(
+              sf::FloatRect(0, 0, e_event.size.width, e_event.size.height)
+          ));
+
+      }
       break;
         
       case sf::Event::MouseButtonPressed:

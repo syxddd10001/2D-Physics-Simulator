@@ -1,4 +1,6 @@
 #pragma once
+#include <iostream>
+#include <string>
 
 #define DEBUG 0
 #if DEBUG == 1
@@ -20,4 +22,13 @@ struct UI_SETTINGS {
   uint16_t h2_size; // 35
   uint16_t h3_size; // 25
   uint16_t p1_size; // 20
+};
+
+const std::string FONT_PATH = "static/fonts/";
+const std::string fonts[5] =  
+{ 
+  FONT_PATH + "cairo.ttf",
+  FONT_PATH + "FiraCode.ttf",
+  FONT_PATH + "Silver.ttf",
+  FONT_PATH + "simsun.ttf"
 };
