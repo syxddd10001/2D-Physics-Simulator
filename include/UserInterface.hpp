@@ -90,5 +90,6 @@ public:
   std::unique_ptr<syxd::UI_Element>::pointer FindElement( const uint32_t element_id ) const noexcept;
   void RemoveAllElements();
   void resizeUI(const sf::Vector2f& prev_size, const sf::Vector2u& new_size);
+  int getNumOfElements();
     
 };

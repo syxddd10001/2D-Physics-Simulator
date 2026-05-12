@@ -206,3 +206,7 @@ void UserInterface::resizeUI(const sf::Vector2f& prev_size, const sf::Vector2u& 
       UpdateElementPosition(elem.get(), sf::Vector2f(new_x, new_y));
     }
 }
+
+int UserInterface::getNumOfElements(){
+  return m_ui_elements.size();
+}

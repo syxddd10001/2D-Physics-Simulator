@@ -1,8 +1,28 @@
 #include <Scene.hpp>
 
 Scene::Scene( const WINDOW_SETTINGS& window_settings ) : m_window_settings{window_settings} {
-  
-  InitializeWindow();
+  DEBUG_PRINT("initialized\n");
+
+  std::function<void()> reinitialize_function = [this](){
+    reInitializeUI();
+  };
+
+  m_user_interface = std::make_shared<UserInterface>();
+
+  InitializeUI();
+
+  if (m_user_interface != nullptr){
+    m_window = std::make_unique<Window>( window_settings, m_user_interface );
+    m_window->addFunction(reinitialize_function);
+
+    std::function<void(const sf::Event&, float, std::shared_ptr<sf::RenderWindow>)> event_manager = 
+    [this](sf::Event e, float dt, std::shared_ptr<sf::RenderWindow> rw){
+      EventManager(dt, e, rw);
+    };
+
+
+    m_window->AddEventHandler(event_manager);
+  }
 }
 
 void Scene::runScene() {
@@ -330,114 +350,47 @@ Engine_Block Scene::findEngineByNameFromBlock( const std::string& target ) const
   return {};
 }
 
-
-void Scene::DisplayMenu( ){
-  m_is_running = true;
-  while ( m_is_running && MAIN_WINDOW != nullptr) { 
-    if (reinitialize){
-      InitializeUI();
-      loadEnginesToUI();
-      reinitialize = false;
-    }
-    
-    if ( MAIN_WINDOW->isOpen() ) {
-      MAIN_WINDOW->clear(m_background_color );
-    }
-  
-    float delta_time = clock.restart().asSeconds();
-    EventManager( delta_time );
-
-    m_user_interface.RenderUI( delta_time );
-    
-    if ( MAIN_WINDOW->isOpen() ) {
-      MAIN_WINDOW->display();
-    }
+void Scene::reInitializeUI(){ // for external window
+  if (reinitialize){
+    InitializeUI();
+    loadEnginesToUI();
+    reinitialize = false;
+    DEBUG_PRINT("re initialized");
   }
 }
 
-void Scene::EventManager( const float& delta_time ){
-  if( MAIN_WINDOW != nullptr && MAIN_WINDOW->pollEvent( e_event ) ) {
-    syxd::UI_Element* elem = (m_user_interface.FindElement("name_input_box"));
-    if ( elem ) {
-      if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
-        if (!e->isFocused()){
-          e->setFocused(true);
-          e->setOutlineColor(sf::Color::White);
-        }
-        
-        e->checkInput(e_event, MAIN_WINDOW, delta_time);      
+void Scene::DisplayMenu( ){
+  m_is_running = true;
+
+  if ( m_is_running && m_window != nullptr ){
+    m_window->WindowLoop();
+  }
+
+}
+
+void Scene::EventManager( const float& delta_time, sf::Event e_event, std::shared_ptr<sf::RenderWindow> MAIN_WINDOW ){
+  syxd::UI_Element* elem = (m_user_interface->FindElement("name_input_box"));
+  if ( elem ) {
+    if ( syxd::InputBox* e = dynamic_cast<syxd::InputBox*>(elem)){  
+      if (!e->isFocused()){
+        e->setFocused(true);
+        e->setOutlineColor(sf::Color::White);
+      }
+      
+      e->checkInput(e_event, MAIN_WINDOW, delta_time);      
 
       if (e_event.type == sf::Event::KeyPressed && e_event.key.code == sf::Keyboard::Enter){
         DEBUG_PRINT("Input text: %s\n", e->getInputText().c_str());
         e->clearInput();
       }
-
-      }
-    }
-    switch( e_event.type ) {  
-
-      case sf::Event::Closed:
-        m_is_running = false;
-        MAIN_WINDOW->close();
-      break;
-
-      case sf::Event::Resized:
-        //setZoomLimits ( sf::Vector2f {m_window_settings.WORLD_SIZE, m_window_settings.WORLD_SIZE}, sf::Vector2f(WINDOW->getSize()));
-        MAIN_WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
-      break;
-
-      case sf::Event::KeyReleased:
-
-        if ( e_event.key.code == sf::Keyboard::F2 ) {     
-          
-        }
-      break;
-
     }
   }
 }
 
-void Scene::InitializeWindow(){
-  MAIN_WINDOW = std::make_shared<sf::RenderWindow>( sf::VideoMode( m_window_settings.DEFAULT_WINDOW_SIZE_X, 
-                                                              m_window_settings.DEFAULT_WINDOW_SIZE_Y ),
-                                                              m_window_settings.WINDOW_NAME );
-  
-  m_ui_view = sf::View( sf::FloatRect( 0, 0, MAIN_WINDOW->getSize().x, MAIN_WINDOW->getSize().y ) );
-  MAIN_WINDOW->setFramerateLimit( m_window_settings.MAX_FRAME_RATE );
-  MAIN_WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_X), 
-                                                                  static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_Y) ) ));
-  
-  #if DEBUG
-    if ( !m_default_font.loadFromFile( fonts[3] ) ){
-        DEBUG_PRINT("Font not found\n");
-    }
-    else {
-        DEBUG_PRINT("Font loaded\n");
+shared_ptr<UserInterface> Scene::InitializeUI( ){
+  if (m_user_interface != nullptr)
+    m_user_interface->RemoveAllElements();
 
-    }
-    
-  #else
-    if ( !m_default_font.loadFromFile( "static/fonts/cairo.ttf" ) ){
-        DEBUG_PRINT("Font not found\n");
-    }
-  #endif
-
-  m_user_interface.SetFont( m_default_font );
-
-  
-  m_background_color = sf::Color::Black;
-  m_text_color = sf::Color::White;
-
-  MAIN_WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_X), 
-                                                                  static_cast<float>(m_window_settings.DEFAULT_WINDOW_SIZE_Y) ) ));
-  m_user_interface.SetWindow(MAIN_WINDOW);
-
-  InitializeUI();
-
-}
-
-void Scene::InitializeUI( ){
-  m_user_interface.RemoveAllElements();
   std::function<void()> show_input;
   std::function<void()> create_new;
   std::function<void()> load_engines;
@@ -447,9 +400,11 @@ void Scene::InitializeUI( ){
   sf::Color hover_color = {8, 60, 212, 255}; // lighter green
   sf::Color outline_color = {8, 60, 212, 255};
 
+  m_text_color = text_color;
+
   show_input = [this](){
-    syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( m_user_interface.FindElement("name_input_box") );
-    syxd::Button* create_button = dynamic_cast<syxd::Button*>( m_user_interface.FindElement("Create") );
+    syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( m_user_interface->FindElement("name_input_box") );
+    syxd::Button* create_button = dynamic_cast<syxd::Button*>( m_user_interface->FindElement("Create") );
     m_show_input = !m_show_input;
 
     if (create_button != nullptr) {
@@ -465,7 +420,7 @@ void Scene::InitializeUI( ){
     // create a new engine instance
     // put the engine data into engine_vector
     // load that engine
-    syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( m_user_interface.FindElement("name_input_box") );
+    syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( m_user_interface->FindElement("name_input_box") );
     if (input_box != nullptr) {
       new_scene_name = input_box->getTextElement().getString();
     }
@@ -510,14 +465,14 @@ void Scene::InitializeUI( ){
 
   };
 
-  m_user_interface.InitText( "scene menu", 
+  m_user_interface->InitText( "scene menu", 
                               "Scene Menu", 
                               m_ui_settings.h1_size, 
                               sf::Vector2f{10,5},
-                              m_text_color);
+                              text_color);
 
 
-  m_user_interface.InitButton("new_scene_button", 
+  m_user_interface->InitButton("new_scene_button", 
                               sf::Vector2f{ 100.f, 70.0f },
                               "Create New Scene", 
                               text_color, // text color
@@ -530,18 +485,20 @@ void Scene::InitializeUI( ){
                               show_input ); // perform this action on click
 
  
-  m_user_interface.InitInputBox( "name_input_box", m_ui_settings.h2_size, {25.f, 100.0f}, m_text_color );
-  syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( m_user_interface.FindElement("name_input_box") );
+  m_user_interface->InitInputBox( "name_input_box", m_ui_settings.h2_size, {25.f, 100.0f}, text_color );
+  syxd::InputBox* input_box = dynamic_cast<syxd::InputBox*>( m_user_interface->FindElement("name_input_box") );
   if (input_box != nullptr) {
     input_box ->setInputBoxSize( {300.0f,25.0f} );
     input_box->setBackgroundColor( sf::Color::Black );
     input_box->setOutlineColor( sf::Color::White );
+
+
     input_box->hide(true);
   }
 
 
   std::string create_button_name = "Create";
-  m_user_interface.InitButton( create_button_name, 
+  m_user_interface->InitButton( create_button_name, 
                               sf::Vector2f{ 375.f, 113.0f },
                               create_button_name, 
                               text_color, // text color
@@ -553,7 +510,7 @@ void Scene::InitializeUI( ){
                               true, // hover
                               create_new ); // perform this action on click
   
-  syxd::Button* create_button = dynamic_cast<syxd::Button*>( m_user_interface.FindElement(create_button_name) );
+  syxd::Button* create_button = dynamic_cast<syxd::Button*>( m_user_interface->FindElement(create_button_name) );
 
   if (create_button != nullptr) {
     create_button->setCharacterSize(m_ui_settings.h3_size);
@@ -561,7 +518,7 @@ void Scene::InitializeUI( ){
   }
 
   std::string load_engines_button_name = "Load Engines";
-  m_user_interface.InitButton( load_engines_button_name, 
+  m_user_interface->InitButton( load_engines_button_name, 
                               sf::Vector2f{ 100.f, 160.0f },
                               load_engines_button_name, 
                               text_color, // text color
@@ -573,7 +530,10 @@ void Scene::InitializeUI( ){
                               true, // hover
                               load_engines ); // perform this action on click
   
-  syxd::Button* load_button = dynamic_cast<syxd::Button*>( m_user_interface.FindElement(load_engines_button_name) );
+  syxd::Button* load_button = dynamic_cast<syxd::Button*>( m_user_interface->FindElement(load_engines_button_name) );
+  
+
+  return m_user_interface;
 }
 
 void Scene::loadEnginesToUI(){
@@ -616,7 +576,7 @@ void Scene::loadEnginesToUI(){
 
 
 
-      m_user_interface.InitButton(button_name, 
+      m_user_interface->InitButton(button_name, 
                                   sf::Vector2f{ 100.f, y_position },
                                   button_name, 
                                   text_color,
@@ -625,11 +585,11 @@ void Scene::loadEnginesToUI(){
                                   outline_color,
                                   sf::Vector2f{150.f, 40.f}, // size
                                   {0,0}, //padding
-                                  true, // hover
+                                  true, // hover  
                                   run_scene ); // perform this action on click 
         
       
-      m_user_interface.InitButton(delete_name + button_name, 
+      m_user_interface->InitButton(delete_name + button_name, 
                                   sf::Vector2f{ 230.f, y_position },
                                   delete_name, 
                                   sf::Color::White, // text color

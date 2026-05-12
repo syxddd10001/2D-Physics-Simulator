@@ -1,14 +1,19 @@
 #include <Window.hpp>
 
-syxd::Window::Window( WINDOW_SETTINGS window_settings, std::function<UserInterface()> init_ui_function ) {
-  InitializeUI = init_ui_function;
+syxd::Window::Window( WINDOW_SETTINGS window_settings, std::shared_ptr<UserInterface> user_interface ) {
   functions.reserve(DEFAULT_NUM_FUNCTIONS);
+  m_main_ui = user_interface;
+  std::cout << m_main_ui << '\n';
+  std::cout << user_interface << '\n';
 
-  if (InitializeUI)
-    InitializeWindow( window_settings );    
-    m_main_ui = std::move(InitializeUI());
 
+  InitializeWindow( window_settings );  
+  
   assert(m_main_ui);
+
+  if (m_MAIN_WINDOW != nullptr){
+    m_main_ui->SetWindow(m_MAIN_WINDOW);
+  }
 
 };
 
@@ -23,7 +28,13 @@ void Window::InitializeWindow( WINDOW_SETTINGS window_settings ){
   m_MAIN_WINDOW->setView( m_main_view = sf::View( sf::FloatRect( 0.0f, 0.0f, static_cast<float>(window_settings.DEFAULT_WINDOW_SIZE_X), static_cast<float>(window_settings.DEFAULT_WINDOW_SIZE_Y) ) ) );
   m_MAIN_WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, static_cast<float>(window_settings.DEFAULT_WINDOW_SIZE_X), static_cast<float>(window_settings.DEFAULT_WINDOW_SIZE_Y) ) ) );
 
-  m_main_ui.SetWindow( m_MAIN_WINDOW );
+  if (m_main_ui != nullptr) {
+    DEBUG_PRINT("cc");
+    m_main_ui->SetWindow( m_MAIN_WINDOW );
+    
+  }
+  
+
   m_window_settings = window_settings;
   half_size = sf::Vector2f( m_MAIN_WINDOW->getSize().x/2, m_MAIN_WINDOW->getSize().y/2 );
 
@@ -42,7 +53,9 @@ void Window::InitializeWindow( WINDOW_SETTINGS window_settings ){
     }
   #endif
 
-  m_main_ui.SetFont( m_default_font );
+  m_main_ui->SetFont( m_default_font );
+  
+    
   m_background_color = sf::Color::Black;
 
 }
@@ -71,11 +84,11 @@ void Window::setUIView( sf::View updated_view ){
   m_ui_view = updated_view;
 }
 
-UserInterface& Window::getUserInterface() {
+std::shared_ptr<UserInterface> Window::getUserInterface() {
   return m_main_ui;
 }
 
-void Window::setUserInterface( UserInterface& updated_UI ){
+void Window::setUserInterface( std::shared_ptr<UserInterface> updated_UI ){
   m_main_ui = std::move(updated_UI);
 }
 
@@ -88,6 +101,10 @@ void Window::addFunction( std::function<void()> new_function ){
   functions.push_back(new_function);
 }
 
+void Window::AddEventHandler(std::function<void(const sf::Event&, float, std::shared_ptr<sf::RenderWindow>)> handler) {
+  custom_event_handlers.push_back(std::move(handler));
+}
+
 void Window::EventManager( const float& delta_time ) {
   if( m_MAIN_WINDOW != nullptr && m_MAIN_WINDOW->pollEvent( e_event ) ) {
     switch( e_event.type ) {
@@ -96,18 +113,25 @@ void Window::EventManager( const float& delta_time ) {
       break;
 
       case sf::Event::Resized:
+      {
         float prev_width = m_main_view.getSize().x;
         float prev_height = m_main_view.getSize().y;
         m_MAIN_WINDOW->setView( m_main_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
-        m_main_ui.resizeUI( sf::Vector2f( prev_width, prev_height ), sf::Vector2u( e_event.size.width, e_event.size.height ) );
-      break;
+        m_main_ui->resizeUI( sf::Vector2f( prev_width, prev_height ), sf::Vector2u( e_event.size.width, e_event.size.height ) );
+        break;
+      }
 
     }
+
+    for (auto& handler : custom_event_handlers) {
+      handler( e_event, delta_time, m_MAIN_WINDOW );
+    }
+
+    
   }
 }
 
 void Window::WindowLoop( ) {
-
   while ( m_MAIN_WINDOW->isOpen() ) {
     m_MAIN_WINDOW->clear( m_background_color );
 
@@ -121,9 +145,10 @@ void Window::WindowLoop( ) {
 
     if ( m_MAIN_WINDOW != NULL ){
       m_MAIN_WINDOW->setView( m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
-      m_main_ui.RenderUI( delta_time );
-      m_MAIN_WINDOW->setView( m_main_view ); // resetting view to main 
+      m_main_ui->RenderUI( delta_time );
+      //m_MAIN_WINDOW->setView( m_main_view ); // resetting view to main 
       m_MAIN_WINDOW->display();
     }
+
   }
 }
