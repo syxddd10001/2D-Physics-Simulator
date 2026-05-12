@@ -34,10 +34,10 @@ Window testWindow(){
     UserInterface ui;
   
     ui.InitText( "scene menu", 
-                                "Scene Menu", 
-                                25, 
-                                sf::Vector2f{10,5},
-                                sf::Color::Red);
+                  "Scene Menu", 
+                  25, 
+                  sf::Vector2f{10,5},
+                  sf::Color::Red );
     return ui;
   };
   

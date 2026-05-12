@@ -121,11 +121,7 @@ void Window::WindowLoop( ) {
 
     if ( m_MAIN_WINDOW != NULL ){
       m_MAIN_WINDOW->setView( m_ui_view ); // setting view for UI, so that UI does not change size when moving / zooming in world
-    }
-
-    m_main_ui.RenderUI( delta_time );
-
-    if ( m_MAIN_WINDOW != NULL ){
+      m_main_ui.RenderUI( delta_time );
       m_MAIN_WINDOW->setView( m_main_view ); // resetting view to main 
       m_MAIN_WINDOW->display();
     }
