@@ -14,17 +14,34 @@ private:
   std::vector<std::unique_ptr<syxd::UI_Element>> m_ui_elements;
 
   sf::Font font;
-  const uint8_t h1_size = 50; // 50
-  const uint8_t h2_size = 35; // 35
-  const uint8_t h3_size = 25; // 25
-  const uint8_t p1_size = 20; // 20
+  static constexpr  uint8_t h1_size = 50; // 50
+  static constexpr  uint8_t h2_size = 35; // 35
+  static constexpr  uint8_t h3_size = 25; // 25
+  static constexpr  uint8_t p1_size = 20; // 20
 
   std::shared_ptr<sf::RenderWindow> WINDOW_REF; 
 
 public:
   UserInterface(){};
   ~UserInterface(){};
- 
+  UserInterface(const UserInterface&) = delete;
+  UserInterface& operator=(const UserInterface&) = delete;
+  UserInterface(UserInterface&&) = default;
+  UserInterface& operator=(UserInterface&&) = default;
+
+  bool operator!() const noexcept {
+    bool no_elements = m_ui_elements.empty();
+    bool no_window   = !WINDOW_REF;
+    bool no_font     = font.getInfo().family.empty();
+
+    return no_elements && no_window && no_font;
+  }
+
+  explicit operator bool() const noexcept {
+    return !(*this);   // UI is valid when NOT empty
+  }
+
+
   enum font_size {
     H1,
     H2,
