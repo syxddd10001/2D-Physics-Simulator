@@ -10,6 +10,7 @@
 
 #include "Engine.hpp"
 #include "Parser.hpp"
+#include "Window.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Clipboard.hpp>
@@ -25,11 +26,12 @@ namespace syxd {
     std::string m_scenes_path = "data/engines.dtf";
     std::string new_scene_name = "";
     std::vector<Engine_Block> m_engines;
-    shared_ptr<sf::RenderWindow> MAIN_WINDOW;
+
+    std::unique_ptr<Window> m_window;
+
     sf::Font m_default_font;
     sf::Color m_background_color;
     sf::Color m_text_color;
-    sf::Clock clock;
     bool reinitialize = false;
 
     const std::string FONT_PATH = "static/fonts/";
@@ -44,10 +46,7 @@ namespace syxd {
     WINDOW_SETTINGS m_window_settings; // window/world settings
     UI_SETTINGS m_ui_settings = { 30, 20, 15, 12 }; // ui settings
 
-    sf::View m_ui_view;
-    UserInterface m_user_interface; // scenes's user interface
-    sf::Event e_event;
-    std::chrono::high_resolution_clock::time_point start;
+    std::shared_ptr<UserInterface> m_user_interface; // scenes's user interface
 
     bool m_is_running = false; // sad
     bool m_show_input = true;
@@ -60,7 +59,6 @@ namespace syxd {
 
     void runScene();
 
-    
     bool lazyLoadEnginesFromFile( const std::string& filename ); // loads partial engine data from file (no objects)
     bool loadAllScenes( std::string& scene_path );
     bool loadScene( std::string engine_name );
@@ -84,10 +82,11 @@ namespace syxd {
     Engine_Block findEngineByNameFromBlock( const std::string& target ) const;
 
     void DisplayMenu();
-    void EventManager( const float& delta_time );
-    void InitializeUI( );
-    void InitializeWindow( );
+    void EventManager( const float& delta_time, sf::Event e_event, std::shared_ptr<sf::RenderWindow> MAIN_WINDOW );
+    shared_ptr<UserInterface> InitializeUI( );
     bool deleteEngine( const std::string engine_name );
+
+    void reInitializeUI();
 
     std::vector<Engine_Block> getEngineBlocksFromFile( const std::string& filename ); // reads file and puts it in a Engine_Block data structure in a raw format without parsing them into actual engine objects
   };  

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>
 
-#define DEBUG 1
+#define DEBUG 0
 #if DEBUG == 1
   #define DEBUG_PRINT(format, ...) printf(format, ##__VA_ARGS__)
 #else
