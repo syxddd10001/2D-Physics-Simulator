@@ -194,18 +194,26 @@ void UserInterface::RemoveAllElements(){
   m_ui_elements.clear();
 }
 
-void UserInterface::resizeUI(const sf::Vector2f& prev_size, const sf::Vector2u& new_size)
-{
-    for (auto& elem : m_ui_elements)
-    {
-      if (!elem) continue;
+void UserInterface::resizeUI( const sf::Vector2f& prev_view_size, const sf::Vector2u& new_view_size ) {
+  if (prev_view_size.x <= 0.f || prev_view_size.y <= 0.f) return;
 
-      sf::Vector2f elem_pos = elem->getPosition();
-      float new_x = (elem_pos.x / prev_size.x) * new_size.x;
-      float new_y = (elem_pos.y / prev_size.y) * new_size.y;
-      UpdateElementPosition(elem.get(), sf::Vector2f(new_x, new_y));
+  for (auto& elem : m_ui_elements) {
+    if (!elem) continue;
+
+    // Try to treat element as a Button
+    if (auto btn = dynamic_cast<syxd::Button*>(elem.get())) {
+      btn->resizeUI(prev_view_size, new_view_size);
+      continue;
     }
+
+    // Generic element fallback: scale position relative to window size
+    sf::Vector2f elem_pos = elem->getPosition();
+    float new_x = (elem_pos.x / prev_view_size.x) * static_cast<float>(new_view_size.x);
+    float new_y = (elem_pos.y / prev_view_size.y) * static_cast<float>(new_view_size.y);
+    UpdateElementPosition(elem.get(), sf::Vector2f(new_x, new_y));
+  }
 }
+
 
 int UserInterface::getNumOfElements(){
   return m_ui_elements.size();

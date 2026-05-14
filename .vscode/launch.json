@@ -2,19 +2,18 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "C/C++ Runner: Debug Session",
+      "name": "Run Physics Engine",
       "type": "cppdbg",
       "request": "launch",
-      "args": [],
+      "program": "${workspaceFolder}/build/test/main.exe",
+      "cwd": "${workspaceFolder}",
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "c:/Users/Borno/OneDrive/Desktop/Projects/C++/physics-engine-test/src/Engine",
-      "program": "c:/Users/Borno/OneDrive/Desktop/Projects/C++/physics-engine-test/src/Engine/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
         {
-          "description": "Enable pretty-printing for gdb",
+          "description": "Enable pretty-printing",
           "text": "-enable-pretty-printing",
           "ignoreFailures": true
         }

@@ -19,6 +19,7 @@
 #include "Physics.hpp"
 #include "Quadtree.hpp"
 #include "UserInterface.hpp"
+#include "Window.hpp"
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Window/Clipboard.hpp>
@@ -101,6 +102,8 @@ private:
   sf::Color BACKGROUND_COLOR = sf::Color::Black;
   sf::Color TEXT_COLOR = sf::Color::White;
   std::function<void()> m_save_function;
+
+  std::shared_ptr<Window> m_window;
 
 public:
   shared_ptr<sf::RenderWindow> WINDOW; // Main render window that displays stuff
@@ -190,4 +193,8 @@ public:
   void updateSaveFunction( std::function<void()> updated_function );
 
   std::vector<shptr_obj> copyObjects( const std::vector<shptr_obj> src );
+
+  void LoopWindow();
+  
+
 };
