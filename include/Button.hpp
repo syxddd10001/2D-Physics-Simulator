@@ -88,10 +88,12 @@ namespace syxd{
     void setHoverColor( sf::Color new_color );
     void setTextColor( sf::Color new_color );
     void setCharacterSize( const float size );
+    sf::RectangleShape getBox( ) const;
     void onHover( sf::Vector2f mouse_pos, bool hovered, const float& delta_time );
     bool mouseOnObject(const Vec2& mouse);
     void onClick( bool hovered );
     void render(sf::RenderWindow* WINDOW_REF, const float& delta_time ) override;
+    void resizeUI(const sf::Vector2f& prev_view_size, const sf::Vector2u& new__view_size);
 
 
     

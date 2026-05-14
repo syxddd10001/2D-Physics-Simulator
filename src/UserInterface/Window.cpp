@@ -114,10 +114,11 @@ void Window::EventManager( const float& delta_time ) {
 
       case sf::Event::Resized:
       {
-        float prev_width = m_main_view.getSize().x;
-        float prev_height = m_main_view.getSize().y;
-        m_MAIN_WINDOW->setView( m_main_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
+        float prev_width = m_ui_view.getSize().x;
+        float prev_height = m_ui_view.getSize().y;
+        m_MAIN_WINDOW->setView( m_ui_view = sf::View( sf::FloatRect( 0.0f, 0.0f, e_event.size.width, e_event.size.height ) ) );
         m_main_ui->resizeUI( sf::Vector2f( prev_width, prev_height ), sf::Vector2u( e_event.size.width, e_event.size.height ) );
+        
         break;
       }
 

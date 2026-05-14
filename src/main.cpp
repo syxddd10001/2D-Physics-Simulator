@@ -42,21 +42,17 @@ int main() {
 
   WINDOW_SETTINGS window_settings = { MAX_FRAME_RATE, DEFAULT_WINDOW_SIZE_X, DEFAULT_WINDOW_SIZE_Y, WORLD_SIZE, WINDOW_NAME };
 
-  if (1 == 1) {
-    Scene scene1( window_settings );
+  
+  Scene SceneMenu( window_settings );
 
-    scene1.DisplayMenu();
-    WINDOW_SETTINGS settings = scene1.m_engine_instance->getWindowSetting();
-    DEBUG_PRINT("window settings: %f, %d, %d, %d, %s\n", 
-          settings.MAX_FRAME_RATE, 
-          settings.DEFAULT_WINDOW_SIZE_X, 
-          settings.DEFAULT_WINDOW_SIZE_Y, 
-          settings.WORLD_SIZE, 
-          settings.WINDOW_NAME.c_str() );
-
-  } else {
-
-  }
+  SceneMenu.DisplayMenu();
+  WINDOW_SETTINGS settings = SceneMenu.m_engine_instance->getWindowSetting();
+  DEBUG_PRINT("window settings: %f, %d, %d, %d, %s\n", 
+        settings.MAX_FRAME_RATE, 
+        settings.DEFAULT_WINDOW_SIZE_X, 
+        settings.DEFAULT_WINDOW_SIZE_Y, 
+        settings.WORLD_SIZE, 
+        settings.WINDOW_NAME.c_str() );
 
   DEBUG_PRINT("exited\n");
   

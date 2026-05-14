@@ -127,3 +127,43 @@ void Button::setCharacterSize( const float size ){
   );
   m_text.setPosition(getPosition());
 }
+
+sf::RectangleShape Button::getBox( ) const { 
+  return m_box; 
+}
+
+
+std::string mediaQuery( const sf::Vector2u& view_size ) {
+  if ( view_size.x <= 480 ) return "small";
+  if ( view_size.x > 480 && view_size.x <= 768 ) return "medium";
+  if ( view_size.x > 768 && view_size.x <= 1600 ) return "large";
+  if ( view_size.x > 1600 ) return "extra-large";
+  else return "unknown";
+}
+
+void Button::resizeUI(const sf::Vector2f& prev_view_size,
+                      const sf::Vector2u& new_view_size) {
+  // Compute relative position
+  float relX = m_box.getPosition().x / prev_view_size.x;
+  float relY = m_box.getPosition().y / prev_view_size.y;
+
+  // Apply to new view
+  float newX = relX * new_view_size.x;
+  float newY = relY * new_view_size.y;
+
+  // Update
+  m_box.setPosition(newX, newY);
+  m_text.setPosition(newX, newY);
+  setPosition(Vec2(newX, newY));
+
+  // Typography scaling
+  std::string mq = mediaQuery(new_view_size);
+
+  if (mq == "small") {
+      setCharacterSize(12);
+  } else if (mq == "medium" || mq == "large") {
+      setCharacterSize(m_box.getSize().y * 0.35f);
+  } else {
+      setCharacterSize(m_box.getSize().y * 0.40f);
+  }
+}
