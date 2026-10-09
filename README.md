@@ -21,6 +21,11 @@ add more complex objects like polygons and n-gons.
 
 If you want to build, just run ```make``` on project root
 
-Preview (v0.3):
+#### Previews (v0.4):
+Regular Preview
+https://github.com/user-attachments/assets/99c03efe-9cdc-4a05-9332-8d3f1c812d16
 
-https://github.com/user-attachments/assets/ef844d83-76d6-4c0f-a31a-e13f35fb0543
+Stress Test with 700 objects
+https://github.com/user-attachments/assets/11e1966f-2a58-465d-ab6e-5c254a917f52
+
+
